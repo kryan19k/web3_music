@@ -12,12 +12,33 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
+import { Route as FeedIndexImport } from './routes/feed/index'
+import { Route as ProfileSettingsImport } from './routes/profile/settings'
+import { Route as ProfileUserIdImport } from './routes/profile/$userId'
 
 // Create/Update Routes
 
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const FeedIndexRoute = FeedIndexImport.update({
+  id: '/feed/',
+  path: '/feed/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ProfileSettingsRoute = ProfileSettingsImport.update({
+  id: '/profile/settings',
+  path: '/profile/settings',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ProfileUserIdRoute = ProfileUserIdImport.update({
+  id: '/profile/$userId',
+  path: '/profile/$userId',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -32,6 +53,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/profile/$userId': {
+      id: '/profile/$userId'
+      path: '/profile/$userId'
+      fullPath: '/profile/$userId'
+      preLoaderRoute: typeof ProfileUserIdImport
+      parentRoute: typeof rootRoute
+    }
+    '/profile/settings': {
+      id: '/profile/settings'
+      path: '/profile/settings'
+      fullPath: '/profile/settings'
+      preLoaderRoute: typeof ProfileSettingsImport
+      parentRoute: typeof rootRoute
+    }
+    '/feed/': {
+      id: '/feed/'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof FeedIndexImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -39,32 +81,47 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/profile/$userId': typeof ProfileUserIdRoute
+  '/profile/settings': typeof ProfileSettingsRoute
+  '/feed': typeof FeedIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/profile/$userId': typeof ProfileUserIdRoute
+  '/profile/settings': typeof ProfileSettingsRoute
+  '/feed': typeof FeedIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/profile/$userId': typeof ProfileUserIdRoute
+  '/profile/settings': typeof ProfileSettingsRoute
+  '/feed/': typeof FeedIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/profile/$userId' | '/profile/settings' | '/feed'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/profile/$userId' | '/profile/settings' | '/feed'
+  id: '__root__' | '/' | '/profile/$userId' | '/profile/settings' | '/feed/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ProfileUserIdRoute: typeof ProfileUserIdRoute
+  ProfileSettingsRoute: typeof ProfileSettingsRoute
+  FeedIndexRoute: typeof FeedIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ProfileUserIdRoute: ProfileUserIdRoute,
+  ProfileSettingsRoute: ProfileSettingsRoute,
+  FeedIndexRoute: FeedIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -77,11 +134,23 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/"
+        "/",
+        "/profile/$userId",
+        "/profile/settings",
+        "/feed/"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/profile/$userId": {
+      "filePath": "profile/$userId.tsx"
+    },
+    "/profile/settings": {
+      "filePath": "profile/settings.tsx"
+    },
+    "/feed/": {
+      "filePath": "feed/index.tsx"
     }
   }
 }
