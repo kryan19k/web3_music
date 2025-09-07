@@ -1,9 +1,10 @@
 import { StrictMode } from 'react'
+import './index.css'
 
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import ReactDOM from 'react-dom/client'
 
-import NotFound404 from '@/src/components/pageComponents/NotFound404'
+import { NotFound404 } from '@/src/components/pageComponents/NotFound404'
 import { routeTree } from '@/src/routeTree.gen'
 
 const router = createRouter({

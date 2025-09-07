@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { Button } from '@/src/components/ui/button'
+import { cn } from '@/src/lib/utils'
 import { motion } from 'framer-motion'
 import { Loader2, UserCheck, UserMinus, UserPlus } from 'lucide-react'
 import * as React from 'react'

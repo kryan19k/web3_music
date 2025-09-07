@@ -1,9 +1,7 @@
 import Avatar from '@/src/components/sharedComponents/Avatar'
-import ConnectButton from '@/src/components/sharedComponents/ConnectButton'
 import { env } from '@/src/env'
 import { chains, transports } from '@/src/lib/networks.config'
-import type { ButtonProps } from '@chakra-ui/react'
-import { ConnectKitButton, ConnectKitProvider, type Types, getDefaultConfig } from 'connectkit'
+import { ConnectKitProvider, type Types, getDefaultConfig } from 'connectkit'
 import type { FC, ReactNode } from 'react'
 import type { Address } from 'viem'
 import { normalize } from 'viem/ens'
@@ -42,40 +40,6 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     >
       {children}
     </ConnectKitProvider>
-  )
-}
-
-export const ConnectWalletButton = ({
-  label = 'Connect',
-  ...restProps
-}: { label?: string } & ButtonProps) => {
-  return (
-    <ConnectKitButton.Custom>
-      {({ address, isConnected, isConnecting, show, truncatedAddress }) => {
-        return (
-          <ConnectButton
-            disabled={isConnecting}
-            isConnected={isConnected}
-            onClick={show}
-            {...restProps}
-          >
-            {isConnected ? (
-              <>
-                {address && (
-                  <UserAvatar
-                    address={address}
-                    size={24}
-                  />
-                )}
-                {truncatedAddress}
-              </>
-            ) : (
-              label
-            )}
-          </ConnectButton>
-        )
-      }}
-    </ConnectKitButton.Custom>
   )
 }
 

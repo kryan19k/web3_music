@@ -1,7 +1,8 @@
-import { FileUpload, type UploadedFile } from '@/components/artist/FileUpload'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { FileUpload, type UploadedFile } from '@/src/components/artist/FileUpload'
+import { Badge } from '@/src/components/ui/badge'
+import { Button } from '@/src/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/custom-tabs'
 import {
   Form,
   FormControl,
@@ -10,19 +11,18 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Progress } from '@/components/ui/progress'
+} from '@/src/components/ui/form'
+import { Input } from '@/src/components/ui/input'
+import { Progress } from '@/src/components/ui/progress'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Textarea } from '@/components/ui/textarea'
+} from '@/src/components/ui/select'
+import { Separator } from '@/src/components/ui/separator'
+import { Textarea } from '@/src/components/ui/textarea'
 import { motion } from 'framer-motion'
 import {
   ArrowRight,

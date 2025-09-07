@@ -1,15 +1,20 @@
-import { MusicNFTCard } from '@/components/nft/MusicNFTCard'
-import { ActivityItem } from '@/components/social/ActivityItem'
-import { FollowButton } from '@/components/social/FollowButton'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { type Track, useAudioPlayer } from '@/hooks/useAudioPlayer'
-import type { MusicNFT } from '@/types/music-nft'
-import type { Achievement, ActivityItem as ActivityItemType, User, UserStats } from '@/types/social'
+import { MusicNFTCard } from '@/src/components/nft/MusicNFTCard'
+import { ActivityItem } from '@/src/components/social/ActivityItem'
+import { FollowButton } from '@/src/components/social/FollowButton'
+import { Avatar, AvatarFallback, AvatarImage } from '@/src/components/ui/avatar'
+import { Badge } from '@/src/components/ui/badge'
+import { Button } from '@/src/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/custom-tabs'
+import { Separator } from '@/src/components/ui/separator'
+import { type Track, useAudioPlayer } from '@/src/hooks/useAudioPlayer'
+import type { MusicNFT } from '@/src/types/music-nft'
+import type {
+  Achievement,
+  ActivityItem as ActivityItemType,
+  User,
+  UserStats,
+} from '@/src/types/social'
 import { Link, useParams } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 import {

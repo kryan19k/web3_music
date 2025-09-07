@@ -12,15 +12,39 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
+import { Route as PortfolioIndexImport } from './routes/portfolio/index'
+import { Route as PagsIndexImport } from './routes/pags/index'
+import { Route as MarketplaceIndexImport } from './routes/marketplace/index'
 import { Route as FeedIndexImport } from './routes/feed/index'
 import { Route as ProfileSettingsImport } from './routes/profile/settings'
 import { Route as ProfileUserIdImport } from './routes/profile/$userId'
+import { Route as MarketplaceNftIdImport } from './routes/marketplace/$nftId'
+import { Route as ArtistUploadImport } from './routes/artist/upload'
+import { Route as ArtistDashboardImport } from './routes/artist/dashboard'
 
 // Create/Update Routes
 
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const PortfolioIndexRoute = PortfolioIndexImport.update({
+  id: '/portfolio/',
+  path: '/portfolio/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const PagsIndexRoute = PagsIndexImport.update({
+  id: '/pags/',
+  path: '/pags/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const MarketplaceIndexRoute = MarketplaceIndexImport.update({
+  id: '/marketplace/',
+  path: '/marketplace/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -42,6 +66,24 @@ const ProfileUserIdRoute = ProfileUserIdImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const MarketplaceNftIdRoute = MarketplaceNftIdImport.update({
+  id: '/marketplace/$nftId',
+  path: '/marketplace/$nftId',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ArtistUploadRoute = ArtistUploadImport.update({
+  id: '/artist/upload',
+  path: '/artist/upload',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ArtistDashboardRoute = ArtistDashboardImport.update({
+  id: '/artist/dashboard',
+  path: '/artist/dashboard',
+  getParentRoute: () => rootRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -51,6 +93,27 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/artist/dashboard': {
+      id: '/artist/dashboard'
+      path: '/artist/dashboard'
+      fullPath: '/artist/dashboard'
+      preLoaderRoute: typeof ArtistDashboardImport
+      parentRoute: typeof rootRoute
+    }
+    '/artist/upload': {
+      id: '/artist/upload'
+      path: '/artist/upload'
+      fullPath: '/artist/upload'
+      preLoaderRoute: typeof ArtistUploadImport
+      parentRoute: typeof rootRoute
+    }
+    '/marketplace/$nftId': {
+      id: '/marketplace/$nftId'
+      path: '/marketplace/$nftId'
+      fullPath: '/marketplace/$nftId'
+      preLoaderRoute: typeof MarketplaceNftIdImport
       parentRoute: typeof rootRoute
     }
     '/profile/$userId': {
@@ -74,6 +137,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FeedIndexImport
       parentRoute: typeof rootRoute
     }
+    '/marketplace/': {
+      id: '/marketplace/'
+      path: '/marketplace'
+      fullPath: '/marketplace'
+      preLoaderRoute: typeof MarketplaceIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/pags/': {
+      id: '/pags/'
+      path: '/pags'
+      fullPath: '/pags'
+      preLoaderRoute: typeof PagsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/portfolio/': {
+      id: '/portfolio/'
+      path: '/portfolio'
+      fullPath: '/portfolio'
+      preLoaderRoute: typeof PortfolioIndexImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -81,47 +165,108 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/artist/dashboard': typeof ArtistDashboardRoute
+  '/artist/upload': typeof ArtistUploadRoute
+  '/marketplace/$nftId': typeof MarketplaceNftIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/profile/settings': typeof ProfileSettingsRoute
   '/feed': typeof FeedIndexRoute
+  '/marketplace': typeof MarketplaceIndexRoute
+  '/pags': typeof PagsIndexRoute
+  '/portfolio': typeof PortfolioIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/artist/dashboard': typeof ArtistDashboardRoute
+  '/artist/upload': typeof ArtistUploadRoute
+  '/marketplace/$nftId': typeof MarketplaceNftIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/profile/settings': typeof ProfileSettingsRoute
   '/feed': typeof FeedIndexRoute
+  '/marketplace': typeof MarketplaceIndexRoute
+  '/pags': typeof PagsIndexRoute
+  '/portfolio': typeof PortfolioIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/artist/dashboard': typeof ArtistDashboardRoute
+  '/artist/upload': typeof ArtistUploadRoute
+  '/marketplace/$nftId': typeof MarketplaceNftIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/profile/settings': typeof ProfileSettingsRoute
   '/feed/': typeof FeedIndexRoute
+  '/marketplace/': typeof MarketplaceIndexRoute
+  '/pags/': typeof PagsIndexRoute
+  '/portfolio/': typeof PortfolioIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/profile/$userId' | '/profile/settings' | '/feed'
+  fullPaths:
+    | '/'
+    | '/artist/dashboard'
+    | '/artist/upload'
+    | '/marketplace/$nftId'
+    | '/profile/$userId'
+    | '/profile/settings'
+    | '/feed'
+    | '/marketplace'
+    | '/pags'
+    | '/portfolio'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/profile/$userId' | '/profile/settings' | '/feed'
-  id: '__root__' | '/' | '/profile/$userId' | '/profile/settings' | '/feed/'
+  to:
+    | '/'
+    | '/artist/dashboard'
+    | '/artist/upload'
+    | '/marketplace/$nftId'
+    | '/profile/$userId'
+    | '/profile/settings'
+    | '/feed'
+    | '/marketplace'
+    | '/pags'
+    | '/portfolio'
+  id:
+    | '__root__'
+    | '/'
+    | '/artist/dashboard'
+    | '/artist/upload'
+    | '/marketplace/$nftId'
+    | '/profile/$userId'
+    | '/profile/settings'
+    | '/feed/'
+    | '/marketplace/'
+    | '/pags/'
+    | '/portfolio/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ArtistDashboardRoute: typeof ArtistDashboardRoute
+  ArtistUploadRoute: typeof ArtistUploadRoute
+  MarketplaceNftIdRoute: typeof MarketplaceNftIdRoute
   ProfileUserIdRoute: typeof ProfileUserIdRoute
   ProfileSettingsRoute: typeof ProfileSettingsRoute
   FeedIndexRoute: typeof FeedIndexRoute
+  MarketplaceIndexRoute: typeof MarketplaceIndexRoute
+  PagsIndexRoute: typeof PagsIndexRoute
+  PortfolioIndexRoute: typeof PortfolioIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ArtistDashboardRoute: ArtistDashboardRoute,
+  ArtistUploadRoute: ArtistUploadRoute,
+  MarketplaceNftIdRoute: MarketplaceNftIdRoute,
   ProfileUserIdRoute: ProfileUserIdRoute,
   ProfileSettingsRoute: ProfileSettingsRoute,
   FeedIndexRoute: FeedIndexRoute,
+  MarketplaceIndexRoute: MarketplaceIndexRoute,
+  PagsIndexRoute: PagsIndexRoute,
+  PortfolioIndexRoute: PortfolioIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -135,13 +280,28 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/artist/dashboard",
+        "/artist/upload",
+        "/marketplace/$nftId",
         "/profile/$userId",
         "/profile/settings",
-        "/feed/"
+        "/feed/",
+        "/marketplace/",
+        "/pags/",
+        "/portfolio/"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/artist/dashboard": {
+      "filePath": "artist/dashboard.tsx"
+    },
+    "/artist/upload": {
+      "filePath": "artist/upload.tsx"
+    },
+    "/marketplace/$nftId": {
+      "filePath": "marketplace/$nftId.tsx"
     },
     "/profile/$userId": {
       "filePath": "profile/$userId.tsx"
@@ -151,6 +311,15 @@ export const routeTree = rootRoute
     },
     "/feed/": {
       "filePath": "feed/index.tsx"
+    },
+    "/marketplace/": {
+      "filePath": "marketplace/index.tsx"
+    },
+    "/pags/": {
+      "filePath": "pags/index.tsx"
+    },
+    "/portfolio/": {
+      "filePath": "portfolio/index.tsx"
     }
   }
 }

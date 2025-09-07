@@ -1,36 +1,25 @@
 'use client'
 
-import Spinner from '@/src/components/sharedComponents/ui/Spinner'
-import { Toaster as ChakraToaster, Portal, Stack, Toast, createToaster } from '@chakra-ui/react'
+import { Toaster as Sonner } from 'sonner'
 
-export const toaster = createToaster({
-  placement: 'bottom-end',
-  pauseOnPageIdle: true,
-})
+type ToasterProps = React.ComponentProps<typeof Sonner>
 
-export const Toaster = () => {
+const Toaster = ({ ...props }: ToasterProps) => {
   return (
-    <Portal>
-      <ChakraToaster
-        toaster={toaster}
-        insetInline={{ mdDown: '4' }}
-      >
-        {(toast) => (
-          <Toast.Root width={{ md: 'sm' }}>
-            {toast.type === 'loading' ? <Spinner size="sm" /> : <Toast.Indicator />}
-            <Stack
-              gap="1"
-              flex="1"
-              maxWidth="100%"
-            >
-              {toast.title && <Toast.Title>{toast.title}</Toast.Title>}
-              {toast.description && <Toast.Description>{toast.description}</Toast.Description>}
-            </Stack>
-            {toast.action && <Toast.ActionTrigger>{toast.action.label}</Toast.ActionTrigger>}
-            {toast.meta?.closable && <Toast.CloseTrigger />}
-          </Toast.Root>
-        )}
-      </ChakraToaster>
-    </Portal>
+    <Sonner
+      className="toaster group"
+      toastOptions={{
+        classNames: {
+          toast:
+            'group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg',
+          description: 'group-[.toast]:text-muted-foreground',
+          actionButton: 'group-[.toast]:bg-primary group-[.toast]:text-primary-foreground',
+          cancelButton: 'group-[.toast]:bg-muted group-[.toast]:text-muted-foreground',
+        },
+      }}
+      {...props}
+    />
   )
 }
+
+export { Toaster }

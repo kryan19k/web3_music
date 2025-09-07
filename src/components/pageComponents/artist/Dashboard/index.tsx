@@ -1,34 +1,29 @@
-import { MusicNFTCard } from '@/components/nft/MusicNFTCard'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
+import { MusicNFTCard } from '@/src/components/nft/MusicNFTCard'
+import { Avatar, AvatarFallback, AvatarImage } from '@/src/components/ui/avatar'
+import { Badge } from '@/src/components/ui/badge'
+import { Button } from '@/src/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/custom-tabs'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { type Track, useAudioPlayer } from '@/hooks/useAudioPlayer'
-import type { MusicNFT } from '@/types/music-nft'
+} from '@/src/components/ui/select'
+import { type Track, useAudioPlayer } from '@/src/hooks/useAudioPlayer'
+import type { MusicNFT } from '@/src/types/music-nft'
 import { Link } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 import {
   Award,
   BarChart3,
-  Calendar,
   Clock,
   DollarSign,
   Download,
   Edit3,
-  Eye,
-  Globe,
   Headphones,
   Heart,
-  MoreHorizontal,
   Music,
   PieChart,
   Play,
@@ -36,12 +31,10 @@ import {
   Share2,
   Star,
   Target,
-  TrendingUp,
   Upload,
   Users,
   Zap,
 } from 'lucide-react'
-import * as React from 'react'
 import { useState } from 'react'
 
 // Mock artist data
