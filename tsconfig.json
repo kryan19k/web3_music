@@ -18,6 +18,7 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
+    "noErrorTruncation": false,
     "strict": true,
     "target": "ESNext",
     "useDefineForClassFields": true,
@@ -31,9 +32,10 @@
     ".install-files",
     "node_modules",
     "src/subgraphs/queries/aave",
-    "src/subgraphs/queries/uniswap",
+    "src/subgraphs/queries/uniswap", 
     "src/hooks/generated.ts",
-    "src/subgraphs/gql"
+    "src/subgraphs/gql",
+    "node_modules/**/*"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
