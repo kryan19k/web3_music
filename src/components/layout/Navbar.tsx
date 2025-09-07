@@ -23,6 +23,7 @@ import {
   Moon,
   Music,
   Search,
+  Shield,
   ShoppingBag,
   Sun,
   TrendingUp,
@@ -63,8 +64,13 @@ export function Navbar() {
             whileHover={{ scale: 1.05 }}
             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-              <Music className="w-5 h-5 text-white" />
+            <div className="  flex items-center justify-center">
+              <img
+                src="/logo.png"
+                alt="Pags Music"
+                width={80}
+                height={80}
+              />
             </div>
             <motion.div
               className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 opacity-0 group-hover:opacity-20"
@@ -154,6 +160,18 @@ export function Navbar() {
             </NavigationMenuItem>
 
             <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <Link
+                  to="/playlists"
+                  className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50"
+                >
+                  <Music className="w-4 h-4 mr-2" />
+                  Playlists
+                </Link>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+
+            <NavigationMenuItem>
               <NavigationMenuTrigger>
                 <Coins className="w-4 h-4 mr-2" />
                 PAGS Token
@@ -237,6 +255,15 @@ export function Navbar() {
             <span className="sr-only">Toggle theme</span>
           </Button>
 
+          {/* Admin Panel Link */}
+          <Link
+            to="/admin"
+            className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-md bg-gradient-to-r from-red-500/10 to-orange-500/10 border border-red-500/20 text-red-600 hover:bg-red-500/20 transition-colors text-sm font-medium"
+          >
+            <Shield className="w-4 h-4" />
+            Admin
+          </Link>
+
           {/* Connect Wallet */}
           <div className="hidden md:block">
             <ConnectWalletButton />
@@ -288,6 +315,15 @@ export function Navbar() {
                 </Link>
               </div>
 
+              <Link
+                to="/playlists"
+                className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Music className="w-4 h-4" />
+                Playlists
+              </Link>
+
               <div className="space-y-2">
                 <h4 className="font-medium text-sm text-muted-foreground px-3">PAGS Token</h4>
                 <Link
@@ -315,6 +351,17 @@ export function Navbar() {
               >
                 <BarChart3 className="w-4 h-4" />
                 Portfolio
+              </Link>
+
+              <div className="border-t my-2" />
+
+              <Link
+                to="/admin"
+                className="flex items-center gap-3 px-3 py-2 rounded-md bg-red-500/10 border border-red-500/20 text-red-600 hover:bg-red-500/20 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Shield className="w-4 h-4" />
+                Admin Panel
               </Link>
 
               <Link

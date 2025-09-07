@@ -1,3 +1,5 @@
+import { AddToPlaylistDialog } from '@/src/components/playlist/AddToPlaylistDialog'
+import { QueueManager } from '@/src/components/playlist/QueueManager'
 import { Badge } from '@/src/components/ui/badge'
 import { Button } from '@/src/components/ui/button'
 import { Card, CardContent } from '@/src/components/ui/card'
@@ -8,6 +10,7 @@ import {
   Heart,
   List,
   Maximize2,
+  Music,
   Pause,
   Play,
   Share2,
@@ -27,14 +30,19 @@ export function MiniPlayer() {
     currentTime,
     duration,
     isLoading,
+    queue,
+    queuePosition,
     seek,
     setVolume,
     next,
     previous,
     togglePlayPause,
+    pause,
+    play,
   } = useAudioPlayer()
 
   const [showVolumeSlider, setShowVolumeSlider] = React.useState(false)
+  const [showQueue, setShowQueue] = React.useState(false)
   const [isMuted, setIsMuted] = React.useState(false)
   const [previousVolume, setPreviousVolume] = React.useState(volume)
 
@@ -197,10 +205,26 @@ export function MiniPlayer() {
                   <Share2 className="w-4 h-4" />
                 </Button>
 
+                {currentTrack && (
+                  <AddToPlaylistDialog
+                    track={currentTrack}
+                    trigger={
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="hidden lg:flex w-8 h-8"
+                      >
+                        <Music className="w-4 h-4" />
+                      </Button>
+                    }
+                  />
+                )}
+
                 <Button
                   size="icon"
                   variant="ghost"
                   className="hidden sm:flex w-8 h-8"
+                  onClick={() => setShowQueue(true)}
                 >
                   <List className="w-4 h-4" />
                 </Button>
@@ -247,6 +271,20 @@ export function MiniPlayer() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Queue Manager */}
+        <QueueManager
+          queue={queue}
+          currentTrack={currentTrack}
+          queuePosition={queuePosition}
+          isPlaying={isPlaying}
+          onPlay={play}
+          onPause={pause}
+          onNext={next}
+          onPrevious={previous}
+          isOpen={showQueue}
+          onOpenChange={setShowQueue}
+        />
       </motion.div>
     </AnimatePresence>
   )

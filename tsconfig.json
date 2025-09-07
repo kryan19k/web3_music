@@ -17,9 +17,9 @@
     "noUnusedParameters": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
     "strict": true,
     "target": "ESNext",
-    "types": ["vitest/globals"],
     "useDefineForClassFields": true,
     "paths": {
       "@/src/*": ["./src/*"],
@@ -29,6 +29,7 @@
   "include": ["src"],
   "exclude": [
     ".install-files",
+    "node_modules",
     "src/subgraphs/queries/aave",
     "src/subgraphs/queries/uniswap",
     "src/hooks/generated.ts",

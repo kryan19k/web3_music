@@ -8,6 +8,8 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createFileRoute } from '@tanstack/react-router'
+
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
@@ -22,7 +24,25 @@ import { Route as MarketplaceNftIdImport } from './routes/marketplace/$nftId'
 import { Route as ArtistUploadImport } from './routes/artist/upload'
 import { Route as ArtistDashboardImport } from './routes/artist/dashboard'
 
+// Create Virtual Routes
+
+const PlaylistsLazyImport = createFileRoute('/playlists')()
+const AdminLazyImport = createFileRoute('/admin')()
+const PlaylistPlaylistIdLazyImport = createFileRoute('/playlist/$playlistId')()
+
 // Create/Update Routes
+
+const PlaylistsLazyRoute = PlaylistsLazyImport.update({
+  id: '/playlists',
+  path: '/playlists',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/playlists.lazy').then((d) => d.Route))
+
+const AdminLazyRoute = AdminLazyImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/admin.lazy').then((d) => d.Route))
 
 const IndexRoute = IndexImport.update({
   id: '/',
@@ -53,6 +73,14 @@ const FeedIndexRoute = FeedIndexImport.update({
   path: '/feed/',
   getParentRoute: () => rootRoute,
 } as any)
+
+const PlaylistPlaylistIdLazyRoute = PlaylistPlaylistIdLazyImport.update({
+  id: '/playlist/$playlistId',
+  path: '/playlist/$playlistId',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() =>
+  import('./routes/playlist/$playlistId.lazy').then((d) => d.Route),
+)
 
 const ProfileSettingsRoute = ProfileSettingsImport.update({
   id: '/profile/settings',
@@ -95,6 +123,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/playlists': {
+      id: '/playlists'
+      path: '/playlists'
+      fullPath: '/playlists'
+      preLoaderRoute: typeof PlaylistsLazyImport
+      parentRoute: typeof rootRoute
+    }
     '/artist/dashboard': {
       id: '/artist/dashboard'
       path: '/artist/dashboard'
@@ -128,6 +170,13 @@ declare module '@tanstack/react-router' {
       path: '/profile/settings'
       fullPath: '/profile/settings'
       preLoaderRoute: typeof ProfileSettingsImport
+      parentRoute: typeof rootRoute
+    }
+    '/playlist/$playlistId': {
+      id: '/playlist/$playlistId'
+      path: '/playlist/$playlistId'
+      fullPath: '/playlist/$playlistId'
+      preLoaderRoute: typeof PlaylistPlaylistIdLazyImport
       parentRoute: typeof rootRoute
     }
     '/feed/': {
@@ -165,11 +214,14 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminLazyRoute
+  '/playlists': typeof PlaylistsLazyRoute
   '/artist/dashboard': typeof ArtistDashboardRoute
   '/artist/upload': typeof ArtistUploadRoute
   '/marketplace/$nftId': typeof MarketplaceNftIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/profile/settings': typeof ProfileSettingsRoute
+  '/playlist/$playlistId': typeof PlaylistPlaylistIdLazyRoute
   '/feed': typeof FeedIndexRoute
   '/marketplace': typeof MarketplaceIndexRoute
   '/pags': typeof PagsIndexRoute
@@ -178,11 +230,14 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminLazyRoute
+  '/playlists': typeof PlaylistsLazyRoute
   '/artist/dashboard': typeof ArtistDashboardRoute
   '/artist/upload': typeof ArtistUploadRoute
   '/marketplace/$nftId': typeof MarketplaceNftIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/profile/settings': typeof ProfileSettingsRoute
+  '/playlist/$playlistId': typeof PlaylistPlaylistIdLazyRoute
   '/feed': typeof FeedIndexRoute
   '/marketplace': typeof MarketplaceIndexRoute
   '/pags': typeof PagsIndexRoute
@@ -192,11 +247,14 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/admin': typeof AdminLazyRoute
+  '/playlists': typeof PlaylistsLazyRoute
   '/artist/dashboard': typeof ArtistDashboardRoute
   '/artist/upload': typeof ArtistUploadRoute
   '/marketplace/$nftId': typeof MarketplaceNftIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/profile/settings': typeof ProfileSettingsRoute
+  '/playlist/$playlistId': typeof PlaylistPlaylistIdLazyRoute
   '/feed/': typeof FeedIndexRoute
   '/marketplace/': typeof MarketplaceIndexRoute
   '/pags/': typeof PagsIndexRoute
@@ -207,11 +265,14 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
+    | '/playlists'
     | '/artist/dashboard'
     | '/artist/upload'
     | '/marketplace/$nftId'
     | '/profile/$userId'
     | '/profile/settings'
+    | '/playlist/$playlistId'
     | '/feed'
     | '/marketplace'
     | '/pags'
@@ -219,11 +280,14 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
+    | '/playlists'
     | '/artist/dashboard'
     | '/artist/upload'
     | '/marketplace/$nftId'
     | '/profile/$userId'
     | '/profile/settings'
+    | '/playlist/$playlistId'
     | '/feed'
     | '/marketplace'
     | '/pags'
@@ -231,11 +295,14 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin'
+    | '/playlists'
     | '/artist/dashboard'
     | '/artist/upload'
     | '/marketplace/$nftId'
     | '/profile/$userId'
     | '/profile/settings'
+    | '/playlist/$playlistId'
     | '/feed/'
     | '/marketplace/'
     | '/pags/'
@@ -245,11 +312,14 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminLazyRoute: typeof AdminLazyRoute
+  PlaylistsLazyRoute: typeof PlaylistsLazyRoute
   ArtistDashboardRoute: typeof ArtistDashboardRoute
   ArtistUploadRoute: typeof ArtistUploadRoute
   MarketplaceNftIdRoute: typeof MarketplaceNftIdRoute
   ProfileUserIdRoute: typeof ProfileUserIdRoute
   ProfileSettingsRoute: typeof ProfileSettingsRoute
+  PlaylistPlaylistIdLazyRoute: typeof PlaylistPlaylistIdLazyRoute
   FeedIndexRoute: typeof FeedIndexRoute
   MarketplaceIndexRoute: typeof MarketplaceIndexRoute
   PagsIndexRoute: typeof PagsIndexRoute
@@ -258,11 +328,14 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminLazyRoute: AdminLazyRoute,
+  PlaylistsLazyRoute: PlaylistsLazyRoute,
   ArtistDashboardRoute: ArtistDashboardRoute,
   ArtistUploadRoute: ArtistUploadRoute,
   MarketplaceNftIdRoute: MarketplaceNftIdRoute,
   ProfileUserIdRoute: ProfileUserIdRoute,
   ProfileSettingsRoute: ProfileSettingsRoute,
+  PlaylistPlaylistIdLazyRoute: PlaylistPlaylistIdLazyRoute,
   FeedIndexRoute: FeedIndexRoute,
   MarketplaceIndexRoute: MarketplaceIndexRoute,
   PagsIndexRoute: PagsIndexRoute,
@@ -280,11 +353,14 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/admin",
+        "/playlists",
         "/artist/dashboard",
         "/artist/upload",
         "/marketplace/$nftId",
         "/profile/$userId",
         "/profile/settings",
+        "/playlist/$playlistId",
         "/feed/",
         "/marketplace/",
         "/pags/",
@@ -293,6 +369,12 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/admin": {
+      "filePath": "admin.lazy.tsx"
+    },
+    "/playlists": {
+      "filePath": "playlists.lazy.tsx"
     },
     "/artist/dashboard": {
       "filePath": "artist/dashboard.tsx"
@@ -308,6 +390,9 @@ export const routeTree = rootRoute
     },
     "/profile/settings": {
       "filePath": "profile/settings.tsx"
+    },
+    "/playlist/$playlistId": {
+      "filePath": "playlist/$playlistId.lazy.tsx"
     },
     "/feed/": {
       "filePath": "feed/index.tsx"

@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/src/components/ui/avatar'
 import { Badge } from '@/src/components/ui/badge'
 import { Button } from '@/src/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
+import { Switch } from '@/src/components/ui/custom-switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/custom-tabs'
 import {
   Form,
@@ -21,7 +22,6 @@ import {
   SelectValue,
 } from '@/src/components/ui/select'
 import { Separator } from '@/src/components/ui/separator'
-import { Switch } from '@/src/components/ui/switch'
 import { Textarea } from '@/src/components/ui/textarea'
 import { motion } from 'framer-motion'
 import {
