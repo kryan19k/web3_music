@@ -4,7 +4,8 @@
   "version": "2.0.1",
   "type": "module",
   "scripts": {
-    "build": "tsc --noEmit --pretty && vite build",
+    "build": "vite build",
+    "build:with-types": "tsc --noEmit --pretty && vite build",
     "dev": "vite",
     "dev:watch": "routes:watch & vite",
     "docs:build": "vocs build",
