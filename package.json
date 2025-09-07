@@ -1,8 +1,12 @@
 {
-  "name": "dappbooster",
+  "name": "pags-music-marketplace",
   "private": true,
-  "version": "2.0.1",
+  "version": "1.0.0",
   "type": "module",
+  "description": "Web3 music marketplace where fans can own music NFTs, earn PAGS tokens, and share in artist royalties",
+  "keywords": ["web3", "music", "nft", "marketplace", "crypto", "royalties", "blockchain"],
+  "author": "PAGS Music Team",
+  "homepage": "https://pags-music.com",
   "scripts": {
     "build": "vite build",
     "build:with-types": "tsc --noEmit --pretty && vite build",

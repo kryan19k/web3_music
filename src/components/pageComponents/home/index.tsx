@@ -47,6 +47,9 @@ export const Home = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-transparent to-pink-900/30" />
         <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
 
+        {/* Watermark Cover - Full Bottom */}
+        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-background via-background/95 to-transparent z-30" />
+
         {/* Floating Music Notes Animation */}
         <div className="absolute inset-0 pointer-events-none">
           {Array.from({ length: 15 }, (_, i) => {
@@ -102,18 +105,18 @@ export const Home = () => {
         </div>
 
         {/* Content */}
-        <div className="relative z-20 flex items-center w-full h-full px-32">
-          {/* Main content - Far Left */}
-          <div className="max-w-2xl">
+        <div className="relative z-20 flex items-center justify-start w-full h-full px-4 sm:px-8 lg:px-12 xl:px-20">
+          {/* Main content - Left side to avoid covering Spline scene */}
+          <div className="w-full max-w-xl lg:max-w-2xl xl:max-w-3xl text-center lg:text-left">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 1, ease: 'easeOut' }}
-              className="text-left"
+              className="text-center lg:text-left"
             >
               {/* Content backdrop for better readability */}
-              <div className="relative backdrop-blur-sm bg-background/5 rounded-3xl p-8 border border-white/10 shadow-2xl shadow-purple-500/10">
-                <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-8 leading-tight text-left">
+              <div className="relative backdrop-blur-sm bg-background/5 rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border border-white/10 shadow-2xl shadow-purple-500/10">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 sm:mb-8 leading-tight text-center lg:text-left">
                   <span className="bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent drop-shadow-lg">
                     Own the Music
                   </span>
@@ -121,21 +124,21 @@ export const Home = () => {
                   <span className="text-white drop-shadow-lg">Earn the Royalties</span>
                 </h1>
 
-                <p className="text-xl md:text-2xl text-gray-200 mb-10 max-w-2xl leading-relaxed text-left">
+                <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-200 mb-8 sm:mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed text-center lg:text-left">
                   Buy music NFTs, earn PAGS tokens, and share in the success of your favorite
                   artists.
-                  <br />
+                  <br className="hidden sm:block" />
                   <span className="text-purple-200 font-semibold">
                     The first platform where fans become stakeholders.
                   </span>
                 </p>
 
-                <div className="flex flex-col sm:flex-row gap-4 items-start mb-12">
+                <div className="flex flex-col sm:flex-row gap-4 items-center lg:items-start justify-center lg:justify-start mb-8 sm:mb-12">
                   <Link to="/marketplace">
                     <Button
                       size="lg"
                       variant="default"
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/50 transform hover:scale-105 transition-all duration-300 px-8 py-4 text-lg"
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/50 transform hover:scale-105 transition-all duration-300 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg w-full sm:w-auto"
                     >
                       Explore Music
                       <ArrowRight className="ml-2 w-5 h-5" />
@@ -144,7 +147,7 @@ export const Home = () => {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="border-white/20 text-white hover:bg-white/10 backdrop-blur-sm shadow-lg px-8 py-4 text-lg"
+                    className="border-white/20 text-white hover:bg-white/10 backdrop-blur-sm shadow-lg px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg w-full sm:w-auto"
                   >
                     <Play className="mr-2 w-5 h-5" />
                     Watch Demo
@@ -159,7 +162,7 @@ export const Home = () => {
                 transition={{ delay: 1.2, duration: 0.8 }}
                 className="mt-8"
               >
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full max-w-4xl mx-auto lg:mx-0 lg:max-w-3xl">
                   {[
                     { icon: Music, label: 'Songs Listed', value: '234', change: '+12' },
                     { icon: Users, label: 'Active Holders', value: '1,847', change: '+124' },
@@ -173,10 +176,10 @@ export const Home = () => {
                       transition={{ delay: 1.4 + i * 0.1, duration: 0.5 }}
                       whileHover={{ scale: 1.05 }}
                     >
-                      <Card className="p-4 bg-black/20 backdrop-blur-md border-white/10 hover:bg-black/30 transition-all duration-300 shadow-xl shadow-purple-500/10">
+                      <Card className="p-2 sm:p-3 lg:p-4 bg-black/20 backdrop-blur-md border-white/10 hover:bg-black/30 transition-all duration-300 shadow-xl shadow-purple-500/10">
                         <CardContent className="p-0">
-                          <div className="flex items-center justify-between mb-2">
-                            <stat.icon className="w-4 h-4 text-purple-300" />
+                          <div className="flex items-center justify-between mb-1 sm:mb-2">
+                            <stat.icon className="w-3 h-3 sm:w-4 sm:h-4 text-purple-300" />
                             <Badge
                               variant="secondary"
                               className="text-xs bg-green-500/20 text-green-300 border-green-500/30"
@@ -184,8 +187,10 @@ export const Home = () => {
                               {stat.change}
                             </Badge>
                           </div>
-                          <p className="text-2xl font-bold text-white">{stat.value}</p>
-                          <p className="text-xs text-gray-300">{stat.label}</p>
+                          <p className="text-sm sm:text-base lg:text-2xl font-bold text-white">
+                            {stat.value}
+                          </p>
+                          <p className="text-xs text-gray-300 leading-tight">{stat.label}</p>
                         </CardContent>
                       </Card>
                     </motion.div>
@@ -304,28 +309,32 @@ export const Home = () => {
 
                   {/* Main Card */}
                   <Card
-                    className={`relative pt-12 pb-8 px-8 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl border-2 border-white/10 hover:border-white/20 transition-all duration-500 group-hover:shadow-2xl ${item.bgGlow} min-h-[400px]`}
+                    className={`relative pt-12 pb-8 px-8 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl border-2 border-white/10 hover:border-white/20 transition-all duration-500 group-hover:shadow-2xl ${item.bgGlow} h-[500px]`}
                   >
-                    <CardContent className="p-0 text-center">
-                      {/* Animated Icon */}
-                      <motion.div
-                        whileHover={{ rotate: 360, scale: 1.1 }}
-                        transition={{ duration: 0.6 }}
-                        className={`w-20 h-20 rounded-2xl bg-gradient-to-r ${item.color} flex items-center justify-center mx-auto mb-6 shadow-xl`}
-                      >
-                        <item.icon className="w-10 h-10 text-white" />
-                      </motion.div>
+                    <CardContent className="p-0 text-center h-full flex flex-col">
+                      {/* Top Section: Icon and Title */}
+                      <div className="flex-shrink-0">
+                        {/* Animated Icon */}
+                        <motion.div
+                          whileHover={{ rotate: 360, scale: 1.1 }}
+                          transition={{ duration: 0.6 }}
+                          className={`w-20 h-20 rounded-2xl bg-gradient-to-r ${item.color} flex items-center justify-center mx-auto mb-6 shadow-xl`}
+                        >
+                          <item.icon className="w-10 h-10 text-white" />
+                        </motion.div>
 
-                      <h3 className="text-2xl font-bold mb-4 group-hover:text-white transition-colors">
-                        {item.title}
-                      </h3>
+                        <h3 className="text-2xl font-bold mb-4 group-hover:text-white transition-colors">
+                          {item.title}
+                        </h3>
+                      </div>
 
-                      <p className="text-muted-foreground mb-6 leading-relaxed">
-                        {item.description}
-                      </p>
+                      {/* Middle Section: Description (flexible) */}
+                      <div className="flex-grow flex items-center">
+                        <p className="text-muted-foreground leading-relaxed">{item.description}</p>
+                      </div>
 
-                      {/* Feature List */}
-                      <div className="space-y-3">
+                      {/* Bottom Section: Feature List */}
+                      <div className="flex-shrink-0 space-y-3 mt-6">
                         {item.features.map((feature, i) => (
                           <motion.div
                             key={feature}

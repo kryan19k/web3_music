@@ -129,7 +129,11 @@ export function PagsDashboard() {
             className="text-center max-w-4xl mx-auto"
           >
             <div className="flex items-center justify-center gap-2 mb-4">
-              <Coins className="w-8 h-8 text-yellow-500" />
+              <img
+                src="/pags.png"
+                alt="PAGS Token"
+                className="w-32 h-32 rounded-full shadow-lg"
+              />
               <h1 className="text-5xl md:text-6xl font-bold">
                 PAGS{' '}
                 <span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
@@ -145,7 +149,11 @@ export function PagsDashboard() {
             {/* Token Price */}
             <div className="inline-flex items-center gap-4 bg-card/50 backdrop-blur-sm border border-border/50 rounded-full px-6 py-3">
               <div className="flex items-center gap-2">
-                <Coins className="w-5 h-5 text-yellow-500" />
+                <img
+                  src="/pags.png"
+                  alt="PAGS"
+                  className="w-5 h-5 rounded-full"
+                />
                 <span className="font-semibold">${pagsData.currentPrice.toFixed(4)}</span>
               </div>
               <Badge
@@ -175,7 +183,11 @@ export function PagsDashboard() {
               <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/20">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <Coins className="w-8 h-8 text-yellow-500" />
+                    <img
+                      src="/pags.png"
+                      alt="PAGS Token"
+                      className="w-8 h-8 rounded-full shadow-md"
+                    />
                     <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20">
                       PAGS
                     </Badge>
