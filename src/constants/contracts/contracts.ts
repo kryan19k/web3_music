@@ -1,3 +1,7 @@
+import { PAGSTokenAbi } from './abis/PAGSToken'
+import { MUSIC_NFT_ABI } from './abis/MusicNFT'
+import { MusicNFTMetadataAbi } from './abis/MusicNFTMetadata'
+
 // Contract addresses for polygonAmoy (Chain ID: 80002)
 export const CONTRACTS = {
   PAGSToken: {
@@ -41,4 +45,25 @@ export function getContractAddress(contractName: keyof typeof CONTRACTS, chainId
     throw new Error(`Contract ${contractName} not deployed on chain ${chainId}`);
   }
   return contract.address;
+}
+
+// Wagmi CLI contracts configuration
+export function getContracts() {
+  return [
+    {
+      name: 'PAGSToken',
+      address: CONTRACTS.PAGSToken.address,
+      abi: PAGSTokenAbi,
+    },
+    {
+      name: 'MusicNFT', 
+      address: CONTRACTS.MusicNFT.address,
+      abi: MUSIC_NFT_ABI,
+    },
+    {
+      name: 'MusicNFTMetadata',
+      address: CONTRACTS.MusicNFTMetadata.address, 
+      abi: MusicNFTMetadataAbi,
+    },
+  ] as const;
 }

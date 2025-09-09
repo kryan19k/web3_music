@@ -18,7 +18,7 @@
     "typedoc:build": "typedoc",
     "lint": "echo 'Linting disabled'",
     "lint:fix": "echo 'Linting disabled'",
-    "postinstall": "pnpm wagmi-generate",
+    "postinstall": "echo 'wagmi generation disabled temporarily'",
     "prepare": "husky",
     "preview": "vite preview",
     "routes:generate": "tsr generate",

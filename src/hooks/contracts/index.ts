@@ -30,9 +30,8 @@ export {
   useMusicNFTHolderBenefits,
   useMusicNFTTrackInfo,
   useMusicNFTTokenMetadata,
-  useMusicNFTExclusiveContent,
   useMusicNFTCollaboratorRoyalties,
-  useMusicNFTTrackCollaborators,
+
   useMusicNFTMint,
   useMusicNFTWhitelistMint,
   useMusicNFTSignatureMint,
@@ -41,8 +40,7 @@ export {
   useMusicNFTDepositRoyalties,
   useMusicNFTDistributeCollaboratorRoyalties,
   useMusicNFTClaimCollaboratorRoyalties,
-  useMusicNFTRedeemBenefit,
-  useMusicNFTAddExclusiveContent,
+  
   useMusicNFTUserData,
   useMusicNFTMarketplaceData,
   Tier,

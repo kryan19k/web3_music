@@ -2,7 +2,7 @@ import { useAccount, useReadContract, useWriteContract, useWaitForTransactionRec
 import { parseEther, formatEther, type Address } from 'viem'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { MUSIC_NFT_ABI } from '@/src/constants/contracts/abis/MusicNFT'
+import { MusicNFTAbi } from '@/src/constants/contracts/abis/MusicNFT'
 import { CONTRACTS } from '@/src/constants/contracts/contracts'
 
 // Use the address directly from CONTRACTS to avoid import issues
@@ -28,7 +28,7 @@ export enum SalePhase {
 export function useMusicNFTTierConfig(tier: Tier) {
   return useReadContract({
     address: MUSIC_NFT_ADDRESS,
-    abi: MUSIC_NFT_ABI,
+    abi: MusicNFTAbi,
     functionName: 'tiers',
     args: [tier],
   })
@@ -54,7 +54,7 @@ export function useMusicNFTAllTiers() {
 export function useMusicNFTTierStats(tier: Tier) {
   return useReadContract({
     address: MUSIC_NFT_ADDRESS,
-    abi: MUSIC_NFT_ABI,
+    abi: MusicNFTAbi,
     functionName: 'getTierStats',
     args: [tier],
   })
@@ -63,7 +63,7 @@ export function useMusicNFTTierStats(tier: Tier) {
 export function useMusicNFTSalePhase() {
   return useReadContract({
     address: MUSIC_NFT_ADDRESS,
-    abi: MUSIC_NFT_ABI,
+    abi: MusicNFTAbi,
     functionName: 'currentPhase',
   })
 }
@@ -71,7 +71,7 @@ export function useMusicNFTSalePhase() {
 export function useMusicNFTDynamicPricing() {
   return useReadContract({
     address: MUSIC_NFT_ADDRESS,
-    abi: MUSIC_NFT_ABI,
+    abi: MusicNFTAbi,
     functionName: 'dynamicPricingEnabled',
   })
 }
@@ -83,7 +83,7 @@ export function useMusicNFTDynamicPricing() {
 export function useMusicNFTBalance(tokenId: number, address?: Address) {
   return useReadContract({
     address: MUSIC_NFT_ADDRESS,
-    abi: MUSIC_NFT_ABI,
+    abi: MusicNFTAbi,
     functionName: 'balanceOf',
     args: address && tokenId !== undefined ? [address, BigInt(tokenId)] : undefined,
     query: {
@@ -95,7 +95,7 @@ export function useMusicNFTBalance(tokenId: number, address?: Address) {
 export function useMusicNFTOwnedTokens(address?: Address) {
   return useReadContract({
     address: MUSIC_NFT_ADDRESS,
-    abi: MUSIC_NFT_ABI,
+    abi: MusicNFTAbi,
     functionName: 'getOwnedTokens',
     args: address ? [address] : undefined,
     query: {
@@ -107,7 +107,7 @@ export function useMusicNFTOwnedTokens(address?: Address) {
 export function useMusicNFTUserStats(address?: Address) {
   return useReadContract({
     address: MUSIC_NFT_ADDRESS,
-    abi: MUSIC_NFT_ABI,
+    abi: MusicNFTAbi,
     functionName: 'getUserStats',
     args: address ? [address] : undefined,
     query: {
@@ -119,7 +119,7 @@ export function useMusicNFTUserStats(address?: Address) {
 export function useMusicNFTHolderBenefits(address?: Address) {
   return useReadContract({
     address: MUSIC_NFT_ADDRESS,
-    abi: MUSIC_NFT_ABI,
+    abi: MusicNFTAbi,
     functionName: 'getHolderBenefits',
     args: address ? [address] : undefined,
     query: {
@@ -135,7 +135,7 @@ export function useMusicNFTHolderBenefits(address?: Address) {
 export function useMusicNFTTrackInfo(trackId: number) {
   return useReadContract({
     address: MUSIC_NFT_ADDRESS,
-    abi: MUSIC_NFT_ABI,
+    abi: MusicNFTAbi,
     functionName: 'getTrackInfo',
     args: [BigInt(trackId)],
     query: {
@@ -147,21 +147,21 @@ export function useMusicNFTTrackInfo(trackId: number) {
 export function useMusicNFTTokenMetadata(tokenId: number) {
   const tokenToTier = useReadContract({
     address: MUSIC_NFT_ADDRESS,
-    abi: MUSIC_NFT_ABI,
+    abi: MusicNFTAbi,
     functionName: 'tokenToTier',
     args: [BigInt(tokenId)],
   })
 
   const tokenToTrackId = useReadContract({
     address: MUSIC_NFT_ADDRESS,
-    abi: MUSIC_NFT_ABI,
+    abi: MusicNFTAbi,
     functionName: 'tokenToTrackId',
     args: [BigInt(tokenId)],
   })
 
   const uri = useReadContract({
     address: MUSIC_NFT_ADDRESS,
-    abi: MUSIC_NFT_ABI,
+    abi: MusicNFTAbi,
     functionName: 'uri',
     args: [BigInt(tokenId)],
   })
@@ -189,7 +189,7 @@ export function useMusicNFTTokenMetadata(tokenId: number) {
 export function useMusicNFTCollaboratorRoyalties(address?: Address) {
   return useReadContract({
     address: MUSIC_NFT_ADDRESS,
-    abi: MUSIC_NFT_ABI,
+    abi: MusicNFTAbi,
     functionName: 'claimableRoyalties',
     args: address ? [address] : undefined,
     query: {
@@ -201,7 +201,7 @@ export function useMusicNFTCollaboratorRoyalties(address?: Address) {
 export function useMusicNFTTrackCollaborator(trackId: number, index: number) {
   return useReadContract({
     address: MUSIC_NFT_ADDRESS,
-    abi: MUSIC_NFT_ABI,
+    abi: MusicNFTAbi,
     functionName: 'trackCollaborators',
     args: [BigInt(trackId), BigInt(index)],
     query: {
@@ -231,7 +231,7 @@ export function useMusicNFTMint() {
     }) => {
       return writeContract({
         address: MUSIC_NFT_ADDRESS,
-        abi: MUSIC_NFT_ABI,
+        abi: MusicNFTAbi,
         functionName: 'mintTier',
         args: [tier, BigInt(quantity), referrer || '0x0000000000000000000000000000000000000000'],
         // biome-ignore lint/suspicious/noExplicitAny: Wagmi type system requires any for complex contract interactions
@@ -281,7 +281,7 @@ export function useMusicNFTWhitelistMint() {
     }) => {
       return writeContract({
         address: MUSIC_NFT_ADDRESS,
-        abi: MUSIC_NFT_ABI,
+        abi: MusicNFTAbi,
         functionName: 'whitelistMint',
         args: [tier, BigInt(quantity), merkleProof, referrer || '0x0000000000000000000000000000000000000000'],
         value: parseEther(value),
@@ -334,7 +334,7 @@ export function useMusicNFTSignatureMint() {
     }) => {
       return writeContract({
         address: MUSIC_NFT_ADDRESS,
-        abi: MUSIC_NFT_ABI,
+        abi: MusicNFTAbi,
         functionName: 'signatureMint',
         args: [tier, BigInt(quantity), BigInt(nonce), signature, referrer || '0x0000000000000000000000000000000000000000'],
         value: parseEther(value),
@@ -396,7 +396,7 @@ export function useMusicNFTAddTrack() {
     }) => {
       return writeContract({
         address: MUSIC_NFT_ADDRESS,
-        abi: MUSIC_NFT_ABI,
+        abi: MusicNFTAbi,
         functionName: 'addTrack',
         args: [BigInt(trackId), title, artist, album, ipfsAudioHash, ipfsCoverArt, BigInt(duration), BigInt(bpm), genre],
       // biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -437,7 +437,7 @@ export function useMusicNFTAddCollaborationTrack() {
     }) => {
       return writeContract({
         address: MUSIC_NFT_ADDRESS,
-        abi: MUSIC_NFT_ABI,
+        abi: MusicNFTAbi,
         functionName: 'addCollaborationTrack',
           args: [BigInt(trackId), title, collaborators, shares.map(share => BigInt(share))],
       // biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -472,7 +472,7 @@ export function useMusicNFTDepositRoyalties() {
     mutationFn: async ({ amount }: { amount: string }) => {
       return writeContract({
         address: MUSIC_NFT_ADDRESS,
-        abi: MUSIC_NFT_ABI,
+        abi: MusicNFTAbi,
         functionName: 'depositRoyalties',
         value: parseEther(amount),
       // biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -503,7 +503,7 @@ export function useMusicNFTDistributeCollaboratorRoyalties() {
     mutationFn: async ({ trackId, amount }: { trackId: number; amount: string }) => {
       return writeContract({
         address: MUSIC_NFT_ADDRESS,
-        abi: MUSIC_NFT_ABI,
+        abi: MusicNFTAbi,
         functionName: 'distributeCollaboratorRoyalties',
         args: [BigInt(trackId)],
         value: parseEther(amount),
@@ -535,7 +535,7 @@ export function useMusicNFTClaimCollaboratorRoyalties() {
     mutationFn: async () => {
       return writeContract({
         address: MUSIC_NFT_ADDRESS,
-        abi: MUSIC_NFT_ABI,
+        abi: MusicNFTAbi,
         functionName: 'claimCollaboratorRoyalties',
         // biome-ignore lint/suspicious/noExplicitAny: Wagmi type system requires any for complex contract interactions
       } as any)
