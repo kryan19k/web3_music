@@ -203,7 +203,7 @@ export const Home = () => {
                 </motion.div>
               </div>
 
-              {/* Live Stats Ticker - Under main content */}
+              {/* Live Stats Ticker - Under main content 
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -244,7 +244,7 @@ export const Home = () => {
                     </motion.div>
                   ))}
                 </div>
-              </motion.div>
+              </motion.div> */}
             </motion.div>
           </div>
 

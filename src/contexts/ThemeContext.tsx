@@ -1,11 +1,11 @@
 import { type ReactNode, createContext, useContext, useEffect, useState } from 'react'
 
-type Theme = 'light' | 'dark' | 'system'
+type Theme = 'light' | 'dim' | 'dark' | 'system'
 
 interface ThemeContextType {
   theme: Theme
   setTheme: (theme: Theme) => void
-  actualTheme: 'light' | 'dark'
+  actualTheme: 'light' | 'dim' | 'dark'
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
@@ -13,17 +13,17 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
-      return (localStorage.getItem('theme') as Theme) || 'system'
+      return (localStorage.getItem('theme') as Theme) || 'dim'
     }
-    return 'system'
+    return 'dim'
   })
 
-  const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('light')
+  const [actualTheme, setActualTheme] = useState<'light' | 'dim' | 'dark'>('dim')
 
   useEffect(() => {
     const root = window.document.documentElement
 
-    root.classList.remove('light', 'dark')
+    root.classList.remove('light', 'dim', 'dark')
 
     let systemTheme: 'light' | 'dark' = 'light'
 
@@ -32,7 +32,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
 
     const activeTheme = theme === 'system' ? systemTheme : theme
-    setActualTheme(activeTheme)
+    setActualTheme(activeTheme as 'light' | 'dim' | 'dark')
     root.classList.add(activeTheme)
 
     localStorage.setItem('theme', theme)
@@ -47,7 +47,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         const systemTheme = mediaQuery.matches ? 'dark' : 'light'
         setActualTheme(systemTheme)
         const root = window.document.documentElement
-        root.classList.remove('light', 'dark')
+        root.classList.remove('light', 'dim', 'dark')
         root.classList.add(systemTheme)
       }
     }

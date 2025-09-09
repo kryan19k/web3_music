@@ -816,7 +816,7 @@ export function NFTPurchasePage() {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="sticky top-24"
+              className="top-24"
             >
               <Card className={`border-2 ${tierConfig.borderColor} bg-gradient-to-br ${tierConfig.bgColor} backdrop-blur-sm`}>
                 <CardContent className="p-6">

@@ -51,7 +51,7 @@ PAGS is a revolutionary **Web3 music NFT marketplace** that transforms how fans 
 - **Follow System** - Connect with artists and fellow collectors
 
 ### 🛠 **Premium UX/UI**
-- **Dark/Light Themes** - Beautiful shadcn/ui components
+- **Three-Theme System** - Light, Dim, and Dark themes with system integration
 - **Mobile-First Design** - Responsive across all devices
 - **Framer Motion** - Smooth animations and transitions
 - **Professional Polish** - Spotify-meets-OpenSea aesthetic
@@ -209,17 +209,22 @@ Combining Spotify's elegance with OpenSea's Web3 power and SoundCloud's social D
 - **Accessible**: Works beautifully on mobile and desktop
 
 ### **Theme System**
+Three-theme system for optimal viewing in any environment:
 ```css
-/* Dark Theme (Primary) */
---background: 222.2 84% 4.9%
---primary: 262.1 83.3% 57.8%
---accent: 315 100% 60%
-
-/* Light Theme (Secondary) */  
+/* Light Theme - Bright environments */
 --background: 0 0% 100%
---primary: 222.2 47.4% 11.2%
---accent: 315 100% 60%
+--foreground: 222.2 84% 4.9%
+
+/* Dim Theme - Low-light comfort (Default) */
+--background: 217.2 15% 15%
+--foreground: 210 40% 92%
+
+/* Dark Theme - Night viewing */
+--background: 222.2 84% 4.9%
+--foreground: 210 40% 98%
 ```
+
+**Default**: Dim theme • **Toggle**: Light → Dim → Dark → Light
 
 ---
 

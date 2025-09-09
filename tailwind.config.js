@@ -52,6 +52,14 @@ export default {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
-  darkMode: ['class', 'class'],
+  plugins: [
+    require('tailwindcss-animate'),
+    // Custom plugin to handle dim and dark theme selectors
+    function({ addVariant }) {
+      addVariant('dim', '.dim &')
+      addVariant('light', '.light &')
+      addVariant('dark', '.dark &')
+    }
+  ],
+  darkMode: ['selector', '[class~="dark"]'],
 }

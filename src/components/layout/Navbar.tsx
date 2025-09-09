@@ -10,6 +10,7 @@ import {
   NavigationMenuTrigger,
 } from '@/src/components/ui/navigation-menu'
 import { ConnectWalletButton } from '@/src/components/web3/ConnectWalletButton'
+import { ThemeToggle } from '@/src/components/ui/ThemeToggle'
 import { useTheme } from '@/src/contexts/ThemeContext'
 import { cn } from '@/src/lib/utils'
 import { Link } from '@tanstack/react-router'
@@ -244,16 +245,7 @@ export function Navbar() {
           </Button>
 
           {/* Theme Toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(actualTheme === 'light' ? 'dark' : 'light')}
-            className="hidden md:flex"
-          >
-            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Toggle theme</span>
-          </Button>
+          <ThemeToggle variant="dropdown" className="hidden md:flex" />
 
           {/* Admin Panel Link */}
           <Link
@@ -374,15 +366,13 @@ export function Navbar() {
               </Link>
 
               <div className="flex items-center justify-between px-3 py-2 mt-4">
-                <span className="text-sm text-muted-foreground">Theme</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setTheme(actualTheme === 'light' ? 'dark' : 'light')}
-                >
-                  <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                  <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                </Button>
+                <div className="flex flex-col">
+                  <span className="text-sm text-muted-foreground">Theme</span>
+                  <span className="text-xs text-muted-foreground">
+                    Choose your preferred theme
+                  </span>
+                </div>
+                <ThemeToggle variant="dropdown" showTooltip={false} />
               </div>
 
               {/* Mobile Connect Wallet */}

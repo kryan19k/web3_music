@@ -82,7 +82,7 @@ interface ProfileFormData {
   weeklyDigest: boolean
 
   // App preferences
-  theme: 'light' | 'dark' | 'system'
+  theme: 'light' | 'dim' | 'dark' | 'system'
   autoPlay: boolean
   soundEffects: boolean
   defaultVolume: number
@@ -110,7 +110,7 @@ const mockUserData: ProfileFormData = {
   marketingEmails: false,
   weeklyDigest: true,
 
-  theme: 'system',
+  theme: 'dim',
   autoPlay: true,
   soundEffects: true,
   defaultVolume: 80,
@@ -708,6 +708,26 @@ export function ProfileSettings() {
                                   <div className="flex items-center gap-2">
                                     <Sun className="w-4 h-4" />
                                     Light
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="dim">
+                                  <div className="flex items-center gap-2">
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="16"
+                                      height="16"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      className="w-4 h-4"
+                                    >
+                                      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" fill="currentColor" opacity="0.5" />
+                                      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+                                    </svg>
+                                    Dim
                                   </div>
                                 </SelectItem>
                                 <SelectItem value="dark">
