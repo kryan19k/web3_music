@@ -262,55 +262,110 @@ export const Home = () => {
         </div>
       </section>
 
-      {/* How It Works - Completely Redesigned */}
-      <section className="relative py-32 overflow-hidden">
-        {/* Animated Background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-purple-950/10 to-background" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(139,92,246,0.1),transparent)] opacity-50" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(236,72,153,0.1),transparent)] opacity-50" />
+      {/* How It Works - Enhanced Modern Design */}
+      <section className="relative py-24 overflow-hidden">
+        {/* Enhanced Animated Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 via-background to-pink-900/10" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(139,92,246,0.15),transparent)] opacity-60" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(236,72,153,0.15),transparent)] opacity-60" />
+        
+        {/* Floating Elements like Hero */}
+        <div className="absolute inset-0 pointer-events-none">
+          {Array.from({ length: 12 }, (_, i) => (
+            <motion.div
+              key={`floating-${i}`}
+              className="absolute w-2 h-2 bg-primary/30 rounded-full"
+              initial={{
+                x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1200),
+                y: Math.random() * 800,
+              }}
+              animate={{
+                y: [0, -150, 0],
+                opacity: [0.2, 0.8, 0.2],
+                scale: [0.5, 1.2, 0.5],
+              }}
+              transition={{
+                duration: Math.random() * 15 + 15,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            />
+          ))}
+        </div>
 
         <div className="relative z-10 container mx-auto px-4">
-          {/* Section Header */}
+          {/* Enhanced Section Header */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center mb-20"
           >
-            <Badge className="mb-6 bg-purple-500/20 text-purple-200 border-purple-400/30 px-6 py-2">
-              <Sparkles className="w-4 h-4 mr-2" />
-              Your Journey to Music Ownership
-            </Badge>
-            <h2 className="text-5xl md:text-6xl font-bold mb-6">
-              How It{' '}
-              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Works
+            <div className="flex items-center justify-center gap-3 mb-8">
+              <Badge className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-400 border-green-500/30 px-6 py-2">
+                <Sparkles className="w-4 h-4 mr-2" />
+                YOUR JOURNEY
+              </Badge>
+              <Badge className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-400 border-blue-500/30 px-6 py-2">
+                <Target className="w-4 h-4 mr-2" />
+                3 SIMPLE STEPS
+              </Badge>
+            </div>
+            
+            <h2 className="text-5xl md:text-7xl font-bold mb-8 leading-tight">
+              How Music{' '}
+              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
+                Ownership
               </span>
+              <br />
+              Actually Works
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Transform from a music listener to a music owner in three revolutionary steps
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
+              Transform from a passive listener to an active stakeholder in the music industry. 
+              <span className="text-primary font-semibold"> Earn while artists succeed. </span>
             </p>
           </motion.div>
 
-          {/* Interactive Timeline */}
-          <div className="relative max-w-6xl mx-auto">
-            {/* Connecting Line */}
-            <div className="absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 via-purple-500 to-cyan-500 rounded-full transform -translate-y-1/2 hidden lg:block" />
-            <div className="absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 via-purple-500 to-cyan-500 rounded-full transform -translate-y-1/2 animate-pulse opacity-50 hidden lg:block" />
+          {/* Enhanced Interactive Timeline */}
+          <div className="relative max-w-7xl mx-auto">
+            {/* Enhanced Connecting Line */}
+            <div className="absolute top-1/2 left-0 right-0 h-2 bg-gradient-to-r from-orange-500 via-purple-500 to-cyan-500 rounded-full transform -translate-y-1/2 hidden lg:block shadow-lg" />
+            <motion.div 
+              className="absolute top-1/2 left-0 h-2 bg-gradient-to-r from-orange-400 via-pink-400 to-cyan-400 rounded-full transform -translate-y-1/2 hidden lg:block shadow-2xl shadow-primary/50"
+              initial={{ width: '0%' }}
+              whileInView={{ width: '100%' }}
+              viewport={{ once: true }}
+              transition={{ duration: 2, ease: 'easeInOut', delay: 0.5 }}
+            />
+            
+            {/* Flowing particles along the line */}
+            <motion.div
+              className="absolute top-1/2 left-0 w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full transform -translate-y-1/2 hidden lg:block shadow-lg"
+              animate={{
+                x: [0, window?.innerWidth ? window.innerWidth - 400 : 800, 0],
+              }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: 'linear',
+              }}
+            />
 
-            <div className="grid lg:grid-cols-3 gap-12 lg:gap-8">
+            <div className="grid lg:grid-cols-3 gap-16 lg:gap-16">
               {[
                 {
                   step: '01',
-                  title: 'Choose Your Investment Tier',
+                  title: 'Discover & Choose',
+                  subtitle: 'Your Perfect Music Investment',
                   description:
-                    'Select from Bronze, Silver, Gold, or Platinum NFTs. Each tier offers different ownership percentages and earning potentials.',
+                    'Browse our curated marketplace of exclusive music NFTs. Each track offers different ownership tiers with varying benefits and earning potential.',
                   features: [
-                    'Different price points',
-                    'Varying ownership %',
-                    'Exclusive benefits',
-                    'Limited quantities',
+                    '🎵 Exclusive track collections',
+                    '💎 4 investment tiers available',
+                    '📊 Real-time analytics',
+                    '🏆 Verified artist partnerships',
                   ],
+                  stats: { label: 'Avg ROI', value: '24.5%' },
                   color: 'from-orange-400 to-red-500',
                   bgGlow: 'shadow-orange-500/30',
                   icon: Target,
@@ -318,15 +373,17 @@ export const Home = () => {
                 },
                 {
                   step: '02',
-                  title: 'Mint & Secure Ownership',
+                  title: 'Purchase & Own',
+                  subtitle: 'Secure Your Stake',
                   description:
-                    'Purchase your chosen NFT tier to officially own a piece of the song and receive PAGS tokens representing your stake.',
+                    'Instantly mint your NFT and receive PAGS tokens representing your ownership stake. Your investment is secured on the blockchain forever.',
                   features: [
-                    'Instant NFT minting',
-                    'PAGS token rewards',
-                    'Blockchain verified',
-                    'Ownership certificate',
+                    '⚡ Instant blockchain minting',
+                    '🪙 PAGS token rewards',
+                    '🔒 Immutable ownership proof',
+                    '📜 Smart contract verified',
                   ],
+                  stats: { label: 'Avg Fee', value: '0.02 ETH' },
                   color: 'from-purple-400 to-pink-500',
                   bgGlow: 'shadow-purple-500/30',
                   icon: Wallet,
@@ -334,15 +391,17 @@ export const Home = () => {
                 },
                 {
                   step: '03',
-                  title: 'Earn Passive Royalties',
+                  title: 'Earn & Grow',
+                  subtitle: 'Passive Revenue Streams',
                   description:
-                    'Start earning immediately from streams, sales, and licensing. Your PAGS tokens automatically collect royalties forever.',
+                    'Watch your investment grow as the music gains popularity. Earn from streaming, licensing, sync deals, and secondary sales automatically.',
                   features: [
-                    'Monthly distributions',
-                    'Real-time tracking',
-                    'Multiple revenue streams',
-                    'Compound earnings',
+                    '💰 Monthly revenue distributions',
+                    '📈 Compound growth potential',
+                    '🌍 Global licensing income',
+                    '🔄 Automated collections',
                   ],
+                  stats: { label: 'Top Earner', value: '$12.8K' },
                   color: 'from-cyan-400 to-blue-500',
                   bgGlow: 'shadow-cyan-500/30',
                   icon: Coins,
@@ -351,88 +410,114 @@ export const Home = () => {
               ].map((item, index) => (
                 <motion.div
                   key={item.step}
-                  initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                  initial={{ opacity: 0, y: 60, scale: 0.8 }}
                   whileInView={{ opacity: 1, y: 0, scale: 1 }}
                   viewport={{ once: true }}
-                  transition={{ delay: item.delay, duration: 0.8, type: 'spring', bounce: 0.3 }}
-                  whileHover={{ y: -10, scale: 1.02 }}
+                  transition={{ delay: item.delay, duration: 0.8, type: 'spring', bounce: 0.4 }}
+                  whileHover={{ y: -20, scale: 1.05 }}
                   className="relative group"
                 >
-                  {/* Step Number Badge */}
-                  <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 z-20">
-                    <div
-                      className={`w-16 h-16 rounded-full bg-gradient-to-r ${item.color} flex items-center justify-center shadow-2xl ${item.bgGlow} group-hover:shadow-xl transition-all duration-500`}
-                    >
-                      <span className="text-2xl font-bold text-white">{item.step}</span>
-                    </div>
-                  </div>
 
-                  {/* Main Card */}
+                  {/* Enhanced Main Card */}
                   <Card
-                    className={`relative pt-12 pb-8 px-8 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl border-2 border-white/10 hover:border-white/20 transition-all duration-500 group-hover:shadow-2xl ${item.bgGlow} h-[500px]`}
+                    className={`relative py-10 px-8 bg-gradient-to-br from-card/90 to-card/50 backdrop-blur-2xl border-2 border-primary/20 hover:border-primary/40 transition-all duration-500 group-hover:shadow-2xl ${item.bgGlow} min-h-[550px] overflow-hidden`}
                   >
-                    <CardContent className="p-0 text-center h-full flex flex-col">
-                      {/* Top Section: Icon and Title */}
-                      <div className="flex-shrink-0">
-                        {/* Animated Icon */}
+                    {/* Animated gradient overlay */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
+                    
+                    {/* Floating particles on hover */}
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                      {Array.from({ length: 6 }, (_, i) => (
                         <motion.div
-                          whileHover={{ rotate: 360, scale: 1.1 }}
-                          transition={{ duration: 0.6 }}
-                          className={`w-20 h-20 rounded-2xl bg-gradient-to-r ${item.color} flex items-center justify-center mx-auto mb-6 shadow-xl`}
+                          key={i}
+                          className={`absolute w-1 h-1 bg-gradient-to-r ${item.color} rounded-full`}
+                          initial={{ opacity: 0 }}
+                          animate={{
+                            x: [Math.random() * 300, Math.random() * 300],
+                            y: [Math.random() * 400, Math.random() * 400],
+                            opacity: [0, 1, 0],
+                          }}
+                          transition={{
+                            duration: 3,
+                            repeat: Infinity,
+                            delay: i * 0.2,
+                          }}
+                        />
+                      ))}
+                    </div>
+
+                    <CardContent className="p-0 text-center h-full flex flex-col relative z-10">
+                      {/* Enhanced Icon Section */}
+                      <div className="flex-shrink-0 mb-6">
+                        <motion.div
+                          whileHover={{ rotate: 360, scale: 1.2 }}
+                          transition={{ duration: 0.8 }}
+                          className={`w-24 h-24 rounded-3xl bg-gradient-to-br ${item.color} flex items-center justify-center mx-auto mb-6 shadow-2xl ring-4 ring-white/10 group-hover:ring-white/30 transition-all duration-500`}
                         >
-                          <item.icon className="w-10 h-10 text-white" />
+                          <item.icon className="w-12 h-12 text-white" />
                         </motion.div>
 
-                        <h3 className="text-2xl font-bold mb-4 group-hover:text-white transition-colors">
+                        <h3 className="text-3xl font-bold mb-2 group-hover:text-primary transition-colors">
                           {item.title}
                         </h3>
+                        <p className="text-lg text-primary/80 font-medium mb-4">
+                          {item.subtitle}
+                        </p>
                       </div>
 
-                      {/* Middle Section: Description (flexible) */}
-                      <div className="flex-grow flex items-center">
-                        <p className="text-muted-foreground leading-relaxed">{item.description}</p>
+                      {/* Stats Badge */}
+                      <div className="flex justify-center mb-6">
+                        <Badge className={`bg-gradient-to-r ${item.color} text-white border-0 px-6 py-2 text-sm font-bold shadow-lg`}>
+                          {item.stats.label}: {item.stats.value}
+                        </Badge>
                       </div>
 
-                      {/* Bottom Section: Feature List */}
-                      <div className="flex-shrink-0 space-y-3 mt-6">
+                      {/* Description */}
+                      <div className="flex-grow flex items-start mb-6">
+                        <p className="text-muted-foreground leading-relaxed text-base">
+                          {item.description}
+                        </p>
+                      </div>
+
+                      {/* Enhanced Feature List */}
+                      <div className="flex-shrink-0 space-y-4">
                         {item.features.map((feature, i) => (
                           <motion.div
                             key={feature}
-                            initial={{ opacity: 0, x: -20 }}
+                            initial={{ opacity: 0, x: -30 }}
                             whileInView={{ opacity: 1, x: 0 }}
                             transition={{ delay: item.delay + 0.1 * (i + 1) }}
                             viewport={{ once: true }}
-                            className="flex items-center justify-center gap-2"
+                            className="flex items-center justify-start gap-3 text-left"
                           >
-                            <CheckCircle className={'w-4 h-4 text-green-400'} />
-                            <span className="text-sm text-muted-foreground group-hover:text-gray-300 transition-colors">
+                            <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${item.color} flex items-center justify-center flex-shrink-0`}>
+                              <CheckCircle className="w-4 h-4 text-white" />
+                            </div>
+                            <span className="text-sm text-foreground group-hover:text-primary transition-colors font-medium">
                               {feature}
                             </span>
                           </motion.div>
                         ))}
                       </div>
                     </CardContent>
-
-                    {/* Hover Glow Effect */}
-                    <div
-                      className={`absolute inset-0 bg-gradient-to-r ${item.color} opacity-0 group-hover:opacity-5 rounded-lg transition-opacity duration-500`}
-                    />
                   </Card>
 
-                  {/* Arrow Connection (Desktop) */}
+                  {/* Enhanced Arrow Connection */}
                   {index < 2 && (
                     <motion.div
-                      initial={{ opacity: 0, scale: 0 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
+                      initial={{ opacity: 0, scale: 0, rotate: -180 }}
+                      whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
                       viewport={{ once: true }}
-                      transition={{ delay: item.delay + 0.5 }}
-                      className="absolute top-1/2 -right-6 transform -translate-y-1/2 hidden lg:block z-30"
+                      transition={{ delay: item.delay + 0.6, duration: 0.8 }}
+                      className="absolute top-1/2 -right-8 transform -translate-y-1/2 hidden lg:block z-30"
                     >
-                      <div
-                        className={`w-12 h-12 rounded-full bg-gradient-to-r ${item.color} flex items-center justify-center shadow-xl`}
+                      <motion.div
+                        whileHover={{ scale: 1.2, rotate: 360 }}
+                        transition={{ duration: 0.5 }}
+                        className={`w-16 h-16 rounded-full bg-gradient-to-r ${item.color} flex items-center justify-center shadow-2xl ring-4 ring-white/20 hover:ring-white/40 transition-all duration-300`}
                       >
-                        <ArrowRight className="w-6 h-6 text-white" />
-                      </div>
+                        <ArrowRight className="w-8 h-8 text-white" />
+                      </motion.div>
                     </motion.div>
                   )}
                 </motion.div>
@@ -440,23 +525,87 @@ export const Home = () => {
             </div>
           </div>
 
-          {/* Call to Action */}
+          {/* Enhanced Call to Action */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.8 }}
-            className="text-center mt-20"
+            transition={{ delay: 1 }}
+            className="text-center mt-24"
           >
-            <Link to="/marketplace">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/50 transform hover:scale-105 transition-all duration-300 px-12 py-6 text-xl rounded-full"
+            <div className="max-w-4xl mx-auto">
+              <motion.div
+                initial={{ scale: 0.8 }}
+                whileInView={{ scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 1.2, duration: 0.8 }}
+                className="mb-12"
               >
-                Start Your Journey
-                <Sparkles className="ml-2 w-6 h-6" />
-              </Button>
-            </Link>
+                <h3 className="text-4xl md:text-5xl font-bold mb-6">
+                  Ready to{' '}
+                  <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
+                    Own the Beat?
+                  </span>
+                </h3>
+                <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+                  Join thousands of music lovers who are already earning from their favorite tracks
+                </p>
+              </motion.div>
+
+              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">
+                <Link to="/marketplace">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button
+                      size="lg"
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/50 transition-all duration-300 px-12 py-6 text-xl rounded-full group"
+                    >
+                      <Sparkles className="mr-3 w-6 h-6 group-hover:rotate-180 transition-transform duration-500" />
+                      Start Investing Now
+                      <ArrowRight className="ml-3 w-6 h-6 group-hover:translate-x-1 transition-transform duration-300" />
+                    </Button>
+                  </motion.div>
+                </Link>
+                
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-2 border-border/30 text-foreground hover:bg-accent/20 backdrop-blur-xl px-12 py-6 text-xl rounded-full group"
+                  >
+                    <Play className="mr-3 w-6 h-6 group-hover:scale-110 transition-transform duration-300" />
+                    Watch Demo
+                  </Button>
+                </motion.div>
+              </div>
+
+              {/* Trust indicators */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 1.4 }}
+                className="flex flex-col sm:flex-row items-center justify-center gap-8 text-sm text-muted-foreground"
+              >
+                <div className="flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-green-500" />
+                  <span>Blockchain Secured</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-blue-500" />
+                  <span>12.8K+ Happy Investors</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-purple-500" />
+                  <span>24.5% Avg ROI</span>
+                </div>
+              </motion.div>
+            </div>
           </motion.div>
         </div>
       </section>
