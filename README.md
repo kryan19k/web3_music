@@ -1,6 +1,6 @@
 # 🎵 PAGS Music Platform
 
-![PAGS Music Platform Banner](public/share/repo_banner.svg)
+![PAGS Music Platform Banner](public/logo.png)
 
 **The Future of Music Ownership & Earnings**
 
