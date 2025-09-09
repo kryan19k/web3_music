@@ -579,14 +579,29 @@ export function NFTDetailPage() {
                     </div>
                   </div>
 
-                  <Button
-                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
-                    onClick={() => setIsPurchaseModalOpen(true)}
-                    disabled={!nft.isListed}
-                  >
-                    <DollarSign className="w-4 h-4 mr-2" />
-                    {nft.isListed ? 'Purchase NFT' : 'Not Available'}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                      onClick={() => setIsPurchaseModalOpen(true)}
+                      disabled={!nft.isListed}
+                    >
+                      <DollarSign className="w-4 h-4 mr-2" />
+                      Quick Buy
+                    </Button>
+                    <Link
+                      to="/marketplace/purchase/$nftId"
+                      params={{ nftId: nft.tokenId }}
+                      className="flex-1"
+                    >
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        disabled={!nft.isListed}
+                      >
+                        Advanced Purchase
+                      </Button>
+                    </Link>
+                  </div>
 
                   <div className="mt-4 pt-4 border-t">
                     <div className="flex items-center justify-between text-sm">

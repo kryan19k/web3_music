@@ -327,7 +327,7 @@ export const Home = () => {
           </motion.div>
 
           {/* Enhanced Interactive Timeline */}
-          <div className="relative max-w-7xl mx-auto">
+          <div className="relative max-w-8xl mx-auto">
             {/* Enhanced Connecting Line */}
             <div className="absolute top-1/2 left-0 right-0 h-2 bg-gradient-to-r from-orange-500 via-purple-500 to-cyan-500 rounded-full transform -translate-y-1/2 hidden lg:block shadow-lg" />
             <motion.div 

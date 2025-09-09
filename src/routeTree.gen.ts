@@ -23,6 +23,7 @@ import { Route as ProfileUserIdImport } from './routes/profile/$userId'
 import { Route as MarketplaceNftIdImport } from './routes/marketplace/$nftId'
 import { Route as ArtistUploadImport } from './routes/artist/upload'
 import { Route as ArtistDashboardImport } from './routes/artist/dashboard'
+import { Route as MarketplacePurchaseNftIdImport } from './routes/marketplace/purchase/$nftId'
 
 // Create Virtual Routes
 
@@ -109,6 +110,12 @@ const ArtistUploadRoute = ArtistUploadImport.update({
 const ArtistDashboardRoute = ArtistDashboardImport.update({
   id: '/artist/dashboard',
   path: '/artist/dashboard',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const MarketplacePurchaseNftIdRoute = MarketplacePurchaseNftIdImport.update({
+  id: '/marketplace/purchase/$nftId',
+  path: '/marketplace/purchase/$nftId',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -207,6 +214,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortfolioIndexImport
       parentRoute: typeof rootRoute
     }
+    '/marketplace/purchase/$nftId': {
+      id: '/marketplace/purchase/$nftId'
+      path: '/marketplace/purchase/$nftId'
+      fullPath: '/marketplace/purchase/$nftId'
+      preLoaderRoute: typeof MarketplacePurchaseNftIdImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -226,6 +240,7 @@ export interface FileRoutesByFullPath {
   '/marketplace': typeof MarketplaceIndexRoute
   '/pags': typeof PagsIndexRoute
   '/portfolio': typeof PortfolioIndexRoute
+  '/marketplace/purchase/$nftId': typeof MarketplacePurchaseNftIdRoute
 }
 
 export interface FileRoutesByTo {
@@ -242,6 +257,7 @@ export interface FileRoutesByTo {
   '/marketplace': typeof MarketplaceIndexRoute
   '/pags': typeof PagsIndexRoute
   '/portfolio': typeof PortfolioIndexRoute
+  '/marketplace/purchase/$nftId': typeof MarketplacePurchaseNftIdRoute
 }
 
 export interface FileRoutesById {
@@ -259,6 +275,7 @@ export interface FileRoutesById {
   '/marketplace/': typeof MarketplaceIndexRoute
   '/pags/': typeof PagsIndexRoute
   '/portfolio/': typeof PortfolioIndexRoute
+  '/marketplace/purchase/$nftId': typeof MarketplacePurchaseNftIdRoute
 }
 
 export interface FileRouteTypes {
@@ -277,6 +294,7 @@ export interface FileRouteTypes {
     | '/marketplace'
     | '/pags'
     | '/portfolio'
+    | '/marketplace/purchase/$nftId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -292,6 +310,7 @@ export interface FileRouteTypes {
     | '/marketplace'
     | '/pags'
     | '/portfolio'
+    | '/marketplace/purchase/$nftId'
   id:
     | '__root__'
     | '/'
@@ -307,6 +326,7 @@ export interface FileRouteTypes {
     | '/marketplace/'
     | '/pags/'
     | '/portfolio/'
+    | '/marketplace/purchase/$nftId'
   fileRoutesById: FileRoutesById
 }
 
@@ -324,6 +344,7 @@ export interface RootRouteChildren {
   MarketplaceIndexRoute: typeof MarketplaceIndexRoute
   PagsIndexRoute: typeof PagsIndexRoute
   PortfolioIndexRoute: typeof PortfolioIndexRoute
+  MarketplacePurchaseNftIdRoute: typeof MarketplacePurchaseNftIdRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -340,6 +361,7 @@ const rootRouteChildren: RootRouteChildren = {
   MarketplaceIndexRoute: MarketplaceIndexRoute,
   PagsIndexRoute: PagsIndexRoute,
   PortfolioIndexRoute: PortfolioIndexRoute,
+  MarketplacePurchaseNftIdRoute: MarketplacePurchaseNftIdRoute,
 }
 
 export const routeTree = rootRoute
@@ -364,7 +386,8 @@ export const routeTree = rootRoute
         "/feed/",
         "/marketplace/",
         "/pags/",
-        "/portfolio/"
+        "/portfolio/",
+        "/marketplace/purchase/$nftId"
       ]
     },
     "/": {
@@ -405,6 +428,9 @@ export const routeTree = rootRoute
     },
     "/portfolio/": {
       "filePath": "portfolio/index.tsx"
+    },
+    "/marketplace/purchase/$nftId": {
+      "filePath": "marketplace/purchase/$nftId.tsx"
     }
   }
 }

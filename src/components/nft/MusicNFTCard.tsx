@@ -304,13 +304,18 @@ export function MusicNFTCard({
                         View Details
                       </Button>
                     </Link>
-                    <Button
-                      className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0"
-                      onClick={() => onPurchase?.(nft.tokenId)}
-                      disabled={!nft.isListed}
+                    <Link
+                      to="/marketplace/purchase/$nftId"
+                      params={{ nftId: nft.tokenId }}
+                      className="flex-1"
                     >
-                      <DollarSign className="w-4 h-4 mr-2" />${nft.priceUSD?.toFixed(0) || '0'}
-                    </Button>
+                      <Button
+                        className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0"
+                        disabled={!nft.isListed}
+                      >
+                        <DollarSign className="w-4 h-4 mr-2" />${nft.priceUSD?.toFixed(0) || '0'}
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </CardContent>
@@ -435,16 +440,21 @@ export function MusicNFTCard({
                     </div>
                   </div>
 
-                  <Button
-                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 mt-6"
-                    onClick={() => onPurchase?.(nft.tokenId)}
-                    disabled={!nft.isListed}
+                  <Link
+                    to="/marketplace/purchase/$nftId"
+                    params={{ nftId: nft.tokenId }}
+                    className="block"
                   >
-                    <DollarSign className="w-4 h-4 mr-2" />
-                    {nft.isListed
-                      ? `Purchase for $${nft.priceUSD?.toFixed(2) || '0.00'}`
-                      : 'Not Available'}
-                  </Button>
+                    <Button
+                      className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 mt-6"
+                      disabled={!nft.isListed}
+                    >
+                      <DollarSign className="w-4 h-4 mr-2" />
+                      {nft.isListed
+                        ? `Purchase for $${nft.priceUSD?.toFixed(2) || '0.00'}`
+                        : 'Not Available'}
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
