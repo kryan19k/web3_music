@@ -2,6 +2,7 @@ import { FeaturedNFTs } from '@/src/components/demo/FeaturedNFTs'
 import { Badge } from '@/src/components/ui/badge'
 import { Button } from '@/src/components/ui/button'
 import { Card, CardContent } from '@/src/components/ui/card'
+import { FeaturedArtistsHero } from '@/src/components/ui/FeaturedArtistsHero'
 import Spline from '@splinetool/react-spline'
 import { Link } from '@tanstack/react-router'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -21,6 +22,7 @@ import {
   TrendingUp,
   Users,
   Wallet,
+  Flame,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -38,7 +40,7 @@ export const Home = () => {
         {/* Spline 3D Scene Background */}
         <div className="absolute inset-0 w-full h-full">
           <Spline
-            scene="https://prod.spline.design/zhAI6lI5cxZOfNKM/scene.splinecode"
+            scene="https://prod.spline.design/xQeXGXgGqdq2Zwuv/scene.splinecode"
             className="w-full h-full object-cover"
           />
         </div>
@@ -105,40 +107,57 @@ export const Home = () => {
         </div>
 
         {/* Content */}
-        <div className="relative z-20 flex items-center justify-start w-full h-full px-4 sm:px-8 lg:px-12 xl:px-20">
-          {/* Main content - Left side to avoid covering Spline scene */}
-          <div className="w-full max-w-xl lg:max-w-2xl xl:max-w-3xl text-center lg:text-left">
+        <div className="relative z-20 flex items-start justify-center w-full h-full px-6 sm:px-8 lg:px-12 xl:px-16 gap-12 pt-16 sm:pt-20 lg:pt-24">
+          {/* Main content - Left side */}
+          <div className="flex-1 max-w-3xl text-center lg:text-left lg:mr-8">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 1, ease: 'easeOut' }}
               className="text-center lg:text-left"
             >
-              {/* Content backdrop for better readability */}
-              <div className="relative backdrop-blur-sm bg-background/5 rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border border-white/10 shadow-2xl shadow-purple-500/10">
-                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 sm:mb-8 leading-tight text-center lg:text-left">
-                  <span className="bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent drop-shadow-lg">
+              {/* Hero Content */}
+              <div className="space-y-8">
+                {/* Live Indicator */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.8, delay: 0.3 }}
+                  className="flex items-center gap-3 justify-center lg:justify-start"
+                >
+                  <div className="flex items-center gap-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 backdrop-blur-sm px-4 py-2 rounded-full border border-green-500/30">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <span className="text-sm font-medium text-green-400">LIVE MARKETPLACE</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gradient-to-r from-orange-500/20 to-red-500/20 backdrop-blur-sm px-4 py-2 rounded-full border border-orange-500/30">
+                    <Flame className="w-4 h-4 text-orange-500" />
+                    <span className="text-sm font-medium text-orange-400">HOT TRACKS</span>
+                  </div>
+                </motion.div>
+
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold leading-tight text-center lg:text-left">
+                  <span className="bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-300 dark:to-pink-300 bg-clip-text text-transparent drop-shadow-lg">
                     Own the Music
                   </span>
                   <br />
-                  <span className="text-white drop-shadow-lg">Earn the Royalties</span>
+                  <span className="text-foreground drop-shadow-lg">Earn the Royalties</span>
                 </h1>
 
-                <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-200 mb-8 sm:mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed text-center lg:text-left">
+                <p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-foreground/90 max-w-4xl mx-auto lg:mx-0 leading-relaxed text-center lg:text-left">
                   Buy music NFTs, earn PAGS tokens, and share in the success of your favorite
                   artists.
                   <br className="hidden sm:block" />
-                  <span className="text-purple-200 font-semibold">
+                  <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent font-bold">
                     The first platform where fans become stakeholders.
                   </span>
                 </p>
 
-                <div className="flex flex-col sm:flex-row gap-4 items-center lg:items-start justify-center lg:justify-start mb-8 sm:mb-12">
+                <div className="flex flex-col sm:flex-row gap-6 items-center lg:items-start justify-center lg:justify-start">
                   <Link to="/marketplace">
                     <Button
                       size="lg"
                       variant="default"
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/50 transform hover:scale-105 transition-all duration-300 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg w-full sm:w-auto"
+                      className="relative bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/50 transform hover:scale-105 transition-all duration-300 px-10 sm:px-12 py-5 sm:py-6 text-xl sm:text-2xl w-full sm:w-auto overflow-hidden group"
                     >
                       Explore Music
                       <ArrowRight className="ml-2 w-5 h-5" />
@@ -147,12 +166,41 @@ export const Home = () => {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="border-white/20 text-white hover:bg-white/10 backdrop-blur-sm shadow-lg px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg w-full sm:w-auto"
+                    className="border-2 border-border/30 text-foreground hover:bg-accent/20 backdrop-blur-xl shadow-lg px-10 sm:px-12 py-5 sm:py-6 text-xl sm:text-2xl w-full sm:w-auto bg-card/20"
                   >
                     <Play className="mr-2 w-5 h-5" />
                     Watch Demo
                   </Button>
                 </div>
+                
+                {/* Floating Elements */}
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1, delay: 0.8 }}
+                  className="relative"
+                >
+                  <div className="flex items-center gap-8 justify-center lg:justify-start text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-xs">✓</span>
+                      </div>
+                      <span>Instant NFT Trading</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-xs">$</span>
+                      </div>
+                      <span>Automated Royalties</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-xs">⚡</span>
+                      </div>
+                      <span>Low Gas Fees</span>
+                    </div>
+                  </div>
+                </motion.div>
               </div>
 
               {/* Live Stats Ticker - Under main content */}
@@ -176,10 +224,10 @@ export const Home = () => {
                       transition={{ delay: 1.4 + i * 0.1, duration: 0.5 }}
                       whileHover={{ scale: 1.05 }}
                     >
-                      <Card className="p-2 sm:p-3 lg:p-4 bg-black/20 backdrop-blur-md border-white/10 hover:bg-black/30 transition-all duration-300 shadow-xl shadow-purple-500/10">
+                      <Card className="p-2 sm:p-3 lg:p-4 bg-card/30 backdrop-blur-md border-border/20 hover:bg-card/50 transition-all duration-300 shadow-xl shadow-primary/10">
                         <CardContent className="p-0">
                           <div className="flex items-center justify-between mb-1 sm:mb-2">
-                            <stat.icon className="w-3 h-3 sm:w-4 sm:h-4 text-purple-300" />
+                            <stat.icon className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
                             <Badge
                               variant="secondary"
                               className="text-xs bg-green-500/20 text-green-300 border-green-500/30"
@@ -187,16 +235,28 @@ export const Home = () => {
                               {stat.change}
                             </Badge>
                           </div>
-                          <p className="text-sm sm:text-base lg:text-2xl font-bold text-white">
+                          <p className="text-sm sm:text-base lg:text-2xl font-bold text-foreground">
                             {stat.value}
                           </p>
-                          <p className="text-xs text-gray-300 leading-tight">{stat.label}</p>
+                          <p className="text-xs text-muted-foreground leading-tight">{stat.label}</p>
                         </CardContent>
                       </Card>
                     </motion.div>
                   ))}
                 </div>
               </motion.div>
+            </motion.div>
+          </div>
+
+          {/* Featured Artists - Right side */}
+          <div className="hidden lg:block flex-shrink-0 self-start">
+            <motion.div
+              initial={{ opacity: 0, x: 50, scale: 0.9 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              transition={{ duration: 1, ease: 'easeOut', delay: 0.5 }}
+              className="sticky top-4"
+            >
+              <FeaturedArtistsHero />
             </motion.div>
           </div>
         </div>

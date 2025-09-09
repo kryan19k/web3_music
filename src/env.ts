@@ -39,6 +39,7 @@ export const env = createEnv({
     PUBLIC_RPC_OPTIMISM: z.string().optional(),
     PUBLIC_RPC_OPTIMISM_SEPOLIA: z.string().optional(),
     PUBLIC_RPC_POLYGON: z.string().optional(),
+    PUBLIC_RPC_POLYGON_AMOY: z.string().optional(),
     PUBLIC_RPC_POLYGON_MUMBAI: z.string().optional(),
     PUBLIC_RPC_SEPOLIA: z.string().optional(),
     PUBLIC_WALLETCONNECT_PROJECT_ID: z.string().optional().default(''),

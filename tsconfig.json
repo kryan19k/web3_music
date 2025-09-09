@@ -32,6 +32,8 @@
   "exclude": [
     ".install-files",
     "node_modules",
+    "hardhat",
+    "hardhat/**/*",
     "src/subgraphs/queries/aave",
     "src/subgraphs/queries/uniswap",
     "src/hooks/generated.ts",

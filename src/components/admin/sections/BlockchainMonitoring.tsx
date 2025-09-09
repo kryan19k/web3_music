@@ -1,398 +1,199 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Badge } from '@/src/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
-import { Input } from '@/src/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/src/components/ui/select'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/src/components/ui/table'
-import { useAdminData } from '@/src/hooks/useAdminData'
+import { Progress } from '@/src/components/ui/progress'
+import { Coins, Activity, TrendingUp, AlertCircle, CheckCircle, Clock } from 'lucide-react'
 import { motion } from 'framer-motion'
-import {
-  Activity,
-  AlertCircle,
-  ArrowUpRight,
-  CheckCircle,
-  Clock,
-  Coins,
-  ExternalLink,
-  Search,
-  TrendingUp,
-} from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { formatEther } from 'viem'
+import { useAdminContractData } from '@/src/hooks/contracts'
 
 export function BlockchainMonitoring() {
-  const { transactions } = useAdminData()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [typeFilter, setTypeFilter] = useState<
-    'all' | 'mint' | 'sale' | 'transfer' | 'royalty_payment' | 'token_swap'
-  >('all')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'failed'>(
-    'all',
-  )
+  const { platformStats, isLoading } = useAdminContractData()
 
-  const filteredTransactions = useMemo(() => {
-    let filtered = transactions
-
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (tx) =>
-          tx.hash.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          tx.from.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          tx.to.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          tx.nftId?.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
-    }
-
-    if (typeFilter !== 'all') {
-      filtered = filtered.filter((tx) => tx.type === typeFilter)
-    }
-
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter((tx) => tx.status === statusFilter)
-    }
-
-    return filtered
-  }, [transactions, searchQuery, typeFilter, statusFilter])
-
-  const getTransactionStats = () => {
-    const last24h = transactions.filter(
-      (tx) => tx.timestamp.getTime() > Date.now() - 24 * 60 * 60 * 1000,
+  if (isLoading) {
+    return (
+      <div className="text-center py-8">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-muted-foreground">Loading blockchain data...</p>
+      </div>
     )
-
-    return {
-      total: transactions.length,
-      pending: transactions.filter((tx) => tx.status === 'pending').length,
-      confirmed: transactions.filter((tx) => tx.status === 'confirmed').length,
-      failed: transactions.filter((tx) => tx.status === 'failed').length,
-      volume24h: last24h
-        .filter((tx) => tx.type === 'sale' && tx.status === 'confirmed')
-        .reduce((sum, tx) => sum + tx.value, 0),
-      avgGasPrice:
-        transactions
-          .filter((tx) => tx.status === 'confirmed')
-          .reduce((sum, tx) => sum + tx.gasPrice, 0) /
-        transactions.filter((tx) => tx.status === 'confirmed').length,
-    }
   }
 
-  const stats = getTransactionStats()
+  // Mock transaction data - in real app, this would come from monitoring service
+  const recentTransactions = [
+    { id: '1', type: 'NFT_MINT', amount: '0.1 ETH', status: 'confirmed', timestamp: '2 minutes ago' },
+    { id: '2', type: 'ROYALTY_CLAIM', amount: '0.05 ETH', status: 'confirmed', timestamp: '5 minutes ago' },
+    { id: '3', type: 'TIER_UPDATE', amount: '0 ETH', status: 'pending', timestamp: '10 minutes ago' }
+  ]
 
-  const formatDate = (date: Date) => {
-    return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`
-  }
-
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`
-  }
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return <CheckCircle className="w-4 h-4 text-green-500" />
-      case 'pending':
-        return <Clock className="w-4 h-4 text-yellow-500" />
-      case 'failed':
-        return <AlertCircle className="w-4 h-4 text-red-500" />
-      default:
-        return <Activity className="w-4 h-4 text-gray-500" />
-    }
-  }
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'mint':
-        return 'bg-blue-500'
-      case 'sale':
-        return 'bg-green-500'
-      case 'transfer':
-        return 'bg-purple-500'
-      case 'royalty_payment':
-        return 'bg-orange-500'
-      case 'token_swap':
-        return 'bg-pink-500'
-      default:
-        return 'bg-gray-500'
-    }
-  }
+  const royaltyDistributionPercent = platformStats.totalRoyaltiesDistributed > 0n 
+    ? Number((Number(platformStats.totalRoyaltiesDistributed) / Number(platformStats.totalRoyaltiesReceived)) * 100n)
+    : 0
 
   return (
     <div className="space-y-6">
-      {/* Blockchain Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xl font-bold">{stats.total}</p>
-                  <p className="text-xs text-muted-foreground">Total Txs</p>
+      {/* Contract Health */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Contract Health Monitoring
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center p-4 border rounded-lg">
+                <div className="flex items-center justify-center mb-2">
+                  {platformStats.isPaused ? (
+                    <AlertCircle className="h-8 w-8 text-red-500" />
+                  ) : (
+                    <CheckCircle className="h-8 w-8 text-green-500" />
+                  )}
                 </div>
-                <Activity className="w-6 h-6 text-blue-500" />
+                <div className="font-medium">Contract Status</div>
+                <Badge variant={platformStats.isPaused ? "destructive" : "default"}>
+                  {platformStats.isPaused ? 'Paused' : 'Active'}
+                </Badge>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+              
+              <div className="text-center p-4 border rounded-lg">
+                <TrendingUp className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+                <div className="font-medium">Gas Usage</div>
+                <div className="text-sm text-muted-foreground">Optimized</div>
+              </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xl font-bold text-yellow-600">{stats.pending}</p>
-                  <p className="text-xs text-muted-foreground">Pending</p>
+              <div className="text-center p-4 border rounded-lg">
+                <Coins className="h-8 w-8 text-green-500 mx-auto mb-2" />
+                <div className="font-medium">Treasury Balance</div>
+                <div className="text-sm font-mono">
+                  {Number.parseFloat(formatEther(platformStats.totalPlatformRevenue)).toFixed(4)} ETH
                 </div>
-                <Clock className="w-6 h-6 text-yellow-500" />
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xl font-bold text-green-600">{stats.confirmed}</p>
-                  <p className="text-xs text-muted-foreground">Confirmed</p>
-                </div>
-                <CheckCircle className="w-6 h-6 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xl font-bold text-red-600">{stats.failed}</p>
-                  <p className="text-xs text-muted-foreground">Failed</p>
-                </div>
-                <AlertCircle className="w-6 h-6 text-red-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xl font-bold text-purple-600">{stats.volume24h.toFixed(2)}</p>
-                  <p className="text-xs text-muted-foreground">24h Volume</p>
-                </div>
-                <TrendingUp className="w-6 h-6 text-purple-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-        >
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xl font-bold text-orange-600">
-                    {stats.avgGasPrice.toFixed(0)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Avg Gas</p>
-                </div>
-                <Coins className="w-6 h-6 text-orange-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Transaction Monitoring */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Blockchain Transaction Monitoring</CardTitle>
-          <CardDescription>
-            Monitor all blockchain transactions and their status in real-time
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* Filters */}
-          <div className="flex flex-col lg:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by hash, address, or NFT ID..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Recent Transactions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {recentTransactions.map((tx, index) => (
+                <div key={tx.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-blue-500" />
+                    <div>
+                      <div className="font-medium">{tx.type}</div>
+                      <div className="text-sm text-muted-foreground">{tx.timestamp}</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-mono">{tx.amount}</div>
+                    <Badge variant={tx.status === 'confirmed' ? 'default' : 'secondary'}>
+                      {tx.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
             </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
-            <Select
-              value={typeFilter}
-              onValueChange={(value: string) => setTypeFilter(value as typeof typeFilter)}
-            >
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="mint">Mint</SelectItem>
-                <SelectItem value="sale">Sale</SelectItem>
-                <SelectItem value="transfer">Transfer</SelectItem>
-                <SelectItem value="royalty_payment">Royalty Payment</SelectItem>
-                <SelectItem value="token_swap">Token Swap</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={statusFilter}
-              onValueChange={(value: string) => setStatusFilter(value as typeof statusFilter)}
-            >
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="confirmed">Confirmed</SelectItem>
-                <SelectItem value="failed">Failed</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Transactions Table */}
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Transaction</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Value</TableHead>
-                  <TableHead>Gas</TableHead>
-                  <TableHead>Block</TableHead>
-                  <TableHead>Time</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredTransactions.slice(0, 50).map((tx) => (
-                  <TableRow key={tx.id}>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <p className="font-mono text-sm">{formatAddress(tx.hash)}</p>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>From: {formatAddress(tx.from)}</span>
-                          <ArrowUpRight className="w-3 h-3" />
-                          <span>To: {formatAddress(tx.to)}</span>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${getTypeColor(tx.type)}`} />
-                        <Badge variant="outline">{tx.type.replace('_', ' ')}</Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(tx.status)}
-                        <Badge
-                          variant={
-                            tx.status === 'confirmed'
-                              ? 'default'
-                              : tx.status === 'pending'
-                                ? 'secondary'
-                                : 'destructive'
-                          }
-                        >
-                          {tx.status}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-right">
-                        <p className="font-mono">{tx.value.toFixed(4)}</p>
-                        <p className="text-xs text-muted-foreground">{tx.tokenSymbol}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-right">
-                        <p className="font-mono text-sm">{(tx.gasUsed / 1000).toFixed(0)}k</p>
-                        <p className="text-xs text-muted-foreground">
-                          {tx.gasPrice.toFixed(0)} gwei
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <p className="font-mono text-sm">{tx.blockNumber.toLocaleString()}</p>
-                    </TableCell>
-                    <TableCell>
-                      <p className="text-sm">{formatDate(tx.timestamp)}</p>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          className="p-1 hover:bg-accent rounded"
-                          onClick={() =>
-                            window.open(`https://etherscan.io/tx/${tx.hash}`, '_blank')
-                          }
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          {filteredTransactions.length > 50 && (
-            <div className="mt-4 text-center">
-              <p className="text-sm text-muted-foreground">
-                Showing first 50 of {filteredTransactions.length} transactions
-              </p>
+      {/* Royalty Flow */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Coins className="h-5 w-5" />
+              Royalty Distribution Flow
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Total Received:</span>
+                  <span className="font-mono">
+                    {Number.parseFloat(formatEther(platformStats.totalRoyaltiesReceived)).toFixed(4)} ETH
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Total Distributed:</span>
+                  <span className="font-mono">
+                    {Number.parseFloat(formatEther(platformStats.totalRoyaltiesDistributed)).toFixed(4)} ETH
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Distribution Rate:</span>
+                  <span className="font-semibold">{royaltyDistributionPercent.toFixed(1)}%</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-sm font-medium">Distribution Progress</div>
+                <Progress value={royaltyDistributionPercent} className="h-3" />
+                <div className="text-xs text-muted-foreground">
+                  {royaltyDistributionPercent > 90 
+                    ? 'Excellent distribution rate' 
+                    : 'Pending distributions available'
+                  }
+                </div>
+              </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Network Status */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>Network Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+              <div className="p-3 border rounded-lg">
+                <div className="font-medium">Network</div>
+                <div className="text-sm text-muted-foreground">Polygon Amoy</div>
+              </div>
+              <div className="p-3 border rounded-lg">
+                <div className="font-medium">Chain ID</div>
+                <div className="text-sm text-muted-foreground">80002</div>
+              </div>
+              <div className="p-3 border rounded-lg">
+                <div className="font-medium">Block Time</div>
+                <div className="text-sm text-muted-foreground">~2s</div>
+              </div>
+              <div className="p-3 border rounded-lg">
+                <div className="font-medium">Gas Price</div>
+                <div className="text-sm text-muted-foreground">~30 gwei</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   )
 }

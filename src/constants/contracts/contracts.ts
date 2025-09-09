@@ -1,143 +1,44 @@
-import {
-  type Abi,
-  type Address,
-  type ContractFunctionArgs as WagmiContractFunctionArgs,
-  type ContractFunctionName as WagmiContractFunctionName,
-  erc20Abi,
-  isAddress,
-} from 'viem'
-import { mainnet, optimismSepolia, polygon, sepolia } from 'viem/chains'
-
-import { AAVEWethABI } from '@/src/constants/contracts/abis/AAVEWeth'
-import { AaveFaucetABI } from '@/src/constants/contracts/abis/AaveFaucet'
-import { ENSRegistryABI } from '@/src/constants/contracts/abis/ENSRegistry'
-import { OPL1CrossDomainMessengerProxyABI } from '@/src/constants/contracts/abis/OPL1CrossDomainMessengerProxy'
-import type { ChainsIds } from '@/src/lib/networks.config'
-
-type OptionalAddresses = Partial<Record<ChainsIds, Address>>
-type ContractConfig<TAbi> = {
-  abi: TAbi
-  name: string
-  address?: OptionalAddresses
-}
-
-/**
- * A collection of contracts to be used in the dapp with their ABI and addresses per chain.
- *
- * @dev The data required to configure this variable is:
- *  - `RequiredChainId` is mandatory in the address object.
- *  - IDs defined `ChainIds` can be added as well if necessary.
- */
-const contracts = [
-  {
-    abi: erc20Abi,
-    name: 'ERC20',
+// Contract addresses for polygonAmoy (Chain ID: 80002)
+export const CONTRACTS = {
+  PAGSToken: {
+    address: "0x6aDa86A24f405b3E751ebD00d7734b8ACFB874E2" as const,
+    chainId: 80002,
   },
-  {
-    abi: erc20Abi,
-    name: 'SpecialERC20WithAddress',
-    address: {
-      [polygon.id]: '0x314159265dd8dbb310642f98f50c066173ceeeee',
-    },
+  MusicNFT: {
+    address: "0xa8C696FfCBf4F2845250C2b5A99351479e604ecd" as const,
+    chainId: 80002,
   },
-  {
-    abi: ENSRegistryABI,
-    address: {
-      [mainnet.id]: '0x314159265dd8dbb310642f98f50c066173c1259b',
-      [sepolia.id]: '0x0667161579ce7e84EF2b7333f9F93375a627799B',
-    },
-    name: 'EnsRegistry',
+  MusicNFTMetadata: {
+    address: "0xF692DFee5037d3Ca937943638609a9865fa930EE" as const,
+    chainId: 80002,
   },
-  {
-    abi: AaveFaucetABI,
-    address: {
-      11155111: '0xc959483dba39aa9e78757139af0e9a2edeb3f42d',
-      1: '0x0000000000000000000000000000000000000000',
-    },
-    name: 'AaveFaucet',
-  },
-  {
-    abi: AAVEWethABI,
-    address: {
-      [optimismSepolia.id]: '0x589750BA8aF186cE5B55391B0b7148cAD43a1619',
-    },
-    name: 'AAVEWeth',
-  },
-  {
-    abi: OPL1CrossDomainMessengerProxyABI,
-    address: {
-      [mainnet.id]: '0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1',
-      [sepolia.id]: '0x58Cc85b8D04EA49cC6DBd3CbFFd00B4B8D6cb3ef',
-    },
-    name: 'OPL1CrossDomainMessengerProxy',
-  },
-] as const satisfies ContractConfig<Abi>[]
+} as const;
 
-/**
- * Retrieves all contracts.
- *
- * @returns {Array<ContractConfig>} An array containing the contracts' ABI and addresses.
- */
-export const getContracts = () => contracts
+export const NETWORK_INFO = {
+  name: "polygonAmoy",
+  chainId: 80002,
+  rpcUrl: "https://rpc-amoy.polygon.technology/",
+  blockExplorer: "https://amoy.polygonscan.com/",
+} as const;
 
-export type ContractNames = (typeof contracts)[number]['name']
+// Individual contract address exports for easier importing
+export const PAGS_TOKEN_ADDRESS = CONTRACTS.PAGSToken.address;
+export const MUSIC_NFT_ADDRESS = CONTRACTS.MusicNFT.address;
+export const MUSIC_NFT_METADATA_ADDRESS = CONTRACTS.MusicNFTMetadata.address;
 
-type ContractOfName<CN extends ContractNames> = Extract<(typeof contracts)[number], { name: CN }>
-type AbiOfName<CN extends ContractNames> = ContractOfName<CN>['abi']
+// Contract metadata
+export const CONTRACT_ADDRESSES = CONTRACTS;
+export const CONTRACT_METADATA = {
+  supportedChainIds: [80002],
+  defaultChainId: 80002,
+  network: NETWORK_INFO,
+};
 
-type AddressRecord<T extends ContractNames> = ContractOfName<T> extends { address: infer K }
-  ? K
-  : never
-type ChainIdOf<T extends ContractNames> = keyof AddressRecord<T>
-
-export type ContractFunctionName<CN extends ContractNames> = WagmiContractFunctionName<
-  AbiOfName<CN>,
-  'nonpayable' | 'payable'
->
-
-export type ContractFunctionArgs<
-  CN extends ContractNames,
-  MN extends ContractFunctionName<CN>,
-> = WagmiContractFunctionArgs<AbiOfName<CN>, 'nonpayable' | 'payable', MN>
-
-/**
- * Retrieves the contract information based on the contract name and chain ID.
- *
- * @param {string} name - The name of the contract.
- * @param {ChainsIds} chainId - The chain ID configured in the dApp. See networks.config.ts.
- * @returns {Contract} An object containing the contract's ABI and address.
- *
- * @throws If contract is not found.
- */
-export const getContract = <
-  ContractName extends ContractNames,
-  ChainId extends ChainIdOf<ContractName>,
->(
-  name: ContractName,
-  chainId: ChainId,
-) => {
-  const contract = contracts.find((contract) => contract.name === name)
-
-  if (!contract) {
-    throw new Error(`Contract ${name} not found`)
+// Helper function to get contract address by name and chain
+export function getContractAddress(contractName: keyof typeof CONTRACTS, chainId: number = 80002) {
+  const contract = CONTRACTS[contractName];
+  if (contract.chainId !== chainId) {
+    throw new Error(`Contract ${contractName} not deployed on chain ${chainId}`);
   }
-
-  // address key not present
-  if (!('address' in contract)) {
-    throw new Error(`Contract ${name} address not found}`)
-  }
-
-  const address = (contract.address as AddressRecord<ContractName>)[chainId]
-
-  // address undefined
-  if (!address) {
-    throw new Error(`Contract ${name} address not found for chain ${chainId.toString()}`)
-  }
-
-  // not a valid address
-  if (!isAddress(address as string)) {
-    throw new Error(`Contract ${name} address is not a valid address`)
-  }
-
-  return { abi: contract.abi as AbiOfName<ContractName>, address }
+  return contract.address;
 }

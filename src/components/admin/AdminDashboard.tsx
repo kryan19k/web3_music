@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/src/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/custom-tabs'
-import { useAdminData } from '@/src/hooks/useAdminData'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
+import { useAdminContractData } from '@/src/hooks/contracts'
 import { motion } from 'framer-motion'
 import { BarChart3, Bell, Coins, Music, Settings, Users } from 'lucide-react'
 import { useState } from 'react'
@@ -10,11 +10,22 @@ import { NFTManagement } from './sections/NFTManagement'
 import { PlatformSettings } from './sections/PlatformSettings'
 import { SystemAlerts } from './sections/SystemAlerts'
 import { UserManagement } from './sections/UserManagement'
+import { AdminDebug } from './AdminDebug'
 
 export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
-  const { isLoading, alerts } = useAdminData()
+  const { isLoading, isAuthorized } = useAdminContractData()
+  
+  // Mock alerts for now - in real app, these would come from monitoring systems
+  const alerts = [
+    { id: '1', isRead: false, message: 'High gas fees detected' },
+    { id: '2', isRead: false, message: 'New tier configuration needed' }
+  ]
   const unreadAlerts = alerts.filter((alert) => !alert.isRead).length
+
+  if (!isAuthorized) {
+    return <AdminDebug />
+  }
 
   if (isLoading) {
     return (

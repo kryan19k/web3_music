@@ -1,32 +1,129 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Badge } from '@/src/components/ui/badge'
+import { Progress } from '@/src/components/ui/progress'
 import { Button } from '@/src/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
-import { useAdminData } from '@/src/hooks/useAdminData'
-import { motion } from 'framer-motion'
-import {
-  Activity,
-  AlertTriangle,
-  ArrowUpRight,
+import { 
+  BarChart3, 
+  Users, 
+  Music, 
+  DollarSign, 
+  TrendingUp, 
+  PlayCircle,
   Coins,
-  DollarSign,
-  Music,
-  TrendingUp,
-  Users,
+  Shield,
+  AlertTriangle,
+  CheckCircle,
+  XCircle
 } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { formatEther } from 'viem'
+import { 
+  useAdminContractData, 
+  useMusicNFTAllTiers, 
+  useAdminTogglePause,
+  contractUtils 
+} from '@/src/hooks/contracts'
+import { Tier } from '@/src/hooks/contracts/useMusicNFT'
 
 export function AdminOverview() {
-  const { stats, transactions, nfts, users } = useAdminData()
+  const { platformStats, roleInfo, isLoading, isAuthorized } = useAdminContractData()
+  const { tiers } = useMusicNFTAllTiers()
+  const { pause, unpause, isLoading: isToggling } = useAdminTogglePause()
 
-  if (!stats) return null
+  if (!isAuthorized) {
+    return (
+      <div className="text-center py-8">
+        <Shield className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-lg font-medium mb-2">Access Denied</h3>
+        <p className="text-muted-foreground">
+          You need admin or manager privileges to access this dashboard.
+        </p>
+      </div>
+    )
+  }
 
-  const criticalAlerts = 2 // Mock critical alerts count
-  const pendingNFTs = nfts.filter((nft) => nft.status === 'pending').length
-  const flaggedNFTs = nfts.filter((nft) => nft.status === 'flagged').length
-  const bannedUsers = users.filter((user) => user.isBanned).length
+  if (isLoading) {
+    return (
+      <div className="text-center py-8">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-muted-foreground">Loading platform overview...</p>
+      </div>
+    )
+  }
+
+  // Calculate platform metrics
+  const totalSupplyFormatted = Number(platformStats.totalSupply).toLocaleString()
+  const platformRevenueETH = formatEther(platformStats.totalPlatformRevenue)
+  const platformRevenueUSD = Number.parseFloat(platformRevenueETH) * 3000 // Assuming ETH = $3000
+  const royaltiesReceivedETH = formatEther(platformStats.totalRoyaltiesReceived)
+  const royaltiesDistributedETH = formatEther(platformStats.totalRoyaltiesDistributed)
+  const platformFeePercent = Number(platformStats.platformFeePercentage) / 100
+
+  // Calculate tier statistics
+  const tierStats = Object.values(Tier).filter(tier => typeof tier === 'number').map(tier => {
+    const tierData = tiers[tier as Tier]
+    if (!tierData) return null
+    
+    const mintedPercent = tierData.maxSupply > 0 
+      ? (tierData.currentSupply / tierData.maxSupply) * 100 
+      : 0
+
+    return {
+      tier: tier as Tier,
+      name: tierData.name,
+      minted: tierData.currentSupply || 0,
+      total: tierData.maxSupply || 0,
+      percent: mintedPercent,
+      active: tierData.saleActive || false,
+      price: formatEther(tierData.price || 0n),
+    }
+  }).filter(Boolean)
+
+  const totalMinted = tierStats.reduce((sum, tier) => sum + (tier?.minted || 0), 0)
+  const totalAvailable = tierStats.reduce((sum, tier) => sum + (tier?.total || 0), 0)
+  const overallMintPercent = totalAvailable > 0 ? (totalMinted / totalAvailable) * 100 : 0
 
   return (
     <div className="space-y-6">
-      {/* Key Metrics Grid */}
+      {/* Platform Status Banner */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <Card className={`border-2 ${platformStats.isPaused ? 'border-red-500 bg-red-50 dark:bg-red-950' : 'border-green-500 bg-green-50 dark:bg-green-950'}`}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {platformStats.isPaused ? (
+                  <XCircle className="h-6 w-6 text-red-500" />
+                ) : (
+                  <CheckCircle className="h-6 w-6 text-green-500" />
+                )}
+                <div>
+                  <h3 className="font-medium">
+                    Platform Status: {platformStats.isPaused ? 'PAUSED' : 'ACTIVE'}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {platformStats.isPaused 
+                      ? 'All platform functions are currently paused'
+                      : 'Platform is operating normally'
+                    }
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant={platformStats.isPaused ? "default" : "destructive"}
+                onClick={() => platformStats.isPaused ? unpause() : pause()}
+                disabled={isToggling}
+              >
+                {isToggling ? 'Processing...' : platformStats.isPaused ? 'Unpause' : 'Pause'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -34,20 +131,17 @@ export function AdminOverview() {
           transition={{ delay: 0.1 }}
         >
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total NFTs Minted
+              </CardTitle>
+              <Music className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                $
-                {(
-                  stats.revenueBreakdown.nftSales +
-                  stats.revenueBreakdown.royalties +
-                  stats.revenueBreakdown.platformFees
-                ).toLocaleString()}
+              <div className="text-2xl font-bold">{totalSupplyFormatted}</div>
+              <div className="text-xs text-muted-foreground">
+                {overallMintPercent.toFixed(1)}% of total supply
               </div>
-              <p className="text-xs text-muted-foreground">+12.5% from last month</p>
             </CardContent>
           </Card>
         </motion.div>
@@ -58,13 +152,19 @@ export function AdminOverview() {
           transition={{ delay: 0.2 }}
         >
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Platform Revenue
+              </CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.activeUsers24h}</div>
-              <p className="text-xs text-muted-foreground">+{stats.newUsers24h} new today</p>
+              <div className="text-2xl font-bold">
+                {contractUtils.formatCurrency(platformRevenueUSD)}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {Number.parseFloat(platformRevenueETH).toFixed(4)} ETH
+              </div>
             </CardContent>
           </Card>
         </motion.div>
@@ -75,13 +175,19 @@ export function AdminOverview() {
           transition={{ delay: 0.3 }}
         >
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Volume</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Royalties Distributed
+              </CardTitle>
+              <Coins className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalVolume.toFixed(2)} ETH</div>
-              <p className="text-xs text-muted-foreground">+8.3% from last week</p>
+              <div className="text-2xl font-bold">
+                {Number.parseFloat(royaltiesDistributedETH).toFixed(2)} ETH
+              </div>
+              <div className="text-xs text-muted-foreground">
+                From {Number.parseFloat(royaltiesReceivedETH).toFixed(2)} ETH received
+              </div>
             </CardContent>
           </Card>
         </motion.div>
@@ -92,228 +198,109 @@ export function AdminOverview() {
           transition={{ delay: 0.4 }}
         >
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">NFTs Minted</CardTitle>
-              <Music className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Platform Fee
+              </CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalNFTs}</div>
-              <p className="text-xs text-muted-foreground">
-                +{Math.floor(Math.random() * 20 + 5)} this week
-              </p>
+              <div className="text-2xl font-bold">{platformFeePercent}%</div>
+              <div className="text-xs text-muted-foreground">
+                Current fee percentage
+              </div>
             </CardContent>
           </Card>
         </motion.div>
       </div>
 
-      {/* Action Items */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Tier Performance */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+      >
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-orange-500" />
-              Requires Attention
+              <BarChart3 className="h-5 w-5" />
+              NFT Tier Performance
             </CardTitle>
-            <CardDescription>Items that need immediate admin action</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {criticalAlerts > 0 && (
-              <div className="flex items-center justify-between p-3 bg-red-500/10 rounded-lg border border-red-500/20">
-                <div>
-                  <p className="font-medium text-red-500">Critical System Alerts</p>
-                  <p className="text-sm text-muted-foreground">
-                    {criticalAlerts} critical issues detected
-                  </p>
-                </div>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                >
-                  View
-                </Button>
-              </div>
-            )}
-
-            {pendingNFTs > 0 && (
-              <div className="flex items-center justify-between p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
-                <div>
-                  <p className="font-medium text-yellow-600">Pending NFTs</p>
-                  <p className="text-sm text-muted-foreground">
-                    {pendingNFTs} NFTs awaiting approval
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                >
-                  Review
-                </Button>
-              </div>
-            )}
-
-            {flaggedNFTs > 0 && (
-              <div className="flex items-center justify-between p-3 bg-orange-500/10 rounded-lg border border-orange-500/20">
-                <div>
-                  <p className="font-medium text-orange-600">Flagged Content</p>
-                  <p className="text-sm text-muted-foreground">
-                    {flaggedNFTs} NFTs flagged for review
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                >
-                  Moderate
-                </Button>
-              </div>
-            )}
-
-            {bannedUsers > 0 && (
-              <div className="flex items-center justify-between p-3 bg-red-500/10 rounded-lg border border-red-500/20">
-                <div>
-                  <p className="font-medium text-red-600">Banned Users</p>
-                  <p className="text-sm text-muted-foreground">
-                    {bannedUsers} users currently banned
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                >
-                  Manage
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Recent Transactions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="w-5 h-5" />
-              Recent Activity
-            </CardTitle>
-            <CardDescription>Latest blockchain transactions and platform activity</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {stats.recentTransactions.slice(0, 5).map((tx) => (
-                <div
-                  key={tx.id}
-                  className="flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-2 h-2 rounded-full ${
-                        tx.status === 'confirmed'
-                          ? 'bg-green-500'
-                          : tx.status === 'pending'
-                            ? 'bg-yellow-500'
-                            : 'bg-red-500'
-                      }`}
-                    />
-                    <div>
-                      <p className="text-sm font-medium capitalize">{tx.type.replace('_', ' ')}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {tx.timestamp.toLocaleTimeString()}
-                      </p>
+            <div className="space-y-4">
+              {tierStats.map((tier, index) => (
+                <div key={tier.tier} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{tier.name}</span>
+                      <Badge variant={tier.active ? "default" : "secondary"}>
+                        {tier.active ? "Active" : "Inactive"}
+                      </Badge>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-medium">
+                        {tier.minted.toLocaleString()} / {tier.total.toLocaleString()}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {tier.price} ETH each
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">
-                      {tx.value.toFixed(4)} {tx.tokenSymbol}
-                    </p>
-                    <Badge
-                      variant={
-                        tx.status === 'confirmed'
-                          ? 'default'
-                          : tx.status === 'pending'
-                            ? 'secondary'
-                            : 'destructive'
-                      }
-                      className="text-xs"
-                    >
-                      {tx.status}
-                    </Badge>
+                  <Progress value={tier.percent} className="h-2" />
+                  <div className="text-xs text-muted-foreground">
+                    {tier.percent.toFixed(1)}% minted
                   </div>
                 </div>
               ))}
             </div>
-            <Button
-              variant="outline"
-              className="w-full mt-4"
-              size="sm"
-            >
-              View All Transactions
-              <ArrowUpRight className="w-4 h-4 ml-2" />
-            </Button>
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
 
-      {/* Revenue Breakdown */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Coins className="w-5 h-5 text-green-500" />
-            Revenue Breakdown
-          </CardTitle>
-          <CardDescription>Revenue distribution across platform services</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-4 bg-green-500/10 rounded-lg">
-              <p className="text-2xl font-bold text-green-600">
-                ${stats.revenueBreakdown.nftSales.toLocaleString()}
-              </p>
-              <p className="text-sm text-muted-foreground">NFT Sales</p>
-              <p className="text-xs text-green-600">
-                {(
-                  (stats.revenueBreakdown.nftSales /
-                    (stats.revenueBreakdown.nftSales +
-                      stats.revenueBreakdown.royalties +
-                      stats.revenueBreakdown.platformFees)) *
-                  100
-                ).toFixed(1)}
-                %
-              </p>
+      {/* Recent Activity */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PlayCircle className="h-5 w-5" />
+              System Health
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center p-4 border rounded-lg">
+                <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
+                <div className="font-medium">Contract Status</div>
+                <div className="text-sm text-muted-foreground">
+                  {platformStats.isPaused ? 'Paused' : 'Operational'}
+                </div>
+              </div>
+              <div className="text-center p-4 border rounded-lg">
+                <Coins className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+                <div className="font-medium">Fee Recipient</div>
+                <div className="text-xs font-mono text-muted-foreground">
+                  {platformStats.platformFeeRecipient 
+                    ? `${platformStats.platformFeeRecipient.slice(0, 6)}...${platformStats.platformFeeRecipient.slice(-4)}`
+                    : 'Not Set'
+                  }
+                </div>
+              </div>
+              <div className="text-center p-4 border rounded-lg">
+                <Shield className="h-8 w-8 text-purple-500 mx-auto mb-2" />
+                <div className="font-medium">Your Access</div>
+                <div className="text-sm text-muted-foreground">
+                  {roleInfo.userRoles.isAdmin ? 'Admin' : roleInfo.userRoles.isManager ? 'Manager' : 'User'}
+                </div>
+              </div>
             </div>
-            <div className="text-center p-4 bg-blue-500/10 rounded-lg">
-              <p className="text-2xl font-bold text-blue-600">
-                ${stats.revenueBreakdown.royalties.toLocaleString()}
-              </p>
-              <p className="text-sm text-muted-foreground">Royalties</p>
-              <p className="text-xs text-blue-600">
-                {(
-                  (stats.revenueBreakdown.royalties /
-                    (stats.revenueBreakdown.nftSales +
-                      stats.revenueBreakdown.royalties +
-                      stats.revenueBreakdown.platformFees)) *
-                  100
-                ).toFixed(1)}
-                %
-              </p>
-            </div>
-            <div className="text-center p-4 bg-purple-500/10 rounded-lg">
-              <p className="text-2xl font-bold text-purple-600">
-                ${stats.revenueBreakdown.platformFees.toLocaleString()}
-              </p>
-              <p className="text-sm text-muted-foreground">Platform Fees</p>
-              <p className="text-xs text-purple-600">
-                {(
-                  (stats.revenueBreakdown.platformFees /
-                    (stats.revenueBreakdown.nftSales +
-                      stats.revenueBreakdown.royalties +
-                      stats.revenueBreakdown.platformFees)) *
-                  100
-                ).toFixed(1)}
-                %
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   )
 }

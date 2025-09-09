@@ -1,471 +1,368 @@
+import { useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
-import { Switch } from '@/src/components/ui/custom-switch'
 import { Input } from '@/src/components/ui/input'
 import { Label } from '@/src/components/ui/label'
-import {
+import { Separator } from '@/src/components/ui/separator'
+import { Badge } from '@/src/components/ui/badge'
+import { Switch } from '@/src/components/ui/switch'
+import { 
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/src/components/ui/select'
-import { Textarea } from '@/src/components/ui/textarea'
-import { useAdminData } from '@/src/hooks/useAdminData'
-import type { PlatformSettings as PlatformSettingsType } from '@/src/types/admin'
+import { 
+  Settings, 
+  DollarSign, 
+  Shield, 
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  Coins,
+  BarChart3
+} from 'lucide-react'
 import { motion } from 'framer-motion'
-import { DollarSign, FileText, Globe, Lock, Save, Settings, Shield, Zap } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
+import { formatEther } from 'viem'
+import { 
+  useAdminContractData,
+  useAdminUpdatePlatformFee,
+  useAdminSetSalePhase,
+  useAdminSetDynamicPricing,
+  useAdminTogglePause,
+  useMusicNFTMarketplaceData,
+  SalePhase
+} from '@/src/hooks/contracts'
 
 export function PlatformSettings() {
-  const { settings: initialSettings, updateSettings } = useAdminData()
-  const [settings, setSettings] = useState<PlatformSettingsType | null>(null)
-  const [isDirty, setIsDirty] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
+  const { platformStats, roleInfo, isLoading } = useAdminContractData()
+  const { salePhase, dynamicPricing } = useMusicNFTMarketplaceData()
+  
+  const { updatePlatformFee, isLoading: isUpdatingFee } = useAdminUpdatePlatformFee()
+  const { setSalePhase, isLoading: isSettingPhase } = useAdminSetSalePhase()
+  const { setDynamicPricing, isLoading: isSettingPricing } = useAdminSetDynamicPricing()
+  const { pause, unpause, isLoading: isToggling } = useAdminTogglePause()
 
-  useEffect(() => {
-    if (initialSettings) {
-      setSettings(initialSettings)
-    }
-  }, [initialSettings])
+  const [newFeePercentage, setNewFeePercentage] = useState('')
+  const [selectedSalePhase, setSelectedSalePhase] = useState<SalePhase>(salePhase || SalePhase.CLOSED)
+  const [isDynamicPricingEnabled, setIsDynamicPricingEnabled] = useState(dynamicPricing || false)
 
-  const handleSettingChange = (
-    category: keyof PlatformSettingsType,
-    key: string,
-    value: unknown,
-  ) => {
-    if (!settings) return
-
-    setSettings((prev) => {
-      if (!prev) return null
-      return {
-        ...prev,
-        [category]: {
-          ...prev[category],
-          [key]: value,
-        },
-      }
-    })
-    setIsDirty(true)
-  }
-
-  const handleSave = async () => {
-    if (!settings) return
-
-    setIsSaving(true)
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate API call
-      updateSettings(settings)
-      setIsDirty(false)
-      toast.success('Settings saved successfully!')
-    } catch (error) {
-      toast.error('Failed to save settings')
-    } finally {
-      setIsSaving(false)
+  const handleUpdatePlatformFee = () => {
+    const percentage = Number.parseFloat(newFeePercentage)
+    if (percentage >= 0 && percentage <= 10) {
+      updatePlatformFee({ newPercentage: percentage })
+      setNewFeePercentage('')
     }
   }
 
-  if (!settings) {
+  const handleSetSalePhase = (phase: string) => {
+    const salePhaseValue = Number.parseInt(phase) as SalePhase
+    setSalePhase({ phase: salePhaseValue })
+    setSelectedSalePhase(salePhaseValue)
+  }
+
+  const handleToggleDynamicPricing = (enabled: boolean) => {
+    setDynamicPricing({ enabled })
+    setIsDynamicPricingEnabled(enabled)
+  }
+
+  if (!roleInfo.userRoles.isAdmin) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="text-center py-8">
+        <Shield className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-lg font-medium mb-2">Admin Access Required</h3>
+        <p className="text-muted-foreground">
+          Only administrators can modify platform settings.
+        </p>
       </div>
     )
   }
 
+  if (isLoading) {
+    return (
+      <div className="text-center py-8">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-muted-foreground">Loading platform settings...</p>
+      </div>
+    )
+  }
+
+  const currentFeePercent = Number(platformStats.platformFeePercentage) / 100
+
   return (
     <div className="space-y-6">
-      {/* Save Banner */}
-      {isDirty && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <Card className="border-orange-500/50 bg-orange-500/10">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-orange-500" />
-                  <span className="font-medium">Unsaved changes detected</span>
-                </div>
-                <Button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="bg-orange-500 hover:bg-orange-600 text-white"
-                >
-                  {isSaving ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Saving...
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <Save className="w-4 h-4" />
-                      Save Changes
-                    </div>
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* General Settings */}
+      {/* Platform Control */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Globe className="w-5 h-5" />
-              General Settings
+              <Shield className="h-5 w-5" />
+              Platform Control
             </CardTitle>
-            <CardDescription>Basic platform configuration and information</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="platformName">Platform Name</Label>
-              <Input
-                id="platformName"
-                value={settings.general.platformName}
-                onChange={(e) => handleSettingChange('general', 'platformName', e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={settings.general.description}
-                onChange={(e) => handleSettingChange('general', 'description', e.target.value)}
-                rows={3}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="supportEmail">Support Email</Label>
-              <Input
-                id="supportEmail"
-                type="email"
-                value={settings.general.supportEmail}
-                onChange={(e) => handleSettingChange('general', 'supportEmail', e.target.value)}
-              />
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="maintenanceMode"
-                checked={settings.general.maintenanceMode}
-                onCheckedChange={(checked) =>
-                  handleSettingChange('general', 'maintenanceMode', checked)
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <div className="font-medium flex items-center gap-2">
+                  Platform Status
+                  {platformStats.isPaused ? (
+                    <Badge variant="destructive" className="flex items-center gap-1">
+                      <XCircle className="h-3 w-3" />
+                      Paused
+                    </Badge>
+                  ) : (
+                    <Badge variant="default" className="flex items-center gap-1">
+                      <CheckCircle className="h-3 w-3" />
+                      Active
+                    </Badge>
+                  )}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {platformStats.isPaused 
+                    ? 'All minting and transfers are paused'
+                    : 'Platform is operating normally'
+                  }
+                </div>
+              </div>
+              <Button
+                variant={platformStats.isPaused ? "default" : "destructive"}
+                onClick={() => platformStats.isPaused ? unpause() : pause()}
+                disabled={isToggling}
+              >
+                {isToggling 
+                  ? 'Processing...' 
+                  : platformStats.isPaused 
+                    ? 'Unpause Platform' 
+                    : 'Pause Platform'
                 }
-              />
-              <div className="space-y-0.5">
-                <Label htmlFor="maintenanceMode">Maintenance Mode</Label>
-                <p className="text-sm text-muted-foreground">
-                  Temporarily disable access to the platform
+              </Button>
+            </div>
+
+            {platformStats.isPaused && (
+              <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
+                <div className="flex items-center gap-2 text-red-800 dark:text-red-300">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span className="font-medium">Platform is currently paused</span>
+                </div>
+                <p className="text-sm text-red-700 dark:text-red-400 mt-1">
+                  Users cannot mint NFTs or interact with contracts while paused.
                 </p>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
+      </motion.div>
 
-        {/* Fee Settings */}
+      {/* Fee Management */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <DollarSign className="w-5 h-5" />
-              Fee Configuration
+              <DollarSign className="h-5 w-5" />
+              Fee Management
             </CardTitle>
-            <CardDescription>Platform fees and royalty settings</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="platformFee">Platform Fee (%)</Label>
-              <Input
-                id="platformFee"
-                type="number"
-                min="0"
-                max="10"
-                step="0.1"
-                value={settings.fees.platformFeePercentage}
-                onChange={(e) =>
-                  handleSettingChange(
-                    'fees',
-                    'platformFeePercentage',
-                    Number.parseFloat(e.target.value),
-                  )
-                }
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Current Platform Fee</Label>
+                <div className="p-3 bg-muted rounded-lg">
+                  <div className="text-2xl font-bold">{currentFeePercent}%</div>
+                  <div className="text-sm text-muted-foreground">
+                    Applied to all NFT sales
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Fee Recipient</Label>
+                <div className="p-3 bg-muted rounded-lg">
+                  <div className="font-mono text-sm">
+                    {platformStats.platformFeeRecipient 
+                      ? `${platformStats.platformFeeRecipient.slice(0, 6)}...${platformStats.platformFeeRecipient.slice(-4)}`
+                      : 'Not Set'
+                    }
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Address receiving fees
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="royaltyCap">Royalty Cap (%)</Label>
-              <Input
-                id="royaltyCap"
-                type="number"
-                min="0"
-                max="20"
-                step="0.1"
-                value={settings.fees.royaltyCapPercentage}
-                onChange={(e) =>
-                  handleSettingChange(
-                    'fees',
-                    'royaltyCapPercentage',
-                    Number.parseFloat(e.target.value),
-                  )
-                }
-              />
-            </div>
+            <Separator />
 
             <div className="space-y-2">
-              <Label htmlFor="minRoyalty">Minimum Royalty (%)</Label>
-              <Input
-                id="minRoyalty"
-                type="number"
-                min="0"
-                max="5"
-                step="0.1"
-                value={settings.fees.minimumRoyaltyPercentage}
-                onChange={(e) =>
-                  handleSettingChange(
-                    'fees',
-                    'minimumRoyaltyPercentage',
-                    Number.parseFloat(e.target.value),
-                  )
-                }
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Blockchain Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="w-5 h-5" />
-              Blockchain Configuration
-            </CardTitle>
-            <CardDescription>Blockchain network and transaction settings</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="defaultChain">Default Chain</Label>
-              <Select
-                value={settings.blockchain.defaultChain}
-                onValueChange={(value) => handleSettingChange('blockchain', 'defaultChain', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ethereum">Ethereum</SelectItem>
-                  <SelectItem value="polygon">Polygon</SelectItem>
-                  <SelectItem value="bsc">Binance Smart Chain</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="gasMultiplier">Gas Limit Multiplier</Label>
-              <Input
-                id="gasMultiplier"
-                type="number"
-                min="1"
-                max="2"
-                step="0.1"
-                value={settings.blockchain.gasLimitMultiplier}
-                onChange={(e) =>
-                  handleSettingChange(
-                    'blockchain',
-                    'gasLimitMultiplier',
-                    Number.parseFloat(e.target.value),
-                  )
-                }
-              />
-            </div>
-
-            <div className="space-y-3">
-              <Label>Supported Chains</Label>
-              {['ethereum', 'polygon', 'bsc'].map((chain) => (
-                <div
-                  key={chain}
-                  className="flex items-center space-x-2"
+              <Label htmlFor="new-fee">Update Platform Fee</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="new-fee"
+                  type="number"
+                  placeholder="Enter new fee percentage (0-10)"
+                  value={newFeePercentage}
+                  onChange={(e) => setNewFeePercentage(e.target.value)}
+                  min="0"
+                  max="10"
+                  step="0.1"
+                />
+                <Button 
+                  onClick={handleUpdatePlatformFee}
+                  disabled={isUpdatingFee || !newFeePercentage}
                 >
-                  <Switch
-                    id={`chain-${chain}`}
-                    checked={settings.blockchain.supportedChains.includes(chain)}
-                    onCheckedChange={(checked) => {
-                      const newChains = checked
-                        ? [...settings.blockchain.supportedChains, chain]
-                        : settings.blockchain.supportedChains.filter((c) => c !== chain)
-                      handleSettingChange('blockchain', 'supportedChains', newChains)
-                    }}
-                  />
-                  <Label
-                    htmlFor={`chain-${chain}`}
-                    className="capitalize"
-                  >
-                    {chain}
-                  </Label>
-                </div>
-              ))}
+                  {isUpdatingFee ? 'Updating...' : 'Update Fee'}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Fee percentage must be between 0% and 10%
+              </p>
             </div>
           </CardContent>
         </Card>
+      </motion.div>
 
-        {/* Content Settings */}
+      {/* Sale Configuration */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              Content Moderation
+              <BarChart3 className="h-5 w-5" />
+              Sale Configuration
             </CardTitle>
-            <CardDescription>File upload and content moderation settings</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="maxFileSize">Max File Size (MB)</Label>
-              <Input
-                id="maxFileSize"
-                type="number"
-                min="1"
-                max="100"
-                value={settings.content.maxFileSize / (1024 * 1024)}
-                onChange={(e) =>
-                  handleSettingChange(
-                    'content',
-                    'maxFileSize',
-                    Number.parseInt(e.target.value) * 1024 * 1024,
-                  )
-                }
-              />
-            </div>
-
-            <div className="space-y-3">
-              <Label>Content Settings</Label>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="requireModeration"
-                  checked={settings.content.requireModeration}
-                  onCheckedChange={(checked) =>
-                    handleSettingChange('content', 'requireModeration', checked)
-                  }
-                />
-                <div className="space-y-0.5">
-                  <Label htmlFor="requireModeration">Require Moderation</Label>
-                  <p className="text-sm text-muted-foreground">
-                    All content must be approved before publishing
-                  </p>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Sale Phase</Label>
+                <Select value={selectedSalePhase.toString()} onValueChange={handleSetSalePhase}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={SalePhase.CLOSED.toString()}>
+                      <div className="flex items-center gap-2">
+                        <XCircle className="h-4 w-4 text-red-500" />
+                        Closed
+                      </div>
+                    </SelectItem>
+                    <SelectItem value={SalePhase.WHITELIST.toString()}>
+                      <div className="flex items-center gap-2">
+                        <Shield className="h-4 w-4 text-yellow-500" />
+                        Whitelist Only
+                      </div>
+                    </SelectItem>
+                    <SelectItem value={SalePhase.PUBLIC.toString()}>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        Public Sale
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                {isSettingPhase && (
+                  <p className="text-xs text-blue-600">Updating sale phase...</p>
+                )}
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="autoApprove"
-                  checked={settings.content.autoApproveVerifiedArtists}
-                  onCheckedChange={(checked) =>
-                    handleSettingChange('content', 'autoApproveVerifiedArtists', checked)
+              <div className="space-y-2">
+                <Label>Dynamic Pricing</Label>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    checked={isDynamicPricingEnabled}
+                    onCheckedChange={handleToggleDynamicPricing}
+                    disabled={isSettingPricing}
+                  />
+                  <span className="text-sm">
+                    {isDynamicPricingEnabled ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {isDynamicPricingEnabled 
+                    ? 'Prices adjust based on demand'
+                    : 'Fixed tier pricing'
                   }
-                />
-                <div className="space-y-0.5">
-                  <Label htmlFor="autoApprove">Auto-approve Verified Artists</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Verified artists' content is automatically approved
-                  </p>
+                </p>
+                {isSettingPricing && (
+                  <p className="text-xs text-blue-600">Updating pricing model...</p>
+                )}
+              </div>
+            </div>
+
+            <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+                Current Sale Settings
+              </h4>
+              <div className="space-y-1 text-sm text-blue-800 dark:text-blue-200">
+                <div className="flex justify-between">
+                  <span>Phase:</span>
+                  <span className="font-medium">
+                    {salePhase === SalePhase.CLOSED && 'Closed'}
+                    {salePhase === SalePhase.WHITELIST && 'Whitelist'}
+                    {salePhase === SalePhase.PUBLIC && 'Public'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Dynamic Pricing:</span>
+                  <span className="font-medium">
+                    {dynamicPricing ? 'Enabled' : 'Disabled'}
+                  </span>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
+      </motion.div>
 
-        {/* Security Settings */}
-        <Card className="lg:col-span-2">
+      {/* Revenue Overview */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Shield className="w-5 h-5" />
-              Security Configuration
+              <Coins className="h-5 w-5" />
+              Revenue Overview
             </CardTitle>
-            <CardDescription>Authentication and security settings</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="maxAttempts">Max Login Attempts</Label>
-                <Input
-                  id="maxAttempts"
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={settings.security.maxLoginAttempts}
-                  onChange={(e) =>
-                    handleSettingChange(
-                      'security',
-                      'maxLoginAttempts',
-                      Number.parseInt(e.target.value),
-                    )
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="sessionTimeout">Session Timeout (hours)</Label>
-                <Input
-                  id="sessionTimeout"
-                  type="number"
-                  min="1"
-                  max="24"
-                  value={settings.security.sessionTimeout / 3600}
-                  onChange={(e) =>
-                    handleSettingChange(
-                      'security',
-                      'sessionTimeout',
-                      Number.parseInt(e.target.value) * 3600,
-                    )
-                  }
-                />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="require2FA"
-                  checked={settings.security.requireTwoFactor}
-                  onCheckedChange={(checked) =>
-                    handleSettingChange('security', 'requireTwoFactor', checked)
-                  }
-                />
-                <div className="space-y-0.5">
-                  <Label htmlFor="require2FA">Require 2FA</Label>
-                  <p className="text-sm text-muted-foreground">Force two-factor authentication</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center p-4 border rounded-lg">
+                <DollarSign className="h-8 w-8 text-green-500 mx-auto mb-2" />
+                <div className="text-2xl font-bold">
+                  {Number.parseFloat(formatEther(platformStats.totalPlatformRevenue)).toFixed(4)}
                 </div>
+                <div className="text-sm text-muted-foreground">ETH Revenue</div>
+              </div>
+              <div className="text-center p-4 border rounded-lg">
+                <Coins className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+                <div className="text-2xl font-bold">
+                  {Number.parseFloat(formatEther(platformStats.totalRoyaltiesReceived)).toFixed(4)}
+                </div>
+                <div className="text-sm text-muted-foreground">ETH Royalties</div>
+              </div>
+              <div className="text-center p-4 border rounded-lg">
+                <BarChart3 className="h-8 w-8 text-purple-500 mx-auto mb-2" />
+                <div className="text-2xl font-bold">
+                  {Number.parseFloat(formatEther(platformStats.totalReferralRewards)).toFixed(4)}
+                </div>
+                <div className="text-sm text-muted-foreground">ETH Referrals</div>
               </div>
             </div>
           </CardContent>
         </Card>
-      </div>
-
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <Button
-          onClick={handleSave}
-          disabled={!isDirty || isSaving}
-          size="lg"
-          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0"
-        >
-          {isSaving ? (
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Saving Settings...
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Save className="w-4 h-4" />
-              Save All Changes
-            </div>
-          )}
-        </Button>
-      </div>
+      </motion.div>
     </div>
   )
 }

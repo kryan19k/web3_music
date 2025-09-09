@@ -1,285 +1,247 @@
-import { Badge } from '@/src/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
-import { useAdminData } from '@/src/hooks/useAdminData'
+import { Badge } from '@/src/components/ui/badge'
+import { Bell, AlertTriangle, Info, CheckCircle, XCircle, Clock } from 'lucide-react'
 import { motion } from 'framer-motion'
-import {
-  AlertCircle,
-  AlertTriangle,
-  Bell,
-  CheckCircle,
-  Info,
-  Shield,
-  Trash2,
-  X,
-} from 'lucide-react'
+import { useState } from 'react'
+
+interface Alert {
+  id: string
+  type: 'error' | 'warning' | 'info' | 'success'
+  title: string
+  message: string
+  timestamp: string
+  isRead: boolean
+  severity: 'low' | 'medium' | 'high' | 'critical'
+}
 
 export function SystemAlerts() {
-  const { alerts, markAlertAsRead, dismissAlert } = useAdminData()
+  const [alerts, setAlerts] = useState<Alert[]>([
+    {
+      id: '1',
+      type: 'warning',
+      title: 'High Gas Fees Detected',
+      message: 'Current gas fees are above normal. Consider pausing non-essential transactions.',
+      timestamp: '2 minutes ago',
+      isRead: false,
+      severity: 'medium'
+    },
+    {
+      id: '2',
+      type: 'info',
+      title: 'New Tier Configuration Needed',
+      message: 'Gold tier is 90% sold out. Consider updating availability or pricing.',
+      timestamp: '15 minutes ago',
+      isRead: false,
+      severity: 'low'
+    },
+    {
+      id: '3',
+      type: 'success',
+      title: 'Royalty Distribution Complete',
+      message: 'Successfully distributed 2.5 ETH in royalties to 150 holders.',
+      timestamp: '1 hour ago',
+      isRead: true,
+      severity: 'low'
+    },
+    {
+      id: '4',
+      type: 'error',
+      title: 'Oracle Update Failed',
+      message: 'Track statistics update failed for Track ID 15. Manual intervention required.',
+      timestamp: '2 hours ago',
+      isRead: false,
+      severity: 'high'
+    }
+  ])
 
-  const getAlertIcon = (type: string) => {
+  const markAsRead = (alertId: string) => {
+    setAlerts(prev => 
+      prev.map(alert => 
+        alert.id === alertId ? { ...alert, isRead: true } : alert
+      )
+    )
+  }
+
+  const markAllAsRead = () => {
+    setAlerts(prev => prev.map(alert => ({ ...alert, isRead: true })))
+  }
+
+  const dismissAlert = (alertId: string) => {
+    setAlerts(prev => prev.filter(alert => alert.id !== alertId))
+  }
+
+  const getAlertIcon = (type: Alert['type']) => {
     switch (type) {
       case 'error':
-        return <AlertCircle className="w-5 h-5 text-red-500" />
+        return <XCircle className="h-5 w-5 text-red-500" />
       case 'warning':
-        return <AlertTriangle className="w-5 h-5 text-orange-500" />
-      case 'success':
-        return <CheckCircle className="w-5 h-5 text-green-500" />
+        return <AlertTriangle className="h-5 w-5 text-yellow-500" />
       case 'info':
-        return <Info className="w-5 h-5 text-blue-500" />
-      default:
-        return <Bell className="w-5 h-5 text-gray-500" />
+        return <Info className="h-5 w-5 text-blue-500" />
+      case 'success':
+        return <CheckCircle className="h-5 w-5 text-green-500" />
     }
   }
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'security':
-        return <Shield className="w-4 h-4" />
-      default:
-        return <Bell className="w-4 h-4" />
+  const getSeverityBadge = (severity: Alert['severity']) => {
+    const variants = {
+      low: 'secondary',
+      medium: 'default',
+      high: 'destructive',
+      critical: 'destructive'
     }
+    return variants[severity] as any
   }
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'critical':
-        return 'border-red-500 bg-red-500/10'
-      case 'high':
-        return 'border-orange-500 bg-orange-500/10'
-      case 'medium':
-        return 'border-yellow-500 bg-yellow-500/10'
-      case 'low':
-        return 'border-blue-500 bg-blue-500/10'
-      default:
-        return 'border-gray-500 bg-gray-500/10'
-    }
-  }
-
-  const formatTimeAgo = (date: Date) => {
-    const now = new Date()
-    const diff = now.getTime() - date.getTime()
-    const minutes = Math.floor(diff / (1000 * 60))
-    const hours = Math.floor(diff / (1000 * 60 * 60))
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-
-    if (days > 0) return `${days}d ago`
-    if (hours > 0) return `${hours}h ago`
-    if (minutes > 0) return `${minutes}m ago`
-    return 'Just now'
-  }
-
-  const getAlertStats = () => {
-    return {
-      total: alerts.length,
-      unread: alerts.filter((a) => !a.isRead).length,
-      critical: alerts.filter((a) => a.severity === 'critical').length,
-      high: alerts.filter((a) => a.severity === 'high').length,
-      byCategory: {
-        blockchain: alerts.filter((a) => a.category === 'blockchain').length,
-        security: alerts.filter((a) => a.category === 'security').length,
-        users: alerts.filter((a) => a.category === 'users').length,
-        nfts: alerts.filter((a) => a.category === 'nfts').length,
-        system: alerts.filter((a) => a.category === 'system').length,
-      },
-    }
-  }
-
-  const stats = getAlertStats()
+  const unreadCount = alerts.filter(alert => !alert.isRead).length
+  const criticalCount = alerts.filter(alert => alert.severity === 'critical' && !alert.isRead).length
 
   return (
     <div className="space-y-6">
-      {/* Alert Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-2xl font-bold">{stats.total}</p>
-                  <p className="text-sm text-muted-foreground">Total Alerts</p>
-                </div>
-                <Bell className="w-8 h-8 text-blue-500" />
+      {/* Alert Summary */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                System Alerts
+              </CardTitle>
+              <div className="flex gap-2">
+                <Badge variant="secondary">
+                  {unreadCount} Unread
+                </Badge>
+                {criticalCount > 0 && (
+                  <Badge variant="destructive">
+                    {criticalCount} Critical
+                  </Badge>
+                )}
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-2xl font-bold text-orange-600">{stats.unread}</p>
-                  <p className="text-sm text-muted-foreground">Unread</p>
-                </div>
-                <AlertTriangle className="w-8 h-8 text-orange-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-2xl font-bold text-red-600">{stats.critical}</p>
-                  <p className="text-sm text-muted-foreground">Critical</p>
-                </div>
-                <AlertCircle className="w-8 h-8 text-red-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-2xl font-bold text-yellow-600">{stats.high}</p>
-                  <p className="text-sm text-muted-foreground">High Priority</p>
-                </div>
-                <AlertTriangle className="w-8 h-8 text-yellow-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* Alert Categories */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Alert Categories</CardTitle>
-          <CardDescription>
-            Distribution of alerts across different system components
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            {Object.entries(stats.byCategory).map(([category, count]) => (
-              <div
-                key={category}
-                className="text-center p-4 bg-muted/50 rounded-lg"
-              >
-                <p className="text-2xl font-bold text-primary">{count}</p>
-                <p className="text-sm text-muted-foreground capitalize">{category}</p>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* System Alerts List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>System Alerts</CardTitle>
-          <CardDescription>
-            Monitor system events, errors, and important notifications
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {alerts.length === 0 ? (
-            <div className="text-center py-8">
-              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">All Clear!</h3>
-              <p className="text-muted-foreground">No system alerts at this time.</p>
             </div>
-          ) : (
-            alerts.map((alert, index) => (
-              <motion.div
-                key={alert.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className={`p-4 rounded-lg border-l-4 ${getSeverityColor(alert.severity)} ${
-                  alert.isRead ? 'opacity-75' : ''
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3 flex-1">
-                    {getAlertIcon(alert.type)}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold">{alert.title}</h4>
-                        <Badge
-                          variant="outline"
-                          className="text-xs"
-                        >
-                          {alert.severity}
-                        </Badge>
-                        <Badge
-                          variant="secondary"
-                          className="text-xs"
-                        >
-                          {getCategoryIcon(alert.category)}
-                          {alert.category}
-                        </Badge>
-                        {!alert.isRead && <div className="w-2 h-2 bg-blue-500 rounded-full" />}
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">{alert.message}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatTimeAgo(alert.timestamp)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {!alert.isRead && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => markAlertAsRead(alert.id)}
-                      >
-                        Mark Read
-                      </Button>
-                    )}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => dismissAlert(alert.id)}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
-            ))
-          )}
-
-          {alerts.length > 0 && (
-            <div className="flex justify-end pt-4 border-t">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  for (const alert of alerts) {
-                    markAlertAsRead(alert.id)
-                  }
-                }}
-              >
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2 mb-4">
+              <Button onClick={markAllAsRead} size="sm">
                 Mark All Read
               </Button>
+              <Button variant="outline" size="sm">
+                Export Logs
+              </Button>
             </div>
-          )}
-        </CardContent>
-      </Card>
+            
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {[
+                { type: 'error', count: alerts.filter(a => a.type === 'error').length, label: 'Errors' },
+                { type: 'warning', count: alerts.filter(a => a.type === 'warning').length, label: 'Warnings' },
+                { type: 'info', count: alerts.filter(a => a.type === 'info').length, label: 'Info' },
+                { type: 'success', count: alerts.filter(a => a.type === 'success').length, label: 'Success' }
+              ].map((stat) => (
+                <div key={stat.type} className="text-center p-3 border rounded-lg">
+                  <div className="text-2xl font-bold">{stat.count}</div>
+                  <div className="text-sm text-muted-foreground">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Alert List */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Alerts</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {alerts.map((alert, index) => (
+                <motion.div
+                  key={alert.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className={`p-4 border rounded-lg ${!alert.isRead ? 'bg-muted/30' : ''}`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3 flex-1">
+                      {getAlertIcon(alert.type)}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-medium">{alert.title}</h4>
+                          <Badge variant={getSeverityBadge(alert.severity)} size="sm">
+                            {alert.severity}
+                          </Badge>
+                          {!alert.isRead && (
+                            <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {alert.message}
+                        </p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Clock className="h-3 w-3" />
+                          {alert.timestamp}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      {!alert.isRead && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => markAsRead(alert.id)}
+                        >
+                          Mark Read
+                        </Button>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => dismissAlert(alert.id)}
+                      >
+                        Dismiss
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Alert Configuration */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>Alert Configuration</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8">
+              <Bell className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">Alert Settings</h3>
+              <p className="text-muted-foreground mb-4">
+                Configure notification thresholds, delivery methods, and alert rules.
+              </p>
+              <Button variant="outline">
+                Configure Alerts
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   )
 }

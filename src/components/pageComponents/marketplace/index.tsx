@@ -12,7 +12,7 @@ import {
 } from '@/src/components/ui/select'
 import { type Track, useAudioPlayer } from '@/src/hooks/useAudioPlayer'
 import type { MusicNFT } from '@/src/types/music-nft'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
   Clock,
   DollarSign,
@@ -23,9 +23,157 @@ import {
   Music,
   Search,
   TrendingUp,
+  Star,
+  Flame,
+  Crown,
+  Award,
+  PlayCircle,
+  Users,
+  Eye,
+  Zap,
+  ChevronRight,
+  Heart,
+  Share2,
+  Plus,
+  Shuffle,
+  MoreHorizontal,
+  Disc3,
+  Album,
+  Mic,
+  Radio
 } from 'lucide-react'
 import * as React from 'react'
 import { useState } from 'react'
+
+// Featured Collections Data
+const featuredCollections = [
+  {
+    id: '1',
+    name: 'Midnight Sessions',
+    description: 'Late night ambient tracks for deep focus',
+    cover: '/song_cover/midnight.png',
+    trackCount: 12,
+    totalValue: '5.8 ETH',
+    growth: '+24.5%',
+    artist: 'Luna Vista',
+    verified: true
+  },
+  {
+    id: '2', 
+    name: 'Urban Chronicles',
+    description: 'Raw hip-hop from the streets',
+    cover: '/song_cover/urban.png',
+    trackCount: 8,
+    totalValue: '3.2 ETH',
+    growth: '+18.3%',
+    artist: 'Street Symphony',
+    verified: true
+  },
+  {
+    id: '3',
+    name: 'Electric Futures',
+    description: 'Synthwave & cyberpunk anthems',
+    cover: '/song_cover/electric.png',
+    trackCount: 15,
+    totalValue: '7.1 ETH',
+    growth: '+31.2%',
+    artist: 'Neon Pulse',
+    verified: true
+  },
+  {
+    id: '4',
+    name: 'Coffee House Acoustics',
+    description: 'Relaxing acoustic melodies',
+    cover: '/song_cover/coffee.png',
+    trackCount: 10,
+    totalValue: '2.4 ETH',
+    growth: '+12.8%',
+    artist: 'Mellow Mornings',
+    verified: false
+  }
+]
+
+// Featured Artists Data
+const featuredArtists = [
+  {
+    id: '1',
+    name: 'Luna Vista',
+    genre: 'Ambient / Chillout',
+    avatar: '/song_cover/midnight.png',
+    followers: '12.8K',
+    totalTracks: 23,
+    totalValue: '15.2 ETH',
+    verified: true,
+    monthlyListeners: '450K'
+  },
+  {
+    id: '2',
+    name: 'Neon Pulse',
+    genre: 'Synthwave / Electronic',
+    avatar: '/song_cover/electric.png', 
+    followers: '8.9K',
+    totalTracks: 18,
+    totalValue: '11.7 ETH',
+    verified: true,
+    monthlyListeners: '320K'
+  },
+  {
+    id: '3',
+    name: 'Street Symphony',
+    genre: 'Hip-Hop / Rap',
+    avatar: '/song_cover/urban.png',
+    followers: '15.3K',
+    totalTracks: 31,
+    totalValue: '18.9 ETH',
+    verified: true,
+    monthlyListeners: '680K'
+  },
+  {
+    id: '4',
+    name: 'Mellow Mornings',
+    genre: 'Acoustic / Folk',
+    avatar: '/song_cover/coffee.png',
+    followers: '6.2K',
+    totalTracks: 14,
+    totalValue: '7.8 ETH',
+    verified: false,
+    monthlyListeners: '180K'
+  }
+]
+
+// Trending Albums Data
+const trendingAlbums = [
+  {
+    id: '1',
+    title: 'Neon Dreams',
+    artist: 'Cyber Phoenix',
+    cover: '/song_cover/electric.png',
+    trackCount: 12,
+    price: '1.8 ETH',
+    streams: '2.1M',
+    growth: '+45%'
+  },
+  {
+    id: '2',
+    title: 'Urban Legends',
+    artist: 'Metro Beats',
+    cover: '/song_cover/urban.png',
+    trackCount: 10,
+    price: '1.2 ETH',
+    streams: '1.8M',
+    growth: '+32%'
+  },
+  {
+    id: '3',
+    title: 'Midnight Cafe',
+    artist: 'Jazz Collective',
+    cover: '/song_cover/coffee.png',
+    trackCount: 8,
+    price: '0.9 ETH',
+    streams: '980K',
+    growth: '+28%'
+  }
+]
 
 // Extended demo data for marketplace
 const marketplaceNFTs: MusicNFT[] = [
@@ -272,6 +420,7 @@ export function MarketplacePage() {
   const [selectedGenre, setSelectedGenre] = useState('all')
   const [sortBy, setSortBy] = useState('trending')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [activeSection, setActiveSection] = useState('featured')
   const { play, pause, currentTrack, isPlaying } = useAudioPlayer()
 
   // Filter and sort NFTs
@@ -332,192 +481,390 @@ export function MarketplacePage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative py-20 bg-gradient-to-br from-purple-900/20 via-background to-pink-900/20">
+      <section className="relative py-16 bg-gradient-to-br from-purple-900/10 via-background to-pink-900/10 overflow-hidden">
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5" />
+        
+        {/* Floating Elements */}
+        <div className="absolute inset-0 pointer-events-none">
+          {Array.from({ length: 8 }, (_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-primary/20 rounded-full"
+              initial={{
+                x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1200),
+                y: Math.random() * 600,
+              }}
+              animate={{
+                y: [0, -100, 0],
+                opacity: [0.3, 0.8, 0.3],
+              }}
+              transition={{
+                duration: Math.random() * 10 + 10,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            />
+          ))}
+        </div>
+
         <div className="relative z-10 container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center max-w-4xl mx-auto"
+            className="text-center max-w-6xl mx-auto"
           >
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              Music{' '}
-              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Marketplace
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <Badge className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-400 border-green-500/30">
+                <Radio className="w-4 h-4 mr-2" />
+                LIVE MARKETPLACE
+              </Badge>
+              <Badge className="bg-gradient-to-r from-orange-500/20 to-red-500/20 text-orange-400 border-orange-500/30">
+                <Flame className="w-4 h-4 mr-2" />
+                HOT DROPS
+              </Badge>
+            </div>
+
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+              The Future of{' '}
+              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
+                Music Ownership
               </span>
             </h1>
-            <p className="text-xl text-muted-foreground mb-8">
-              Discover, collect, and earn from exclusive music NFTs. Own a piece of your favorite
-              tracks and share in their success.
+            <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-4xl mx-auto leading-relaxed">
+              Discover exclusive collections, invest in rising artists, and earn from the music you love. 
+              <span className="text-primary font-semibold"> Join 12.8K+ collectors </span>
+              building the future of music.
             </p>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+            {/* Enhanced Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mb-12">
               {[
-                { icon: Music, label: 'Total NFTs', value: marketplaceNFTs.length.toString() },
-                { icon: DollarSign, label: 'Volume', value: '$2.4M' },
-                { icon: Headphones, label: 'Active Users', value: '12.8K' },
-                { icon: TrendingUp, label: '24h Growth', value: '+8.4%' },
-              ].map((stat) => (
-                <Card
+                { icon: Album, label: 'Collections', value: '1,247', change: '+12%', color: 'text-purple-400' },
+                { icon: DollarSign, label: 'Volume (24h)', value: '$2.4M', change: '+18%', color: 'text-green-400' },
+                { icon: Users, label: 'Active Collectors', value: '12.8K', change: '+8%', color: 'text-blue-400' },
+                { icon: TrendingUp, label: 'Floor Price', value: '0.05 ETH', change: '+24%', color: 'text-cyan-400' },
+              ].map((stat, i) => (
+                <motion.div
                   key={stat.label}
-                  className="p-4 bg-card/50 backdrop-blur-sm"
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 + i * 0.1 }}
                 >
-                  <CardContent className="p-0 text-center">
-                    <stat.icon className="w-6 h-6 mx-auto mb-2 text-primary" />
-                    <p className="text-2xl font-bold">{stat.value}</p>
-                    <p className="text-xs text-muted-foreground">{stat.label}</p>
-                  </CardContent>
-                </Card>
+                  <Card className="p-6 bg-card/50 backdrop-blur-xl border-border/30 hover:bg-card/70 transition-all duration-300 group">
+                    <CardContent className="p-0 text-center">
+                      <stat.icon className={`w-8 h-8 mx-auto mb-3 ${stat.color} group-hover:scale-110 transition-transform duration-300`} />
+                      <p className="text-3xl font-bold mb-1">{stat.value}</p>
+                      <p className="text-sm text-muted-foreground mb-2">{stat.label}</p>
+                      <Badge variant="secondary" className="text-xs bg-green-500/20 text-green-400 border-green-500/30">
+                        {stat.change}
+                      </Badge>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               ))}
+            </div>
+
+            {/* Quick Actions */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-xl shadow-purple-500/25 px-8 py-4 text-lg group"
+              >
+                <PlayCircle className="mr-2 w-5 h-5 group-hover:scale-110 transition-transform" />
+                Explore Collections
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-2 border-border/30 text-foreground hover:bg-accent/20 backdrop-blur-xl px-8 py-4 text-lg"
+              >
+                <Mic className="mr-2 w-5 h-5" />
+                Discover Artists
+              </Button>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Filters & Search */}
+      {/* Navigation Tabs */}
       <section className="sticky top-16 z-40 bg-background/95 backdrop-blur-xl border-b border-border/50">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-            {/* Search */}
-            <div className="relative flex-1 max-w-md">
+          <div className="flex items-center justify-between">
+            {/* Section Navigation */}
+            <div className="flex items-center gap-2 bg-card/30 backdrop-blur-sm rounded-full p-1">
+              {[
+                { id: 'featured', label: 'Featured', icon: Star },
+                { id: 'collections', label: 'Collections', icon: Album },
+                { id: 'artists', label: 'Artists', icon: Mic },
+                { id: 'trending', label: 'Trending', icon: Flame },
+                { id: 'explore', label: 'Explore All', icon: Search },
+              ].map((tab) => (
+                <Button
+                  key={tab.id}
+                  variant={activeSection === tab.id ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveSection(tab.id)}
+                  className="rounded-full px-6 py-2"
+                >
+                  <tab.icon className="w-4 h-4 mr-2" />
+                  {tab.label}
+                </Button>
+              ))}
+            </div>
+
+            {/* Quick Search */}
+            <div className="relative w-80">
               <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search by title, artist, or genre..."
+                placeholder="Search collections, artists, tracks..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 bg-card/30 backdrop-blur-sm border-border/30"
               />
             </div>
-
-            {/* Filters */}
-            <div className="flex gap-2 items-center">
-              <Select
-                value={selectedTier}
-                onValueChange={setSelectedTier}
-              >
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Tier" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Tiers</SelectItem>
-                  <SelectItem value="platinum">Platinum</SelectItem>
-                  <SelectItem value="gold">Gold</SelectItem>
-                  <SelectItem value="silver">Silver</SelectItem>
-                  <SelectItem value="bronze">Bronze</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={selectedGenre}
-                onValueChange={setSelectedGenre}
-              >
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Genre" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Genres</SelectItem>
-                  {genres.map((genre) => (
-                    <SelectItem
-                      key={genre}
-                      value={genre}
-                    >
-                      {genre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={sortBy}
-                onValueChange={setSortBy}
-              >
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="trending">Trending</SelectItem>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="apy">Highest APY</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* View Toggle */}
-              <div className="flex border border-border rounded-lg">
-                <Button
-                  variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                  className="rounded-r-none"
-                >
-                  <Grid3X3 className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                  className="rounded-l-none"
-                >
-                  <List className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
           </div>
-
-          {/* Active Filters */}
-          {(selectedTier !== 'all' || selectedGenre !== 'all' || searchQuery) && (
-            <div className="flex gap-2 mt-3">
-              {searchQuery && (
-                <Badge
-                  variant="secondary"
-                  className="gap-1"
-                >
-                  Search: "{searchQuery}"
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    className="ml-1 hover:text-destructive"
-                  >
-                    ×
-                  </button>
-                </Badge>
-              )}
-              {selectedTier !== 'all' && (
-                <Badge
-                  variant="secondary"
-                  className="gap-1"
-                >
-                  Tier: {selectedTier}
-                  <button
-                    type="button"
-                    onClick={() => setSelectedTier('all')}
-                    className="ml-1 hover:text-destructive"
-                  >
-                    ×
-                  </button>
-                </Badge>
-              )}
-              {selectedGenre !== 'all' && (
-                <Badge
-                  variant="secondary"
-                  className="gap-1"
-                >
-                  Genre: {selectedGenre}
-                  <button
-                    type="button"
-                    onClick={() => setSelectedGenre('all')}
-                    className="ml-1 hover:text-destructive"
-                  >
-                    ×
-                  </button>
-                </Badge>
-              )}
-            </div>
-          )}
         </div>
       </section>
+
+      {/* Featured Collections Section */}
+      {activeSection === 'featured' && (
+        <section className="py-16 bg-gradient-to-b from-background to-purple-950/5">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center mb-12"
+            >
+              <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                Featured{' '}
+                <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  Collections
+                </span>
+              </h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Handpicked collections from top artists with exceptional growth potential
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+              {featuredCollections.map((collection, index) => (
+                <motion.div
+                  key={collection.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="group"
+                >
+                  <Card className="overflow-hidden bg-card/50 backdrop-blur-xl border-border/30 hover:bg-card/70 transition-all duration-500 group-hover:scale-105 group-hover:shadow-2xl group-hover:shadow-primary/20">
+                    <div className="relative">
+                      <div className="aspect-square overflow-hidden">
+                        <img 
+                          src={collection.cover} 
+                          alt={collection.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                        
+                        {/* Overlay Info */}
+                        <div className="absolute bottom-4 left-4 right-4">
+                          <div className="flex items-center justify-between text-white mb-2">
+                            <Badge className="bg-black/60 text-white border-0">
+                              {collection.trackCount} tracks
+                            </Badge>
+                            <Badge className="bg-green-500/80 text-white border-0">
+                              {collection.growth}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        {/* Hover Play Button */}
+                        <motion.button
+                          initial={{ scale: 0 }}
+                          whileHover={{ scale: 1 }}
+                          className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        >
+                          <PlayCircle className="w-16 h-16 text-white" />
+                        </motion.button>
+                      </div>
+                    </div>
+
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-xl font-bold group-hover:text-primary transition-colors">
+                          {collection.name}
+                        </h3>
+                        {collection.verified && (
+                          <Crown className="w-5 h-5 text-yellow-500" />
+                        )}
+                      </div>
+                      
+                      <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
+                        {collection.description}
+                      </p>
+                      
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <p className="text-xs text-muted-foreground">by {collection.artist}</p>
+                          <p className="text-lg font-bold text-primary">{collection.totalValue}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="ghost" className="p-2">
+                            <Heart className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" variant="ghost" className="p-2">
+                            <Share2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
+                        View Collection
+                        <ChevronRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Trending Albums */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="mb-16"
+            >
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="text-3xl font-bold flex items-center gap-2">
+                  <Flame className="w-8 h-8 text-orange-500" />
+                  Trending Albums
+                </h3>
+                <Button variant="outline" className="group">
+                  View All
+                  <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {trendingAlbums.map((album, index) => (
+                  <motion.div
+                    key={album.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.6 + index * 0.1 }}
+                  >
+                    <Card className="p-6 bg-gradient-to-br from-card/50 to-card/20 backdrop-blur-xl border-border/30 hover:bg-card/70 transition-all duration-300 group">
+                      <CardContent className="p-0">
+                        <div className="flex items-center gap-4">
+                          <div className="relative">
+                            <div className="w-20 h-20 rounded-xl overflow-hidden">
+                              <img 
+                                src={album.cover} 
+                                alt={album.title}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              />
+                            </div>
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              className="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                            >
+                              <PlayCircle className="w-8 h-8 text-white" />
+                            </motion.button>
+                          </div>
+                          
+                          <div className="flex-1">
+                            <h4 className="text-lg font-bold mb-1">{album.title}</h4>
+                            <p className="text-muted-foreground text-sm mb-2">{album.artist}</p>
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                              <span>{album.trackCount} tracks</span>
+                              <span>{album.streams} streams</span>
+                            </div>
+                          </div>
+                          
+                          <div className="text-right">
+                            <p className="text-lg font-bold text-primary mb-1">{album.price}</p>
+                            <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                              {album.growth}
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Featured Artists */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+            >
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="text-3xl font-bold flex items-center gap-2">
+                  <Award className="w-8 h-8 text-purple-500" />
+                  Featured Artists
+                </h3>
+                <Button variant="outline" className="group">
+                  View All
+                  <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {featuredArtists.map((artist, index) => (
+                  <motion.div
+                    key={artist.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.9 + index * 0.1 }}
+                  >
+                    <Card className="p-6 bg-card/50 backdrop-blur-xl border-border/30 hover:bg-card/70 transition-all duration-300 text-center group">
+                      <CardContent className="p-0">
+                        <div className="relative mb-4">
+                          <div className="w-24 h-24 rounded-full overflow-hidden mx-auto ring-4 ring-primary/20 group-hover:ring-primary/40 transition-all duration-300">
+                            <img 
+                              src={artist.avatar} 
+                              alt={artist.name}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            />
+                          </div>
+                          {artist.verified && (
+                            <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center border-2 border-background">
+                              <Star className="w-4 h-4 text-white fill-white" />
+                            </div>
+                          )}
+                        </div>
+                        
+                        <h4 className="text-lg font-bold mb-1">{artist.name}</h4>
+                        <p className="text-muted-foreground text-sm mb-3">{artist.genre}</p>
+                        
+                        <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                          <div>
+                            <p className="text-muted-foreground">Followers</p>
+                            <p className="font-bold">{artist.followers}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Value</p>
+                            <p className="font-bold text-primary">{artist.totalValue}</p>
+                          </div>
+                        </div>
+                        
+                        <Button size="sm" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Follow
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      )}
 
       {/* NFT Grid */}
       <section className="py-8">

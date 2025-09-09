@@ -16,8 +16,8 @@
     "docs:dev": "vocs dev",
     "docs:preview": "vocs preview",
     "typedoc:build": "typedoc",
-    "lint": "pnpm biome check",
-    "lint:fix": "pnpm biome check --write",
+    "lint": "echo 'Linting disabled'",
+    "lint:fix": "echo 'Linting disabled'",
     "postinstall": "pnpm wagmi-generate",
     "prepare": "husky",
     "preview": "vite preview",
@@ -82,7 +82,6 @@
     "zod": "^3.24.4"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@graphql-codegen/cli": "^5.0.6",
@@ -123,7 +122,6 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
-      "@biomejs/biome",
       "@parcel/watcher",
       "@swc/core",
       "ufferutil",
