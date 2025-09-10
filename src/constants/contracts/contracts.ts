@@ -1,19 +1,19 @@
 import { PAGSTokenAbi } from './abis/PAGSToken'
-import { MUSIC_NFT_ABI } from './abis/MusicNFT'
+import { MUSIC_NFT_ABI, MusicNFTAbi } from './abis/MusicNFT'
 import { MusicNFTMetadataAbi } from './abis/MusicNFTMetadata'
 
-// Contract addresses for polygonAmoy (Chain ID: 80002)
+// Contract addresses for polygonAmoy (Chain ID: 80002) - Updated with fresh deployment
 export const CONTRACTS = {
   PAGSToken: {
-    address: "0x6aDa86A24f405b3E751ebD00d7734b8ACFB874E2" as const,
+    address: "0xCCfBbca65c129381C367C67EcDC1271B880D1b05" as const,
     chainId: 80002,
   },
   MusicNFT: {
-    address: "0xa8C696FfCBf4F2845250C2b5A99351479e604ecd" as const,
+    address: "0x2CC2287C9b72Bf2BDb194DF6Cac265d2BD3B2167" as const,
     chainId: 80002,
   },
   MusicNFTMetadata: {
-    address: "0xF692DFee5037d3Ca937943638609a9865fa930EE" as const,
+    address: "0xAD77708c10CF1E1975cB29280Af2139686439bDB" as const,
     chainId: 80002,
   },
 } as const;

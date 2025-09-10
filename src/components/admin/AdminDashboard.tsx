@@ -10,11 +10,9 @@ import { NFTManagement } from './sections/NFTManagement'
 import { PlatformSettings } from './sections/PlatformSettings'
 import { SystemAlerts } from './sections/SystemAlerts'
 import { UserManagement } from './sections/UserManagement'
-import { AdminDebug } from './AdminDebug'
 
 export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
-  const { isLoading, isAuthorized } = useAdminContractData()
   
   // Mock alerts for now - in real app, these would come from monitoring systems
   const alerts = [
@@ -23,20 +21,7 @@ export function AdminDashboard() {
   ]
   const unreadAlerts = alerts.filter((alert) => !alert.isRead).length
 
-  if (!isAuthorized) {
-    return <AdminDebug />
-  }
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading admin dashboard...</p>
-        </div>
-      </div>
-    )
-  }
+  // Loading check removed - AdminContainer handles auth/loading logic
 
   return (
     <div className="min-h-screen bg-background">

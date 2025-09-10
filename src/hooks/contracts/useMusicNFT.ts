@@ -1,4 +1,5 @@
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useCallback } from 'react'
 import { parseEther, formatEther, type Address } from 'viem'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -568,6 +569,72 @@ export function useMusicNFTClaimCollaboratorRoyalties() {
 // Example placeholder for when the functions are added to the contract:
 // export function useMusicNFTRedeemBenefit() { ... }
 // export function useMusicNFTAddExclusiveContent() { ... }
+
+// ============================================
+// ROLE MANAGEMENT HOOKS
+// ============================================
+
+export function useMusicNFTHasRole(role: string, address?: Address) {
+  return useReadContract({
+    address: MUSIC_NFT_ADDRESS,
+    abi: MusicNFTAbi,
+    functionName: 'hasRole',
+    args: role && address ? [role as `0x${string}`, address] : undefined,
+    query: {
+      enabled: !!(role && address),
+    },
+  })
+}
+
+export function useMusicNFTArtistRole(address?: Address) {
+  const ARTIST_ROLE = '0x877a78dc988c0ec5f58453b44888a55eb39755c3d5ed8d8ea990912aa3ef29c6' // keccak256("ARTIST_ROLE")
+  return useMusicNFTHasRole(ARTIST_ROLE, address)
+}
+
+export function useMusicNFTGrantRole() {
+  const { writeContract, data: hash, isPending } = useWriteContract()
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
+
+  const grantRole = useMutation({
+    mutationFn: async ({ role, account }: { role: string; account: Address }) => {
+      return writeContract({
+        address: MUSIC_NFT_ADDRESS,
+        abi: MusicNFTAbi,
+        functionName: 'grantRole',
+        args: [role as `0x${string}`, account],
+        // biome-ignore lint/suspicious/noExplicitAny: Wagmi type system requires any for complex contract interactions
+      } as any)
+    },
+    onSuccess: () => {
+      toast.success('Role granted successfully!')
+    },
+    onError: (error) => {
+      toast.error('Failed to grant role')
+      console.error('Grant role error:', error)
+    },
+  })
+
+  return {
+    grantRole: grantRole.mutate,
+    isLoading: isPending || isConfirming,
+    isSuccess,
+    hash,
+  }
+}
+
+export function useMusicNFTGrantArtistRole() {
+  const { grantRole, ...rest } = useMusicNFTGrantRole()
+  const ARTIST_ROLE = '0x877a78dc988c0ec5f58453b44888a55eb39755c3d5ed8d8ea990912aa3ef29c6'
+
+  const grantArtistRole = useCallback((account: Address) => {
+    grantRole({ role: ARTIST_ROLE, account })
+  }, [grantRole, ARTIST_ROLE])
+
+  return {
+    grantArtistRole,
+    ...rest,
+  }
+}
 
 // ============================================
 // COMBINED HOOKS

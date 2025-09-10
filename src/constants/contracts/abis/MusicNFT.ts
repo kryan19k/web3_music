@@ -1,4 +1,8 @@
-export const MusicNFTAbi = [
+// Auto-generated ABI for MusicNFT contract
+// Generated on: 2025-09-10T00:07:23.416Z
+// Contract: contracts/trackcontract.sol:MusicNFT
+
+export const MUSIC_NFT_ABI = [
   {
     "inputs": [
       {
@@ -2533,5 +2537,5 @@ export const MusicNFTAbi = [
   }
 ] as const;
 
-// Export with consistent naming
-export const MUSIC_NFT_ABI = MusicNFTAbi;
+// Alternative export name for backward compatibility
+export const MusicNFTAbi = MUSIC_NFT_ABI;

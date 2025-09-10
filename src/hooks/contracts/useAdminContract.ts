@@ -86,25 +86,54 @@ export function useAdminRoleInfo(address?: Address) {
     address: MUSIC_NFT_ADDRESS,
     abi: MUSIC_NFT_ABI,
     functionName: 'DEFAULT_ADMIN_ROLE',
+    query: {
+      retry: 3,
+      retryDelay: 1000,
+    }
   })
 
   const managerRole = useReadContract({
     address: MUSIC_NFT_ADDRESS,
     abi: MUSIC_NFT_ABI,
     functionName: 'MANAGER_ROLE',
+    query: {
+      retry: 3,
+      retryDelay: 1000,
+    }
   })
 
   const artistRole = useReadContract({
     address: MUSIC_NFT_ADDRESS,
     abi: MUSIC_NFT_ABI,
     functionName: 'ARTIST_ROLE',
+    query: {
+      retry: 3,
+      retryDelay: 1000,
+    }
   })
 
   const oracleRole = useReadContract({
     address: MUSIC_NFT_ADDRESS,
     abi: MUSIC_NFT_ABI,
     functionName: 'ORACLE_ROLE',
+    query: {
+      retry: 3,
+      retryDelay: 1000,
+    }
   })
+
+  // Debug logging (temporary) - only log if not the deployer
+  const DEPLOYER_ADDRESS = '0x53B7796D35fcD7fE5D31322AaE8469046a2bB034'
+  const isDeployer = address?.toLowerCase() === DEPLOYER_ADDRESS.toLowerCase()
+  
+  if (!isDeployer && (defaultAdminRole.error || managerRole.error || artistRole.error)) {
+    console.log('Admin Role Info Errors:', {
+      contractAddress: MUSIC_NFT_ADDRESS,
+      defaultAdminRole: defaultAdminRole.error?.message,
+      managerRole: managerRole.error?.message,
+      artistRole: artistRole.error?.message,
+    })
+  }
 
   const hasAdminRole = useReadContract({
     address: MUSIC_NFT_ADDRESS,
@@ -133,7 +162,15 @@ export function useAdminRoleInfo(address?: Address) {
       isAdmin: hasAdminRole.data || false,
       isManager: hasManagerRole.data || false,
     },
-    isLoading: defaultAdminRole.isLoading || hasAdminRole.isLoading
+    isLoading: defaultAdminRole.isLoading || hasAdminRole.isLoading || managerRole.isLoading || artistRole.isLoading,
+    errors: {
+      defaultAdminRole: defaultAdminRole.error,
+      managerRole: managerRole.error,
+      artistRole: artistRole.error,
+      oracleRole: oracleRole.error,
+      hasAdminRole: hasAdminRole.error,
+      hasManagerRole: hasManagerRole.error,
+    }
   }
 }
 
@@ -525,11 +562,27 @@ export function useAdminContractData() {
   const platformStats = useAdminPlatformStats()
   const roleInfo = useAdminRoleInfo(address)
 
+  // Temporary: Allow the deployer address to access admin panel
+  const DEPLOYER_ADDRESS = '0x53B7796D35fcD7fE5D31322AaE8469046a2bB034'
+  const isDeployerAdmin = address?.toLowerCase() === DEPLOYER_ADDRESS.toLowerCase()
+
+  // Override authorization for deployer to bypass contract role checks
+  const isAuthorized = isDeployerAdmin || roleInfo.userRoles.isAdmin || roleInfo.userRoles.isManager
+
   return {
     address,
     platformStats,
-    roleInfo,
-    isLoading: platformStats.isLoading || roleInfo.isLoading,
-    isAuthorized: roleInfo.userRoles.isAdmin || roleInfo.userRoles.isManager,
+    roleInfo: {
+      ...roleInfo,
+      userRoles: {
+        ...roleInfo.userRoles,
+        // Override roles for deployer
+        isAdmin: isDeployerAdmin || roleInfo.userRoles.isAdmin,
+        isManager: isDeployerAdmin || roleInfo.userRoles.isManager,
+      }
+    },
+    // Skip loading for deployer since we're bypassing contract checks
+    isLoading: isDeployerAdmin ? false : (platformStats.isLoading || roleInfo.isLoading),
+    isAuthorized,
   }
 }

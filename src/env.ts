@@ -1,57 +1,67 @@
-import { createEnv } from '@t3-oss/env-core'
-import { zeroAddress } from 'viem'
-import { z } from 'zod'
-
-const zBoolean = z
-  .enum(['true', 'false'])
-  .transform((value) => value === 'true')
-  .optional()
-  .default('true')
-
 /**
- * Represents the environment configuration object.
- *
- * @dev zod-checked and typed environment variables.
- *  Here you should define all the environment variables that your application uses.
+ * Environment Configuration
+ * Type-safe environment variables with validation
  */
-export const env = createEnv({
-  clientPrefix: 'PUBLIC_',
-  client: {
-    PUBLIC_ALCHEMY_KEY: z.string().optional(),
-    PUBLIC_APP_DESCRIPTION: z.string().min(1).optional(),
-    PUBLIC_APP_LOGO: z.string().optional(),
-    PUBLIC_APP_NAME: z.string().min(1),
-    PUBLIC_APP_URL: z.string().optional(),
-    PUBLIC_USE_DEFAULT_TOKENS: zBoolean,
-    PUBLIC_INFURA_KEY: z.string().optional(),
-    PUBLIC_NATIVE_TOKEN_ADDRESS: z
-      .string()
-      .optional()
-      .default(zeroAddress)
-      .transform((value) => value.toLowerCase()),
-    PUBLIC_RPC_ARBITRUM: z.string().optional(),
-    PUBLIC_RPC_ARBITRUM_SEPOLIA: z.string().optional(),
-    PUBLIC_RPC_BASE: z.string().optional(),
-    PUBLIC_RPC_BASE_SEPOLIA: z.string().optional(),
-    PUBLIC_RPC_GNOSIS: z.string().optional(),
-    PUBLIC_RPC_GNOSIS_CHIADO: z.string().optional(),
-    PUBLIC_RPC_MAINNET: z.string().optional(),
-    PUBLIC_RPC_OPTIMISM: z.string().optional(),
-    PUBLIC_RPC_OPTIMISM_SEPOLIA: z.string().optional(),
-    PUBLIC_RPC_POLYGON: z.string().optional(),
-    PUBLIC_RPC_POLYGON_AMOY: z.string().optional(),
-    PUBLIC_RPC_POLYGON_MUMBAI: z.string().optional(),
-    PUBLIC_RPC_SEPOLIA: z.string().optional(),
-    PUBLIC_WALLETCONNECT_PROJECT_ID: z.string().optional().default(''),
-    PUBLIC_INCLUDE_TESTNETS: zBoolean,
-    PUBLIC_SUBGRAPHS_API_KEY: z.string(),
-    PUBLIC_SUBGRAPHS_CHAINS_RESOURCE_IDS: z.string(),
-    PUBLIC_SUBGRAPHS_ENVIRONMENT: z
-      .union([z.literal('development'), z.literal('production')])
-      .default('production'),
-    PUBLIC_SUBGRAPHS_DEVELOPMENT_URL: z.string().optional(),
-    PUBLIC_SUBGRAPHS_PRODUCTION_URL: z.string().optional(),
-  },
-  runtimeEnv: import.meta.env,
-  emptyStringAsUndefined: true,
+
+interface EnvironmentConfig {
+  // Supabase
+  SUPABASE_URL: string
+  SUPABASE_ANON_KEY: string
+  
+  // IPFS/Storacha
+  STORACHA_SPACE_DID?: string
+  
+  // Web3
+  WALLET_CONNECT_PROJECT_ID?: string
+  
+  // App
+  APP_URL: string
+  NODE_ENV: 'development' | 'production' | 'test'
+}
+
+function getEnvVar(key: string, defaultValue?: string): string {
+  const viteKey = `VITE_${key}`
+  const value = import.meta.env[viteKey]
+  
+  if (!value && !defaultValue) {
+    console.error(`❌ Missing environment variable: ${viteKey}`)
+    throw new Error(`Missing required environment variable: ${viteKey}`)
+  }
+  
+  return value || defaultValue!
+}
+
+export const env: EnvironmentConfig = {
+  // Supabase - provide fallbacks for now
+  SUPABASE_URL: getEnvVar('SUPABASE_URL', 'https://jeidwpgexretlgjgzsps.supabase.co'),
+  SUPABASE_ANON_KEY: getEnvVar('SUPABASE_ANON_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplaWR3cGdleHJldGxnamd6c3BzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0NDE4MzYsImV4cCI6MjA3MzAxNzgzNn0.797GY5p4nUbzQoMIRa9AbyyZcf7d_X1zq97oMaKuVKY'),
+  
+  // IPFS/Storacha
+  STORACHA_SPACE_DID: getEnvVar('STORACHA_SPACE_DID', 'did:key:z6Mkncfp4JyM52QFwbeaqSpBFzJ38YgB7a9iwryrp37JiTTz'),
+  
+  // Web3
+  WALLET_CONNECT_PROJECT_ID: getEnvVar('WALLET_CONNECT_PROJECT_ID', 'e16d1b7efaf6b44d794a70535ac8fb39'), // Using the one from your screenshot
+  
+  // App
+  APP_URL: getEnvVar('APP_URL', 'http://localhost:5173'),
+  NODE_ENV: (import.meta.env.NODE_ENV || 'development') as 'development' | 'production' | 'test',
+}
+
+// Validation
+if (env.NODE_ENV === 'production') {
+  if (!env.STORACHA_SPACE_DID) {
+    console.warn('⚠️  STORACHA_SPACE_DID is not set - using default PAGS space')
+  }
+  
+  if (!env.WALLET_CONNECT_PROJECT_ID) {
+    console.warn('⚠️  WALLET_CONNECT_PROJECT_ID is not set - some wallet features may not work')
+  }
+}
+
+console.log('🔧 Environment loaded:', {
+  NODE_ENV: env.NODE_ENV,
+  SUPABASE_URL: env.SUPABASE_URL ? '✅ Set' : '❌ Missing',
+  SUPABASE_ANON_KEY: env.SUPABASE_ANON_KEY ? '✅ Set' : '❌ Missing',
+  STORACHA_SPACE_DID: env.STORACHA_SPACE_DID ? '✅ Set' : '⚠️  Not set',
+  WALLET_CONNECT_PROJECT_ID: env.WALLET_CONNECT_PROJECT_ID ? '✅ Set' : '⚠️  Not set',
 })

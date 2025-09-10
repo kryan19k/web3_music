@@ -23,6 +23,7 @@ import { Route as ProfileUserIdImport } from './routes/profile/$userId'
 import { Route as MarketplaceNftIdImport } from './routes/marketplace/$nftId'
 import { Route as ArtistUploadImport } from './routes/artist/upload'
 import { Route as ArtistDashboardImport } from './routes/artist/dashboard'
+import { Route as ArtistSignupIndexImport } from './routes/artist/signup/index'
 import { Route as MarketplacePurchaseNftIdImport } from './routes/marketplace/purchase/$nftId'
 
 // Create Virtual Routes
@@ -110,6 +111,12 @@ const ArtistUploadRoute = ArtistUploadImport.update({
 const ArtistDashboardRoute = ArtistDashboardImport.update({
   id: '/artist/dashboard',
   path: '/artist/dashboard',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ArtistSignupIndexRoute = ArtistSignupIndexImport.update({
+  id: '/artist/signup/',
+  path: '/artist/signup/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -221,6 +228,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MarketplacePurchaseNftIdImport
       parentRoute: typeof rootRoute
     }
+    '/artist/signup/': {
+      id: '/artist/signup/'
+      path: '/artist/signup'
+      fullPath: '/artist/signup'
+      preLoaderRoute: typeof ArtistSignupIndexImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -241,6 +255,7 @@ export interface FileRoutesByFullPath {
   '/pags': typeof PagsIndexRoute
   '/portfolio': typeof PortfolioIndexRoute
   '/marketplace/purchase/$nftId': typeof MarketplacePurchaseNftIdRoute
+  '/artist/signup': typeof ArtistSignupIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -258,6 +273,7 @@ export interface FileRoutesByTo {
   '/pags': typeof PagsIndexRoute
   '/portfolio': typeof PortfolioIndexRoute
   '/marketplace/purchase/$nftId': typeof MarketplacePurchaseNftIdRoute
+  '/artist/signup': typeof ArtistSignupIndexRoute
 }
 
 export interface FileRoutesById {
@@ -276,6 +292,7 @@ export interface FileRoutesById {
   '/pags/': typeof PagsIndexRoute
   '/portfolio/': typeof PortfolioIndexRoute
   '/marketplace/purchase/$nftId': typeof MarketplacePurchaseNftIdRoute
+  '/artist/signup/': typeof ArtistSignupIndexRoute
 }
 
 export interface FileRouteTypes {
@@ -295,6 +312,7 @@ export interface FileRouteTypes {
     | '/pags'
     | '/portfolio'
     | '/marketplace/purchase/$nftId'
+    | '/artist/signup'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -311,6 +329,7 @@ export interface FileRouteTypes {
     | '/pags'
     | '/portfolio'
     | '/marketplace/purchase/$nftId'
+    | '/artist/signup'
   id:
     | '__root__'
     | '/'
@@ -327,6 +346,7 @@ export interface FileRouteTypes {
     | '/pags/'
     | '/portfolio/'
     | '/marketplace/purchase/$nftId'
+    | '/artist/signup/'
   fileRoutesById: FileRoutesById
 }
 
@@ -345,6 +365,7 @@ export interface RootRouteChildren {
   PagsIndexRoute: typeof PagsIndexRoute
   PortfolioIndexRoute: typeof PortfolioIndexRoute
   MarketplacePurchaseNftIdRoute: typeof MarketplacePurchaseNftIdRoute
+  ArtistSignupIndexRoute: typeof ArtistSignupIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -362,6 +383,7 @@ const rootRouteChildren: RootRouteChildren = {
   PagsIndexRoute: PagsIndexRoute,
   PortfolioIndexRoute: PortfolioIndexRoute,
   MarketplacePurchaseNftIdRoute: MarketplacePurchaseNftIdRoute,
+  ArtistSignupIndexRoute: ArtistSignupIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -387,7 +409,8 @@ export const routeTree = rootRoute
         "/marketplace/",
         "/pags/",
         "/portfolio/",
-        "/marketplace/purchase/$nftId"
+        "/marketplace/purchase/$nftId",
+        "/artist/signup/"
       ]
     },
     "/": {
@@ -431,6 +454,9 @@ export const routeTree = rootRoute
     },
     "/marketplace/purchase/$nftId": {
       "filePath": "marketplace/purchase/$nftId.tsx"
+    },
+    "/artist/signup/": {
+      "filePath": "artist/signup/index.tsx"
     }
   }
 }

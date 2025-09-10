@@ -14,7 +14,6 @@ export function AdminDebug() {
   const { address, isConnected } = useAccount()
   const { platformStats, roleInfo, isLoading } = useAdminContractData()
   const { grantRole, reset: resetGrantRole, isLoading: isGranting } = useAdminGrantRole()
-  const roleData = useAdminRoleInfo(address)
 
   const handleGrantSelfAdmin = () => {
     if (!address || !roleInfo.roles.admin) return
@@ -36,7 +35,7 @@ export function AdminDebug() {
     )
   }
 
-  if (isLoading || roleData.isLoading) {
+  if (isLoading || roleInfo.isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -164,7 +163,7 @@ export function AdminDebug() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Available Role Hashes</label>
+                <label className="text-sm font-medium text-black">Available Role Hashes</label>
                 <div className="grid grid-cols-1 gap-2">
                   <div className="p-2 bg-muted rounded text-xs font-mono">
                     <strong>ADMIN:</strong> {roleInfo.roles.admin || 'Loading...'}
@@ -178,12 +177,20 @@ export function AdminDebug() {
                 </div>
                 
                 {/* Debug information */}
-                <div className="p-2 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded text-xs">
+                <div className="p-2 bg-blue-300 text-black dark:bg-red-950 border border-red-200 dark:border-red-800 rounded text-xs">
                   <strong>Debug:</strong>
-                  <br />Role data loading: {roleData.isLoading ? 'Yes' : 'No'}
+                  <br />Role data loading: {roleInfo.isLoading ? 'Yes' : 'No'}
                   <br />Platform stats loading: {isLoading ? 'Yes' : 'No'}
                   <br />Admin role value: {JSON.stringify(roleInfo.roles.admin)}
                   <br />Button disabled because: {!roleInfo.roles.admin ? 'Admin role hash not loaded' : 'Unknown'}
+                  {roleInfo.errors && (
+                    <>
+                      <br /><strong>Errors:</strong>
+                      <br />Admin role error: {roleInfo.errors.defaultAdminRole?.message || 'None'}
+                      <br />Manager role error: {roleInfo.errors.managerRole?.message || 'None'}
+                      <br />Artist role error: {roleInfo.errors.artistRole?.message || 'None'}
+                    </>
+                  )}
                 </div>
               </div>
             </CardContent>

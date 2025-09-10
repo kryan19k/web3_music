@@ -1,12 +1,25 @@
 import { Button } from '@/src/components/ui/button'
-import { useAdminAuth } from '@/src/hooks/useAdminAuth'
+import { useAdminContractData } from '@/src/hooks/contracts'
+import { useAccount, useDisconnect } from 'wagmi'
 import { motion } from 'framer-motion'
-import { LogOut, Shield, User } from 'lucide-react'
+import { LogOut, Shield, User, Wallet } from 'lucide-react'
 import { AdminDashboard } from './AdminDashboard'
-import { AdminLogin } from './AdminLogin'
+import { AdminDebug } from './AdminDebug'
 
 export function AdminContainer() {
-  const { currentAdmin, isAuthenticated, isLoading, logout } = useAdminAuth()
+  const { address, isConnected } = useAccount()
+  const { disconnect } = useDisconnect()
+  
+  // Get admin data (now includes deployer bypass logic)
+  const { isLoading, isAuthorized } = useAdminContractData()
+  
+  // Debug logging
+  console.log('AdminContainer Debug:', {
+    address,
+    isConnected,
+    isLoading,
+    isAuthorized
+  })
 
   if (isLoading) {
     return (
@@ -19,8 +32,12 @@ export function AdminContainer() {
     )
   }
 
-  if (!isAuthenticated || !currentAdmin) {
-    return <AdminLogin />
+  if (!isConnected || !address) {
+    return <AdminDebug />
+  }
+
+  if (!isAuthorized) {
+    return <AdminDebug />
   }
 
   return (
@@ -44,21 +61,23 @@ export function AdminContainer() {
 
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <User className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium">{currentAdmin.email}</span>
-              <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full capitalize">
-                {currentAdmin.role.replace('_', ' ')}
+              <Wallet className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium font-mono">
+                {address?.slice(0, 6)}...{address?.slice(-4)}
+              </span>
+              <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
+                Admin
               </span>
             </div>
 
             <Button
               variant="outline"
               size="sm"
-              onClick={logout}
+              onClick={() => disconnect()}
               className="flex items-center gap-2"
             >
               <LogOut className="w-4 h-4" />
-              Logout
+              Disconnect
             </Button>
           </div>
         </div>
