@@ -23,6 +23,11 @@ export default defineConfig({
     tsconfigPaths(),
     Sitemap({
       hostname: 'https://dappbooster.dev',
+      exclude: ['/admin', '/artist/dashboard'],
+      robots: [{
+        userAgent: '*',
+        allow: '/',
+      }],
     }),
   ],
   envPrefix: 'PUBLIC_',
