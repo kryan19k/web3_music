@@ -26,9 +26,9 @@ export function useMarketplaceNFTs() {
         const tierNum = parseInt(tierKey) as Tier
         const tierName = getTierName(tierNum)
 
-        // Create NFTs based on current supply
-        const currentSupply = Number(tierData.currentSupply || 0)
-        const startId = Number(tierData.startId || 0)
+        // Parse tier data from tuple: [name, price, blokAllocation, maxSupply, currentSupply, startId, saleActive, metadataURI, artistRoyalty]
+        const currentSupply = Number(tierData[4] || 0) // index 4 is currentSupply
+        const startId = Number(tierData[5] || 0) // index 5 is startId
 
         // Generate NFTs for existing supply
         for (let i = 0; i < Math.min(currentSupply, 20); i++) { // Limit to 20 for performance
@@ -51,26 +51,26 @@ export function useMarketplaceNFTs() {
                 audioUrl: '', // IPFS audio hash from contract
                 duration: 180, // From contract track data
                 edition: i + 1,
-                maxSupply: Number(tierData.maxSupply || 0),
+                maxSupply: Number(tierData[3] || 0), // index 3 is maxSupply
                 description: `${tierName} tier music NFT`,
                 genre: 'Electronic', // From contract track data
                 releaseDate: new Date().toISOString().split('T')[0],
-                pagsAmount: Number(formatEther(tierData.pagsAllocation || 0n)),
+                blokAmount: Number(formatEther(tierData[2] || 0n)), // index 2 is blokAllocation
                 dailyStreams: Math.floor(Math.random() * 50000), // This would come from analytics
                 attributes: [
                   { trait_type: 'Tier', value: tierName },
-                  { trait_type: 'Edition', value: `${i + 1}/${tierData.maxSupply}` },
+                  { trait_type: 'Edition', value: `${i + 1}/${tierData[3]}` }, // index 3 is maxSupply
                 ]
               },
-              price: formatEther(tierData.price || 0n),
-              priceUSD: Number(formatEther(tierData.price || 0n)) * 1785, // Approximate ETH to USD
+              price: formatEther(tierData[1] || 0n), // index 1 is price
+              priceUSD: Number(formatEther(tierData[1] || 0n)) * 1785, // Approximate ETH to USD
               earnings: {
                 daily: Math.random() * 50,
                 total: Math.random() * 1000,
                 apy: Math.random() * 25,
               },
               owner: '0x742...a5c2', // This would come from contract ownership data
-              isListed: tierData.saleActive || false,
+              isListed: tierData[6] || false, // index 6 is saleActive
               streamingStats: {
                 totalPlays: Math.floor(Math.random() * 100000),
                 uniqueListeners: Math.floor(Math.random() * 10000),
@@ -121,15 +121,22 @@ export function useEnhancedMarketplaceNFTs() {
 
       // Create NFTs for each track that has minted tokens
       for (const track of allTracks) {
-        if (!track.active) continue
+        // Parse track data from tuple: [id, collectionId, title, ipfsHash, duration, active]
+        if (!track[5]) continue // index 5 is active
+
+        const trackTitle = track[2] // index 2 is title
+        const trackIpfsHash = track[3] // index 3 is ipfsHash
+        const trackDuration = Number(track[4]) // index 4 is duration
+        const trackId = Number(track[0]) // index 0 is id
 
         for (const [tierKey, tierData] of Object.entries(tiers)) {
           if (!tierData) continue
 
           const tierNum = parseInt(tierKey) as Tier
           const tierName = getTierName(tierNum)
-          const currentSupply = Number(tierData.currentSupply || 0)
-          const startId = Number(tierData.startId || 0)
+          // Parse tier data from tuple: [name, price, blokAllocation, maxSupply, currentSupply, startId, saleActive, metadataURI, artistRoyalty]
+          const currentSupply = Number(tierData[4] || 0) // index 4 is currentSupply
+          const startId = Number(tierData[5] || 0) // index 5 is startId
 
           // Only create NFTs if this tier has minted tokens
           if (currentSupply === 0) continue
@@ -142,38 +149,38 @@ export function useEnhancedMarketplaceNFTs() {
               tier: tierName.toLowerCase() as any,
               metadata: {
                 id: tokenId,
-                title: track.title || 'Unknown Track',
-                artist: track.artist || 'Unknown Artist',
-                image: track.ipfsCoverArt ? `https://ipfs.io/ipfs/${track.ipfsCoverArt}` : '/song_cover/placeholder.png',
-                audioUrl: track.ipfsAudioHash ? `https://ipfs.io/ipfs/${track.ipfsAudioHash}` : '',
-                duration: Number(track.duration) || 180,
+                title: trackTitle || 'Unknown Track',
+                artist: 'Unknown Artist', // TODO: Get from collection metadata
+                image: '/song_cover/placeholder.png', // TODO: Get from collection metadata
+                audioUrl: trackIpfsHash ? `https://ipfs.io/ipfs/${trackIpfsHash}` : '',
+                duration: trackDuration || 180,
                 edition: i + 1,
-                maxSupply: Number(tierData.maxSupply || 0),
-                description: `${tierName} tier music NFT for "${track.title}"`,
-                genre: track.genre || 'Electronic',
-                releaseDate: track.releaseDate ? new Date(Number(track.releaseDate) * 1000).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-                pagsAmount: Number(formatEther(tierData.pagsAllocation || 0n)),
-                dailyStreams: Number(track.totalStreams) || 0,
+                maxSupply: Number(tierData[3] || 0), // index 3 is maxSupply
+                description: `${tierName} tier music NFT for "${trackTitle}"`,
+                genre: 'Electronic', // TODO: Get from collection metadata
+                releaseDate: new Date().toISOString().split('T')[0], // TODO: Get from collection metadata
+                blokAmount: Number(formatEther(tierData[2] || 0n)), // index 2 is blokAllocation
+                dailyStreams: 0, // TODO: Implement streaming stats
                 attributes: [
                   { trait_type: 'Tier', value: tierName },
-                  { trait_type: 'Artist', value: track.artist || 'Unknown Artist' },
-                  { trait_type: 'Genre', value: track.genre || 'Electronic' },
-                  { trait_type: 'Track ID', value: track.trackId?.toString() || '0' },
-                  { trait_type: 'Edition', value: `${i + 1}/${tierData.maxSupply}` },
-                  { trait_type: 'PAGS Allocation', value: `${formatEther(tierData.pagsAllocation || 0n)} PAGS` },
+                  { trait_type: 'Artist', value: 'Unknown Artist' },
+                  { trait_type: 'Genre', value: 'Electronic' },
+                  { trait_type: 'Track ID', value: trackId.toString() },
+                  { trait_type: 'Edition', value: `${i + 1}/${tierData[3]}` }, // index 3 is maxSupply
+                  { trait_type: 'BLOK Allocation', value: `${formatEther(tierData[2] || 0n)} BLOK` }, // index 2 is blokAllocation
                 ]
               },
-              price: formatEther(tierData.price || 0n),
-              priceUSD: Number(formatEther(tierData.price || 0n)) * 1785,
+              price: formatEther(tierData[1] || 0n), // index 1 is price
+              priceUSD: Number(formatEther(tierData[1] || 0n)) * 1785,
               earnings: {
                 daily: Math.random() * 50,
-                total: Number(formatEther(track.totalRoyaltiesGenerated || 0n)),
+                total: 0, // TODO: Implement earnings tracking
                 apy: Math.random() * 25,
               },
               owner: '0x742...a5c2',
-              isListed: tierData.saleActive || false,
+              isListed: tierData[6] || false, // index 6 is saleActive
               streamingStats: {
-                totalPlays: Number(track.totalStreams) || 0,
+                totalPlays: 0, // TODO: Implement streaming stats
                 uniqueListeners: Math.floor(Math.random() * 10000),
                 averageCompletion: Math.floor(Math.random() * 40) + 60,
               },
@@ -193,9 +200,9 @@ export function useEnhancedMarketplaceNFTs() {
 
   return {
     nfts: marketplaceNFTs || [],
-    isLoading: tiersLoading || nftsLoading,
+    isLoading: tiersLoading || nftsLoading || tracksLoading,
     error,
-    trackInfo, // Expose track info for debugging
+    tracks: allTracks, // Expose tracks for debugging
   }
 }
 

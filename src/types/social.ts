@@ -89,7 +89,7 @@ export interface UserStats {
   nftsOwned: number
   nftsCreated: number
   totalPlays: number
-  pagsEarned: number
+  blokEarned: number
   achievementCount: number
 }
 

@@ -1,19 +1,31 @@
 {
   "network": "polygonAmoy",
   "chainId": 80002,
-  "deployedAt": "2025-09-10T23:41:17.155Z",
+  "deployedAt": "2025-09-11T05:30:57.040Z",
+  "architecture": "collection-based",
   "contracts": {
-    "PAGSToken": {
-      "address": "0xCCfBbca65c129381C367C67EcDC1271B880D1b05",
-      "artifact": "PAGSToken"
+    "BLOKToken": {
+      "address": "0x4a918D667Fab0Ef3F9FFec0D4b1dd4a3855E5301",
+      "artifact": "BLOKToken",
+      "description": "Enhanced ERC20 with collection-based staking and royalty distribution"
     },
-    "MusicNFT": {
-      "address": "0x2CC2287C9b72Bf2BDb194DF6Cac265d2BD3B2167",
-      "artifact": "MusicNFT"
+    "CollectionMusicNFT": {
+      "address": "0x23E685A3EDcfc1d194075B5eaaD76Ea2Bfd195fC",
+      "artifact": "CollectionMusicNFT",
+      "description": "Collection-based ERC1155 for music NFTs with album completion mechanics"
     },
-    "MusicNFTMetadata": {
-      "address": "0xAD77708c10CF1E1975cB29280Af2139686439bDB",
-      "artifact": "MusicNFTMetadata"
+    "CollectionMusicNFTMetadata": {
+      "address": "0x65b230B91614130e6e708802026a67fA607Bf3F7",
+      "artifact": "CollectionMusicNFTMetadata",
+      "description": "Enhanced metadata generation for collection-aware music NFTs"
     }
-  }
+  },
+  "features": [
+    "Collection-based architecture (albums/songs)",
+    "Album completion bonuses",
+    "Collection-specific staking rewards",
+    "Enhanced metadata generation",
+    "Multi-artist platform support",
+    "Cross-track synergies"
+  ]
 }

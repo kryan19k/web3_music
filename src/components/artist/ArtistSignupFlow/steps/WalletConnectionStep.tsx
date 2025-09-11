@@ -15,12 +15,23 @@ import { ConnectKitButton } from 'connectkit'
 
 export function WalletConnectionStep() {
   const { address, isConnected } = useAccount()
-  const { setCurrentStep } = useSupabaseArtistSignup()
+  const { setCurrentStep, reset, onboardingState } = useSupabaseArtistSignup()
 
   const handleProceed = () => {
+    console.log('🔄 [WALLET STEP] Proceeding to profile-setup. Current state:', {
+      isConnected,
+      address,
+      currentStep: onboardingState.currentStep
+    })
+    
     if (isConnected) {
       setCurrentStep('profile-setup')
     }
+  }
+  
+  const handleDebugReset = () => {
+    console.log('🔧 [DEBUG] Resetting artist signup state')
+    reset()
   }
 
   return (
@@ -35,7 +46,7 @@ export function WalletConnectionStep() {
         <div>
           <h2 className="text-3xl font-bold mb-4">Connect Your Wallet</h2>
           <p className="text-muted-foreground text-lg leading-relaxed">
-            Your wallet is your identity on PAGS. It's how you'll receive payments, 
+            Your wallet is your identity on Blockify. It's how you'll receive payments, 
             manage your music NFTs, and interact with your fans.
           </p>
         </div>
@@ -194,6 +205,18 @@ export function WalletConnectionStep() {
               </a>{' '}
               to get started.
             </p>
+            
+            {/* Debug Reset Button - Remove after testing */}
+            <div className="mt-4">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleDebugReset}
+                className="text-xs opacity-60 hover:opacity-100"
+              >
+                🔧 Reset Signup State (Debug)
+              </Button>
+            </div>
           </motion.div>
         )}
       </motion.div>

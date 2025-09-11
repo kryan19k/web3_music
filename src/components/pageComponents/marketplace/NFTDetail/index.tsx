@@ -139,8 +139,8 @@ const mockComments = [
 const tierConfigs = {
   bronze: {
     name: 'Bronze',
-    color: 'bg-orange-500/20 text-orange-300 border-orange-500/50',
-    glow: 'shadow-orange-500/25',
+    color: 'bg-muted/40 text-muted-foreground border-border',
+    glow: 'shadow-muted/25',
   },
   silver: {
     name: 'Silver',
@@ -149,13 +149,13 @@ const tierConfigs = {
   },
   gold: {
     name: 'Gold',
-    color: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50',
-    glow: 'shadow-yellow-500/25',
+    color: 'bg-accent/20 text-accent-foreground border-accent/50',
+    glow: 'hover-glow-accent',
   },
   platinum: {
     name: 'Platinum',
-    color: 'bg-purple-500/20 text-purple-300 border-purple-500/50',
-    glow: 'shadow-purple-500/25',
+    color: 'bg-primary/20 text-primary-foreground border-primary/50',
+    glow: 'hover-glow-primary',
   },
 }
 
@@ -250,7 +250,7 @@ export function NFTDetailPage() {
                 size="sm"
                 onClick={() => setIsLiked(!isLiked)}
               >
-                <Heart className={`w-4 h-4 mr-1 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
+                <Heart className={`w-4 h-4 mr-1 ${isLiked ? 'fill-destructive text-destructive' : ''}`} />
                 {isLiked ? 'Liked' : 'Like'}
               </Button>
               <Button
@@ -411,8 +411,8 @@ export function NFTDetailPage() {
                     <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center">
-                            <Headphones className="w-6 h-6 text-blue-500" />
+                          <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center">
+                            <Headphones className="w-6 h-6 text-accent" />
                           </div>
                           <div>
                             <div className="font-semibold">
@@ -422,8 +422,8 @@ export function NFTDetailPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center">
-                            <Users className="w-6 h-6 text-green-500" />
+                          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                            <Users className="w-6 h-6 text-primary" />
                           </div>
                           <div>
                             <div className="font-semibold">
@@ -433,8 +433,8 @@ export function NFTDetailPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-purple-500/10 rounded-full flex items-center justify-center">
-                            <TrendingUp className="w-6 h-6 text-purple-500" />
+                          <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center">
+                            <TrendingUp className="w-6 h-6 text-accent" />
                           </div>
                           <div>
                             <div className="font-semibold">
@@ -515,7 +515,7 @@ export function NFTDetailPage() {
                               <div className="flex items-center gap-4 text-xs">
                                 <button
                                   type="button"
-                                  className={`flex items-center gap-1 ${comment.isLiked ? 'text-red-500' : 'text-muted-foreground hover:text-foreground'}`}
+                                  className={`flex items-center gap-1 ${comment.isLiked ? 'text-destructive' : 'text-muted-foreground hover:text-foreground'}`}
                                 >
                                   <Heart
                                     className={`w-3 h-3 ${comment.isLiked ? 'fill-current' : ''}`}
@@ -563,13 +563,13 @@ export function NFTDetailPage() {
                   <div className="space-y-4 mb-6">
                     <div className="flex justify-between">
                       <span className="text-sm">Daily Earnings</span>
-                      <span className="text-sm font-semibold text-green-500">
+                      <span className="text-sm font-semibold text-primary">
                         ${nft.earnings.daily.toFixed(2)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm">APY</span>
-                      <span className="text-sm font-semibold text-blue-500">
+                      <span className="text-sm font-semibold text-accent">
                         {nft.earnings.apy.toFixed(1)}%
                       </span>
                     </div>
@@ -581,7 +581,8 @@ export function NFTDetailPage() {
 
                   <div className="flex gap-2">
                     <Button
-                      className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                      variant="default"
+                      className="flex-1"
                       onClick={() => setIsPurchaseModalOpen(true)}
                       disabled={!nft.isListed}
                     >

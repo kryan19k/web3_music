@@ -34,16 +34,14 @@ const STEP_ORDER: ArtistOnboardingStep[] = [
   'wallet-connect',
   'profile-setup', 
   'verification',
-  'first-track',
   'complete'
 ]
 
 const STEP_WEIGHTS = {
-  'wallet-connect': 10,
-  'profile-setup': 30,
-  'verification': 15,
-  'first-track': 40,
-  'complete': 5
+  'wallet-connect': 15,
+  'profile-setup': 40,
+  'verification': 35,
+  'complete': 10
 }
 
 export function useArtistSignup(): ArtistSignupHook {

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { formatEther, parseEther } from 'viem'
-import { usePAGSUserData } from './usePAGSToken'
+import { useBLOKUserData } from './useBLOKToken'
 import { useMusicNFTUserData, useMusicNFTMarketplaceData, Tier, getTierName } from './useMusicNFT'
 
 // ============================================
@@ -8,7 +8,7 @@ import { useMusicNFTUserData, useMusicNFTMarketplaceData, Tier, getTierName } fr
 // ============================================
 
 export function useUserDashboard() {
-  const pagsData = usePAGSUserData()
+  const pagsData = useBLOKUserData()
   const nftData = useMusicNFTUserData()
   const marketData = useMusicNFTMarketplaceData()
 
@@ -36,7 +36,7 @@ export function useUserDashboard() {
 
       // Calculate APY based on staking
       const averageAPY = pagsData.staking.stakes.length > 0 
-        ? pagsData.staking.stakes.reduce((sum, stake) => sum + (stake.apy || 0), 0) / pagsData.staking.stakes.length / 100
+        ? pagsData.staking.stakes.reduce((sum, stake) => sum + (Number(stake.apy) || 0), 0) / pagsData.staking.stakes.length / 100
         : 0
 
       return {
@@ -153,20 +153,24 @@ export function useMarketplaceAnalytics() {
       const tiers = Object.values(marketData.tiers).filter(Boolean)
       
       // Calculate marketplace metrics
-      const totalSupply = tiers.reduce((sum, tier) => sum + (tier.maxSupply || 0), 0)
-      const totalMinted = tiers.reduce((sum, tier) => sum + (tier.currentSupply || 0), 0)
+      // Tier tuple: [name, price, blokAllocation, maxSupply, currentSupply, startId, saleActive, metadataURI, artistRoyalty]
+      const totalSupply = tiers.reduce((sum, tier) => sum + (tier ? Number(tier[3]) : 0), 0) // index 3 is maxSupply
+      const totalMinted = tiers.reduce((sum, tier) => sum + (tier ? Number(tier[4]) : 0), 0) // index 4 is currentSupply
       const mintPercentage = (totalMinted / totalSupply) * 100
 
       // Calculate average prices
-      const averagePrice = tiers.reduce((sum, tier) => sum + Number.parseFloat(formatEther(tier.price || 0n)), 0) / tiers.length
+      const averagePrice = tiers.reduce((sum, tier) => sum + (tier ? Number.parseFloat(formatEther(tier[1] || 0n)) : 0), 0) / tiers.length // index 1 is price
 
       // Calculate tier availability
-      const tierAvailability = tiers.map(tier => ({
-        name: tier.name,
-        available: (tier.maxSupply || 0) - (tier.currentSupply || 0),
-        percentage: ((tier.currentSupply || 0) / (tier.maxSupply || 1)) * 100,
-        price: formatEther(tier.price || 0n),
-      }))
+      const tierAvailability = tiers.filter(Boolean).map(tier => {
+        if (!tier) return { name: '', available: 0, percentage: 0, price: '0' }
+        return {
+          name: tier[0] || '', // index 0 is name
+          available: Number(tier[3] || 0) - Number(tier[4] || 0), // maxSupply - currentSupply
+          percentage: (Number(tier[4] || 0) / (Number(tier[3]) || 1)) * 100,
+          price: formatEther(tier[1] || 0n), // index 1 is price
+        }
+      })
 
       // Most popular tier (highest mint percentage)
       const mostPopularTier = tierAvailability.reduce((prev, current) => 
@@ -280,7 +284,7 @@ export function useEarningsCalculator() {
 // ============================================
 
 export function useTransactionHistory() {
-  const { address } = usePAGSUserData()
+  const { address } = useBLOKUserData()
 
   return useQuery({
     queryKey: ['transaction-history', address],
@@ -369,7 +373,7 @@ export function useLeaderboard() {
 // ============================================
 
 export function useNotifications() {
-  const { address } = usePAGSUserData()
+  const { address } = useBLOKUserData()
 
   return useQuery({
     queryKey: ['notifications', address],

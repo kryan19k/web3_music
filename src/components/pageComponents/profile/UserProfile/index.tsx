@@ -79,7 +79,7 @@ const getUserStats = (userId: string): UserStats => ({
   nftsOwned: userId === 'alex-cooper' ? 47 : 15,
   nftsCreated: userId === 'luna-vista' ? 12 : 0,
   totalPlays: userId === 'luna-vista' ? 2847632 : 15420,
-  pagsEarned: userId === 'luna-vista' ? 24851 : 847,
+  blokEarned: userId === 'luna-vista' ? 24851 : 847,
   achievementCount: userId === 'luna-vista' ? 8 : userId === 'alex-cooper' ? 5 : 2,
 })
 
@@ -295,7 +295,7 @@ export function UserProfile() {
     nftsOwned: enhancedProfile.contractStats.totalNFTs,
     nftsCreated: enhancedProfile.isArtist ? (enhancedProfile.totalTracks || 0) : 0,
     totalPlays: 0, // TODO: Get from contract
-    pagsEarned: enhancedProfile.contractStats.pagsBalance,
+    blokEarned: enhancedProfile.contractStats.pagsBalance,
     achievementCount: 0, // TODO: Implement achievements
   } : (contractProfile?.stats || getUserStats(userId))
   
@@ -490,7 +490,7 @@ export function UserProfile() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">PAGS Earned</span>
-                    <span className="font-semibold text-yellow-500">{userStats.pagsEarned}</span>
+                    <span className="font-semibold text-yellow-500">{userStats.blokEarned}</span>
                   </div>
                   {user.isArtist && (
                     <div className="flex items-center justify-between col-span-2">

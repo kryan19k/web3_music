@@ -25,6 +25,7 @@ import {
   DollarSign
 } from 'lucide-react'
 import { useState } from 'react'
+import React from 'react'
 import { motion } from 'framer-motion'
 import { formatDistanceToNow } from 'date-fns'
 import { useAccount } from 'wagmi'
@@ -44,6 +45,120 @@ declare global {
   interface Window {
     ethereum?: any
   }
+}
+
+// Application Data Display Component
+function ApplicationDataDisplay({ artistId }: { artistId: string }) {
+  const [applicationData, setApplicationData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  React.useEffect(() => {
+    const loadApplicationData = async () => {
+      try {
+        setLoading(true)
+        const { applicationData: data, error } = await ArtistService.getApplicationData(artistId)
+        if (error) {
+          console.error('Failed to load application data:', error)
+        }
+        setApplicationData(data)
+      } catch (error) {
+        console.error('Error loading application data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadApplicationData()
+  }, [artistId])
+
+  if (loading) {
+    return (
+      <div className="p-4 border rounded-lg">
+        <div className="flex items-center gap-2 mb-2">
+          <Music className="h-4 w-4" />
+          <span className="font-medium">Application Details</span>
+        </div>
+        <div className="text-sm text-muted-foreground">Loading application data...</div>
+      </div>
+    )
+  }
+
+  if (!applicationData) {
+    return (
+      <div className="p-4 border rounded-lg border-yellow-200 bg-yellow-50 dark:bg-yellow-900/10">
+        <div className="flex items-center gap-2 mb-2">
+          <Music className="h-4 w-4 text-yellow-600" />
+          <span className="font-medium text-yellow-800 dark:text-yellow-200">Application Details</span>
+        </div>
+        <div className="text-sm text-yellow-700 dark:text-yellow-300">
+          No detailed application data available. This artist may have submitted a basic profile only.
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-900/10">
+      <div className="flex items-center gap-2 mb-3">
+        <Music className="h-4 w-4 text-blue-600" />
+        <span className="font-medium text-blue-800 dark:text-blue-200">Application Details</span>
+        {applicationData.applicationType === 'basic' && (
+          <Badge variant="outline" className="text-xs">Basic</Badge>
+        )}
+      </div>
+      
+      <div className="grid gap-3 text-sm">
+        <div>
+          <span className="font-medium text-muted-foreground">Music Background:</span>
+          <p className="mt-1">{applicationData.musicBackground}</p>
+        </div>
+        
+        <div>
+          <span className="font-medium text-muted-foreground">How they heard about us:</span>
+          <p className="mt-1">{applicationData.howDidYouHear}</p>
+        </div>
+        
+        <div>
+          <span className="font-medium text-muted-foreground">Artist Goals:</span>
+          <p className="mt-1">{applicationData.artistGoals}</p>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <span className="font-medium text-muted-foreground">Original Music:</span>
+            <p className="mt-1">{applicationData.hasOriginalMusic}</p>
+          </div>
+          
+          {applicationData.expectedMonthlyReleases && (
+            <div>
+              <span className="font-medium text-muted-foreground">Expected Releases:</span>
+              <p className="mt-1">{applicationData.expectedMonthlyReleases}</p>
+            </div>
+          )}
+        </div>
+        
+        {applicationData.socialMediaFollowing && (
+          <div>
+            <span className="font-medium text-muted-foreground">Social Following:</span>
+            <p className="mt-1">{applicationData.socialMediaFollowing}</p>
+          </div>
+        )}
+        
+        {applicationData.additionalInfo && (
+          <div>
+            <span className="font-medium text-muted-foreground">Additional Information:</span>
+            <p className="mt-1">{applicationData.additionalInfo}</p>
+          </div>
+        )}
+        
+        {applicationData.submittedAt && (
+          <div className="text-xs text-muted-foreground pt-2 border-t">
+            Submitted: {formatDistanceToNow(new Date(applicationData.submittedAt))} ago
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }
 
 export function UserManagement() {
@@ -496,14 +611,14 @@ export function UserManagement() {
                       }}
                     >
                       <option value="">Select Role</option>
-                      <option value={availableRoles?.manager || FALLBACK_ROLES.manager}>
-                        Manager ({(availableRoles?.manager || FALLBACK_ROLES.manager).slice(0, 10)}...)
+                      <option value={String(availableRoles?.manager || FALLBACK_ROLES.manager)}>
+                        Manager ({String(availableRoles?.manager || FALLBACK_ROLES.manager).slice(0, 10)}...)
                       </option>
-                      <option value={availableRoles?.artist || FALLBACK_ROLES.artist}>
-                        Artist ({(availableRoles?.artist || FALLBACK_ROLES.artist).slice(0, 10)}...)
+                      <option value={String(availableRoles?.artist || FALLBACK_ROLES.artist)}>
+                        Artist ({String(availableRoles?.artist || FALLBACK_ROLES.artist).slice(0, 10)}...)
                       </option>
-                      <option value={availableRoles?.oracle || FALLBACK_ROLES.oracle}>
-                        Oracle ({(availableRoles?.oracle || FALLBACK_ROLES.oracle).slice(0, 10)}...)
+                      <option value={String(availableRoles?.oracle || FALLBACK_ROLES.oracle)}>
+                        Oracle ({String(availableRoles?.oracle || FALLBACK_ROLES.oracle).slice(0, 10)}...)
                       </option>
                     </select>
                     <div className="text-xs text-muted-foreground">
@@ -683,6 +798,9 @@ export function UserManagement() {
                     </div>
                   </div>
                 </div>
+
+                {/* Application Details */}
+                <ApplicationDataDisplay artistId={selectedArtist.id} />
 
                 {/* Rejection Reason */}
                 <div className="space-y-2">

@@ -1,36 +1,49 @@
-// Export all PAGS Token hooks
+// Export all BLOK Token hooks
 export {
-  usePAGSBalance,
-  usePAGSTotalSupply,
-  usePAGSCirculatingSupply,
-  usePAGSRoyaltyInfo,
-  usePAGSStakingInfo,
-  usePAGSStakingTiers,
-  usePAGSStake,
-  usePAGSUnstake,
-  usePAGSClaimStakingRewards,
-  usePAGSClaimRoyalties,
-  usePAGSDepositRoyalties,
-  usePAGSProposals,
-  usePAGSCreateProposal,
-  usePAGSVote,
-  usePAGSUserData,
-} from './usePAGSToken'
+  useBLOKBalance,
+  useBLOKTotalSupply,
+  useBLOKCirculatingSupply,
+  useBLOKRoyaltyInfo,
+  useBLOKStakingInfo,
+  useBLOKStakingTiers,
+  useBLOKStake,
+  useBLOKUnstake,
+  useBLOKClaimStakingRewards,
+  useBLOKClaimRoyalties,
+  useBLOKDepositRoyalties,
+  useBLOKProposals,
+  useBLOKCreateProposal,
+  useBLOKVote,
+  useBLOKUserData,
+} from './useBLOKToken'
+
+// Legacy PAGS exports for backward compatibility
+export {
+  useBLOKBalance as usePAGSBalance,
+  useBLOKTotalSupply as usePAGSTotalSupply,
+  useBLOKCirculatingSupply as usePAGSCirculatingSupply,
+  useBLOKRoyaltyInfo as usePAGSRoyaltyInfo,
+  useBLOKStakingInfo as usePAGSStakingInfo,
+  useBLOKStakingTiers as usePAGSStakingTiers,
+  useBLOKStake as usePAGSStake,
+  useBLOKUnstake as usePAGSUnstake,
+  useBLOKClaimStakingRewards as usePAGSClaimStakingRewards,
+  useBLOKClaimRoyalties as usePAGSClaimRoyalties,
+  useBLOKDepositRoyalties as usePAGSDepositRoyalties,
+  useBLOKProposals as usePAGSProposals,
+  useBLOKCreateProposal as usePAGSCreateProposal,
+  useBLOKVote as usePAGSVote,
+  useBLOKUserData as usePAGSUserData,
+} from './useBLOKToken'
 
 // Export all Music NFT hooks
 export {
   useMusicNFTTierConfig,
   useMusicNFTAllTiers,
-  useMusicNFTTierStats,
   useMusicNFTSalePhase,
-  useMusicNFTDynamicPricing,
   useMusicNFTBalance,
-  useMusicNFTOwnedTokens,
-  useMusicNFTUserStats,
-  useMusicNFTHolderBenefits,
   useMusicNFTTrackInfo,
   useMusicNFTTokenMetadata,
-  useMusicNFTCollaboratorRoyalties,
 
   useMusicNFTMint,
   useMusicNFTWhitelistMint,
@@ -40,6 +53,21 @@ export {
   useMusicNFTDepositRoyalties,
   useMusicNFTDistributeCollaboratorRoyalties,
   useMusicNFTClaimCollaboratorRoyalties,
+  
+  // Role management
+  useMusicNFTHasRole,
+  useMusicNFTArtistRole,
+  useMusicNFTGrantRole,
+  useMusicNFTGrantArtistRole,
+  
+  // Collection-based hooks
+  useCreateCollection,
+  useAddTrackToCollection,
+  useFinalizeCollection,
+  useMintAlbum,
+  useGetCollection,
+  useGetCollectionTracks,
+  useGetUserCollectionProgress,
   
   useMusicNFTUserData,
   useMusicNFTMarketplaceData,

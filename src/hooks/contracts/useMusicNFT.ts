@@ -1,9 +1,9 @@
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, usePublicClient } from 'wagmi'
 import { useCallback } from 'react'
-import { parseEther, formatEther, type Address } from 'viem'
+import { parseEther, formatEther, type Address, parseEventLogs } from 'viem'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { MusicNFTAbi } from '@/src/constants/contracts/abis/MusicNFT'
+import { COLLECTION_MUSIC_NFT_ABI } from '@/src/constants/contracts/abis/CollectionMusicNFT'
 import { getContractAddress, isChainSupported } from '@/src/constants/contracts/contracts'
 
 // Get contract address based on current chain
@@ -12,10 +12,10 @@ function useMusicNFTAddress() {
   const chainId = chain?.id || 80002 // Default to Polygon Amoy
   
   try {
-    return getContractAddress('MusicNFT', chainId)
+    return getContractAddress('CollectionMusicNFT', chainId)
   } catch (error) {
-    console.warn(`MusicNFT contract not deployed on chain ${chainId}, using Polygon Amoy fallback`)
-    return getContractAddress('MusicNFT', 80002)
+    console.warn(`CollectionMusicNFT contract not deployed on chain ${chainId}, using Polygon Amoy fallback`)
+    return getContractAddress('CollectionMusicNFT', 80002)
   }
 }
 
@@ -41,7 +41,7 @@ export function useMusicNFTTierConfig(tier: Tier) {
   
   return useReadContract({
     address: contractAddress as Address,
-    abi: MusicNFTAbi,
+    abi: COLLECTION_MUSIC_NFT_ABI,
     functionName: 'tiers',
     args: [tier],
   })
@@ -64,36 +64,21 @@ export function useMusicNFTAllTiers() {
   }
 }
 
-export function useMusicNFTTierStats(tier: Tier) {
-  const contractAddress = useMusicNFTAddress()
-  
-  return useReadContract({
-    address: contractAddress as Address,
-    abi: MusicNFTAbi,
-    functionName: 'getTierStats',
-    args: [tier],
-  })
-}
+// Note: getTierStats function doesn't exist in CollectionMusicNFT
+// This hook has been removed - use collection-specific stats instead
 
 export function useMusicNFTSalePhase() {
   const contractAddress = useMusicNFTAddress()
   
   return useReadContract({
     address: contractAddress as Address,
-    abi: MusicNFTAbi,
+    abi: COLLECTION_MUSIC_NFT_ABI,
     functionName: 'currentPhase',
   })
 }
 
-export function useMusicNFTDynamicPricing() {
-  const contractAddress = useMusicNFTAddress()
-  
-  return useReadContract({
-    address: contractAddress as Address,
-    abi: MusicNFTAbi,
-    functionName: 'dynamicPricingEnabled',
-  })
-}
+// Note: dynamicPricingEnabled function doesn't exist in CollectionMusicNFT
+// Dynamic pricing is handled at the collection level
 
 // ============================================
 // READ HOOKS - USER DATA
@@ -104,7 +89,7 @@ export function useMusicNFTBalance(tokenId: number, address?: Address) {
   
   return useReadContract({
     address: contractAddress as Address,
-    abi: MusicNFTAbi,
+    abi: COLLECTION_MUSIC_NFT_ABI,
     functionName: 'balanceOf',
     args: address && tokenId !== undefined ? [address, BigInt(tokenId)] : undefined,
     query: {
@@ -113,47 +98,11 @@ export function useMusicNFTBalance(tokenId: number, address?: Address) {
   })
 }
 
-export function useMusicNFTOwnedTokens(address?: Address) {
-  const contractAddress = useMusicNFTAddress()
-  
-  return useReadContract({
-    address: contractAddress as Address,
-    abi: MusicNFTAbi,
-    functionName: 'getOwnedTokens',
-    args: address ? [address] : undefined,
-    query: {
-      enabled: !!address,
-    },
-  })
-}
+// Note: getOwnedTokens function doesn't exist in CollectionMusicNFT  
+// Use balanceOfBatch or specific token queries instead
 
-export function useMusicNFTUserStats(address?: Address) {
-  const contractAddress = useMusicNFTAddress()
-  
-  return useReadContract({
-    address: contractAddress as Address,
-    abi: MusicNFTAbi,
-    functionName: 'getUserStats',
-    args: address ? [address] : undefined,
-    query: {
-      enabled: !!address,
-    },
-  })
-}
-
-export function useMusicNFTHolderBenefits(address?: Address) {
-  const contractAddress = useMusicNFTAddress()
-  
-  return useReadContract({
-    address: contractAddress as Address,
-    abi: MusicNFTAbi,
-    functionName: 'getHolderBenefits',
-    args: address ? [address] : undefined,
-    query: {
-      enabled: !!address,
-    },
-  })
-}
+// Note: getUserStats and getHolderBenefits don't exist in CollectionMusicNFT
+// Use collection-specific progress and benefits tracking instead
 
 // ============================================
 // READ HOOKS - TRACK DATA
@@ -164,8 +113,8 @@ export function useMusicNFTTrackInfo(trackId: number) {
   
   return useReadContract({
     address: contractAddress as Address,
-    abi: MusicNFTAbi,
-    functionName: 'getTrackInfo',
+    abi: COLLECTION_MUSIC_NFT_ABI,
+    functionName: 'getTrack',  // Updated function name
     args: [BigInt(trackId)],
     query: {
       enabled: trackId !== undefined,
@@ -178,21 +127,21 @@ export function useMusicNFTTokenMetadata(tokenId: number) {
   
   const tokenToTier = useReadContract({
     address: contractAddress as Address,
-    abi: MusicNFTAbi,
+    abi: COLLECTION_MUSIC_NFT_ABI,
     functionName: 'tokenToTier',
     args: [BigInt(tokenId)],
   })
 
   const tokenToTrackId = useReadContract({
     address: contractAddress as Address,
-    abi: MusicNFTAbi,
+    abi: COLLECTION_MUSIC_NFT_ABI,
     functionName: 'tokenToTrackId',
     args: [BigInt(tokenId)],
   })
 
   const uri = useReadContract({
     address: contractAddress as Address,
-    abi: MusicNFTAbi,
+    abi: COLLECTION_MUSIC_NFT_ABI,
     functionName: 'uri',
     args: [BigInt(tokenId)],
   })
@@ -217,33 +166,8 @@ export function useMusicNFTTokenMetadata(tokenId: number) {
 // READ HOOKS - ROYALTIES & COLLABORATION
 // ============================================
 
-export function useMusicNFTCollaboratorRoyalties(address?: Address) {
-  const contractAddress = useMusicNFTAddress()
-  
-  return useReadContract({
-    address: contractAddress as Address,
-    abi: MusicNFTAbi,
-    functionName: 'claimableRoyalties',
-    args: address ? [address] : undefined,
-    query: {
-      enabled: !!address,
-    },
-  })
-}
-
-export function useMusicNFTTrackCollaborator(trackId: number, index: number) {
-  const contractAddress = useMusicNFTAddress()
-  
-  return useReadContract({
-    address: contractAddress as Address,
-    abi: MusicNFTAbi,
-    functionName: 'trackCollaborators',
-    args: [BigInt(trackId), BigInt(index)],
-    query: {
-      enabled: trackId !== undefined && index !== undefined,
-    },
-  })
-}
+// Note: claimableRoyalties and trackCollaborators functions don't exist in CollectionMusicNFT
+// Royalty management is handled through the BLOK token contract
 
 // ============================================
 // WRITE HOOKS - MINTING
@@ -277,10 +201,10 @@ export function useMusicNFTMint() {
       
       return writeContract({
         address: contractAddress as Address,
-        abi: MusicNFTAbi,
-        functionName: 'mintTier',
-        args: [tier, BigInt(quantity), referrer || '0x0000000000000000000000000000000000000000'],
-      })
+        abi: COLLECTION_MUSIC_NFT_ABI,
+        functionName: 'mintTrackNFT',
+        args: [BigInt(0), tier, BigInt(quantity), referrer || '0x0000000000000000000000000000000000000000'], // Use trackId 0 for now
+      } as any)
     },
     onSuccess: () => {
       toast.success('NFT minting initiated!')
@@ -327,7 +251,7 @@ export function useMusicNFTWhitelistMint() {
     }) => {
       return writeContract({
         address: contractAddress as Address,
-        abi: MusicNFTAbi,
+        abi: COLLECTION_MUSIC_NFT_ABI,
         functionName: 'whitelistMint',
         args: [tier, BigInt(quantity), merkleProof, referrer || '0x0000000000000000000000000000000000000000'],
         value: parseEther(value),
@@ -382,7 +306,7 @@ export function useMusicNFTSignatureMint() {
     }) => {
       return writeContract({
         address: contractAddress as Address,
-        abi: MusicNFTAbi,
+        abi: COLLECTION_MUSIC_NFT_ABI,
         functionName: 'signatureMint',
         args: [tier, BigInt(quantity), BigInt(nonce), signature, referrer || '0x0000000000000000000000000000000000000000'],
         value: parseEther(value),      
@@ -424,28 +348,20 @@ export function useMusicNFTAddTrack() {
 
   const addTrack = useMutation({
     mutationFn: async ({
-      trackId,
+      collectionId,
       title,
-      artist,
-      album,
-      ipfsAudioHash,
-      ipfsCoverArt,
+      ipfsHash,
       duration,
-      bpm,
-      genre
+      tags
     }: {
-      trackId: number
+      collectionId: number
       title: string
-      artist: string
-      album: string
-      ipfsAudioHash: string
-      ipfsCoverArt: string
+      ipfsHash: string
       duration: number
-      bpm: number
-      genre: string
+      tags: string[]
     }) => {
-      console.log('🎵 [MUTATION] Adding track to contract:', {
-        trackId,
+      console.log('🎵 [MUTATION] Adding track to collection:', {
+        collectionId,
         title,
         contractAddress
       })
@@ -460,9 +376,9 @@ export function useMusicNFTAddTrack() {
       
       return writeContract({
         address: contractAddress as Address,
-        abi: MusicNFTAbi,
-        functionName: 'addTrack',
-        args: [BigInt(trackId), title, artist, album, ipfsAudioHash, ipfsCoverArt, BigInt(duration), BigInt(bpm), genre],
+        abi: COLLECTION_MUSIC_NFT_ABI,
+        functionName: 'addTrackToCollection',
+        args: [BigInt(collectionId), title, ipfsHash, BigInt(duration), tags],
       })
     },
     onSuccess: (data) => {
@@ -592,7 +508,7 @@ export function useMusicNFTAddCollaborationTrack() {
     }) => {
       return writeContract({
         address: contractAddress as Address,
-        abi: MusicNFTAbi,
+        abi: COLLECTION_MUSIC_NFT_ABI,
         functionName: 'addCollaborationTrack',
           args: [BigInt(trackId), title, collaborators, shares.map(share => BigInt(share))],
       // biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -628,7 +544,7 @@ export function useMusicNFTDepositRoyalties() {
     mutationFn: async ({ amount }: { amount: string }) => {
       return writeContract({
         address: contractAddress as Address,
-        abi: MusicNFTAbi,
+        abi: COLLECTION_MUSIC_NFT_ABI,
         functionName: 'depositRoyalties',
         value: parseEther(amount),
       // biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -660,7 +576,7 @@ export function useMusicNFTDistributeCollaboratorRoyalties() {
     mutationFn: async ({ trackId, amount }: { trackId: number; amount: string }) => {
       return writeContract({
         address: contractAddress as Address,
-        abi: MusicNFTAbi,
+        abi: COLLECTION_MUSIC_NFT_ABI,
         functionName: 'distributeCollaboratorRoyalties',
         args: [BigInt(trackId)],
         value: parseEther(amount),
@@ -693,7 +609,7 @@ export function useMusicNFTClaimCollaboratorRoyalties() {
     mutationFn: async () => {
       return writeContract({
         address: contractAddress as Address,
-        abi: MusicNFTAbi,
+        abi: COLLECTION_MUSIC_NFT_ABI,
         functionName: 'claimCollaboratorRoyalties',
         // biome-ignore lint/suspicious/noExplicitAny: Wagmi type system requires any for complex contract interactions
       } as any)
@@ -737,7 +653,7 @@ export function useMusicNFTHasRole(role: string, address?: Address) {
   
   const contractQuery = useReadContract({
     address: contractAddress as Address,
-    abi: MusicNFTAbi,
+    abi: COLLECTION_MUSIC_NFT_ABI,
     functionName: 'hasRole',
     args: role && address ? [role as `0x${string}`, address] : undefined,
     query: {
@@ -752,8 +668,8 @@ export function useMusicNFTHasRole(role: string, address?: Address) {
     chainName: chain?.name,
     role,
     address,
-    abiLength: MusicNFTAbi.length,
-    abiName: 'MusicNFTAbi',
+    abiLength: COLLECTION_MUSIC_NFT_ABI.length,
+    abiName: 'COLLECTION_MUSIC_NFT_ABI',
     contractResult: contractQuery.data,
     contractError: contractQuery.error?.message,
     isLoading: contractQuery.isLoading,
@@ -761,7 +677,7 @@ export function useMusicNFTHasRole(role: string, address?: Address) {
   })
 
   // Check if hasRole function exists in ABI
-  const hasRoleFunc = MusicNFTAbi.find((item: any) => item.name === 'hasRole')
+  const hasRoleFunc = COLLECTION_MUSIC_NFT_ABI.find((item: any) => item.name === 'hasRole')
   console.log('🎭 ABI hasRole function:', hasRoleFunc)
 
   // Check for temporary override (remove this once role is properly granted)
@@ -803,7 +719,7 @@ export function useMusicNFTGrantRole() {
     mutationFn: async ({ role, account }: { role: string; account: Address }) => {
       return writeContract({
         address: contractAddress as Address,
-        abi: MusicNFTAbi,
+        abi: COLLECTION_MUSIC_NFT_ABI,
         functionName: 'grantRole',
         args: [role as `0x${string}`, account],
         // biome-ignore lint/suspicious/noExplicitAny: Wagmi type system requires any for complex contract interactions
@@ -841,37 +757,300 @@ export function useMusicNFTGrantArtistRole() {
 }
 
 // ============================================
+// COLLECTION-BASED HOOKS (NEW ARCHITECTURE)
+// ============================================
+
+export function useCreateCollection() {
+  const { writeContract, data: hash, isPending, error: writeError } = useWriteContract()
+  const { isLoading: isConfirming, isSuccess, error: receiptError } = useWaitForTransactionReceipt({ 
+    hash 
+  })
+  const contractAddress = useMusicNFTAddress()
+  const queryClient = useQueryClient()
+  const publicClient = usePublicClient()
+
+  const createCollection = useMutation({
+    mutationFn: async ({
+      title,
+      artist,
+      description,
+      ipfsCoverArt,
+      genre
+    }: {
+      title: string
+      artist: string
+      description: string
+      ipfsCoverArt: string
+      genre: string
+    }) => {
+      // Step 1: Submit transaction
+      const txHash = await writeContract({
+        address: contractAddress as Address,
+        abi: COLLECTION_MUSIC_NFT_ABI,
+        functionName: 'createCollection',
+        args: [title, artist, description, ipfsCoverArt, genre],
+      })
+
+      return { hash: txHash }
+    },
+    onSuccess: () => {
+      // We'll handle success in the component after confirmation
+      queryClient.invalidateQueries({ queryKey: ['collections'] })
+    },
+    onError: (error) => {
+      toast.error('Failed to create collection')
+      console.error('Create collection error:', error)
+    },
+  })
+
+  // Separate effect to handle transaction confirmation and log parsing
+  const handleConfirmation = useCallback(async () => {
+    if (isSuccess && hash && publicClient) {
+      try {
+        const receipt = await publicClient.getTransactionReceipt({ hash })
+        
+        // Extract collection ID from logs
+        const parsedLogs = parseEventLogs({
+          abi: COLLECTION_MUSIC_NFT_ABI,
+          logs: receipt.logs,
+          eventName: 'CollectionCreated'
+        })
+
+        let collectionId = 0
+        if (parsedLogs.length > 0) {
+          const collectionCreatedLog = parsedLogs[0] as any
+          collectionId = Number(collectionCreatedLog.args.collectionId)
+        }
+
+        toast.success(`Collection created successfully! ID: ${collectionId}`)
+        return { collectionId, receipt }
+      } catch (error) {
+        console.error('Error parsing collection ID:', error)
+        toast.success('Collection created successfully!')
+        return { collectionId: 0, receipt: null }
+      }
+    }
+  }, [isSuccess, hash, publicClient])
+
+  return {
+    createCollection: createCollection.mutate,
+    createCollectionAsync: createCollection.mutateAsync,
+    isLoading: isPending || isConfirming,
+    isSuccess,
+    error: writeError || receiptError,
+    hash,
+    handleConfirmation,
+  }
+}
+
+export function useAddTrackToCollection() {
+  const { writeContract, data: hash, isPending, error: writeError } = useWriteContract()
+  const { isLoading: isConfirming, isSuccess, error: receiptError } = useWaitForTransactionReceipt({ 
+    hash 
+  })
+  const contractAddress = useMusicNFTAddress()
+  const queryClient = useQueryClient()
+
+  const addTrackToCollection = useMutation({
+    mutationFn: async ({
+      collectionId,
+      title,
+      ipfsHash,
+      duration,
+      tags
+    }: {
+      collectionId: number
+      title: string
+      ipfsHash: string
+      duration: number
+      tags: string[]
+    }) => {
+      // Step 1: Submit transaction
+      const txHash = await writeContract({
+        address: contractAddress as Address,
+        abi: COLLECTION_MUSIC_NFT_ABI,
+        functionName: 'addTrackToCollection',
+        args: [BigInt(collectionId), title, ipfsHash, BigInt(duration), tags],
+      })
+
+      return { hash: txHash }
+    },
+    onSuccess: () => {
+      toast.success('Track added to collection!')
+      queryClient.invalidateQueries({ queryKey: ['collections'] })
+      queryClient.invalidateQueries({ queryKey: ['tracks'] })
+    },
+    onError: (error) => {
+      toast.error('Failed to add track')
+      console.error('Add track error:', error)
+    },
+  })
+
+  return {
+    addTrackToCollection: addTrackToCollection.mutate,
+    addTrackToCollectionAsync: addTrackToCollection.mutateAsync,
+    isLoading: isPending || isConfirming,
+    isSuccess,
+    error: writeError || receiptError,
+    hash,
+  }
+}
+
+export function useFinalizeCollection() {
+  const { writeContract, data: hash, isPending, error: writeError } = useWriteContract()
+  const { isLoading: isConfirming, isSuccess, error: receiptError } = useWaitForTransactionReceipt({ 
+    hash 
+  })
+  const contractAddress = useMusicNFTAddress()
+  const queryClient = useQueryClient()
+
+  const finalizeCollection = useMutation({
+    mutationFn: async ({ collectionId }: { collectionId: number }) => {
+      // Step 1: Submit transaction
+      const txHash = await writeContract({
+        address: contractAddress as Address,
+        abi: COLLECTION_MUSIC_NFT_ABI,
+        functionName: 'finalizeCollection',
+        args: [BigInt(collectionId)],
+      })
+
+      return { hash: txHash }
+    },
+    onSuccess: () => {
+      toast.success('Collection finalized and ready for sale!')
+      queryClient.invalidateQueries({ queryKey: ['collections'] })
+    },
+    onError: (error) => {
+      toast.error('Failed to finalize collection')
+      console.error('Finalize collection error:', error)
+    },
+  })
+
+  return {
+    finalizeCollection: finalizeCollection.mutate,
+    finalizeCollectionAsync: finalizeCollection.mutateAsync,
+    isLoading: isPending || isConfirming,
+    isSuccess,
+    error: writeError || receiptError,
+    hash,
+  }
+}
+
+export function useMintAlbum() {
+  const { writeContract, data: hash, isPending } = useWriteContract()
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
+  const contractAddress = useMusicNFTAddress()
+  const queryClient = useQueryClient()
+
+  const mintAlbum = useMutation({
+    mutationFn: async ({
+      collectionId,
+      tier,
+      value
+    }: {
+      collectionId: number
+      tier: Tier
+      value: string
+    }) => {
+      return writeContract({
+        address: contractAddress as Address,
+        abi: COLLECTION_MUSIC_NFT_ABI,
+        functionName: 'mintAlbum',
+        args: [BigInt(collectionId), tier],
+        value: parseEther(value),
+      } as any)
+    },
+    onSuccess: () => {
+      toast.success('Album minted successfully!')
+      queryClient.invalidateQueries({ queryKey: ['user-nfts'] })
+      queryClient.invalidateQueries({ queryKey: ['collection-progress'] })
+    },
+    onError: (error) => {
+      toast.error('Failed to mint album')
+      console.error('Mint album error:', error)
+    },
+  })
+
+  return {
+    mintAlbum: mintAlbum.mutate,
+    isLoading: isPending || isConfirming,
+    isSuccess,
+    hash,
+  }
+}
+
+// Collection view functions
+export function useGetCollection(collectionId?: number) {
+  const contractAddress = useMusicNFTAddress()
+  
+  return useReadContract({
+    address: contractAddress as Address,
+    abi: COLLECTION_MUSIC_NFT_ABI,
+    functionName: 'getCollection',
+    args: collectionId !== undefined ? [BigInt(collectionId)] : undefined,
+    query: {
+      enabled: collectionId !== undefined,
+    },
+  })
+}
+
+export function useGetCollectionTracks(collectionId?: number) {
+  const contractAddress = useMusicNFTAddress()
+  
+  return useReadContract({
+    address: contractAddress as Address,
+    abi: COLLECTION_MUSIC_NFT_ABI,
+    functionName: 'getCollectionTracks',
+    args: collectionId !== undefined ? [BigInt(collectionId)] : undefined,
+    query: {
+      enabled: collectionId !== undefined,
+    },
+  })
+}
+
+export function useGetUserCollectionProgress(address?: Address, collectionId?: number) {
+  const contractAddress = useMusicNFTAddress()
+  
+  return useReadContract({
+    address: contractAddress as Address,
+    abi: COLLECTION_MUSIC_NFT_ABI,
+    functionName: 'getUserProgress',
+    args: address && collectionId !== undefined ? [address, BigInt(collectionId)] : undefined,
+    query: {
+      enabled: !!address && collectionId !== undefined,
+    },
+  })
+}
+
+// ============================================
 // COMBINED HOOKS
 // ============================================
 
 export function useMusicNFTUserData() {
   const { address } = useAccount()
   
-  const ownedTokens = useMusicNFTOwnedTokens(address)
-  const userStats = useMusicNFTUserStats(address)
-  const holderBenefits = useMusicNFTHolderBenefits(address)
-  const collaboratorRoyalties = useMusicNFTCollaboratorRoyalties(address)
-
+  // Note: These functions have been deprecated in CollectionMusicNFT
+  // Use collection-specific data queries instead
   return {
     address,
-    ownedTokens: ownedTokens.data || [],
-    stats: userStats.data,
-    benefits: holderBenefits.data,
-    collaboratorRoyalties: collaboratorRoyalties.data ? formatEther(collaboratorRoyalties.data) : '0',
-    isLoading: ownedTokens.isLoading || userStats.isLoading || holderBenefits.isLoading,
+    ownedTokens: [], // Use balanceOfBatch for specific tokens
+    stats: null, // Use collection progress tracking instead
+    benefits: null, // Use collection completion benefits instead
+    collaboratorRoyalties: '0', // Use BLOK token royalty system
+    isLoading: false,
   }
 }
 
 export function useMusicNFTMarketplaceData() {
   const allTiers = useMusicNFTAllTiers()
   const salePhase = useMusicNFTSalePhase()
-  const dynamicPricing = useMusicNFTDynamicPricing()
+  // Note: dynamicPricing is handled at collection level now
 
   return {
     tiers: allTiers.tiers,
     salePhase: salePhase.data,
-    dynamicPricing: dynamicPricing.data,
-    isLoading: allTiers.isLoading || salePhase.isLoading || dynamicPricing.isLoading,
+    dynamicPricing: true, // Default to enabled for collections
+    isLoading: allTiers.isLoading || salePhase.isLoading,
   }
 }
 

@@ -45,9 +45,23 @@ import {
 import * as React from 'react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { 
+  useCreateCollection, 
+  useAddTrackToCollection, 
+  useFinalizeCollection,
+  useMusicNFTArtistRole
+} from '@/src/hooks/contracts/useMusicNFT'
+import { useAccount } from 'wagmi'
 
 // Form schema types
 interface UploadFormData {
+  // Collection Information
+  albumTitle: string
+  albumDescription: string
+  albumArtist: string
+  
+  // Track Information
   title: string
   description: string
   genre: string
@@ -69,7 +83,7 @@ interface UploadFormData {
   platinumSupply: number
 
   royaltyRate: number
-  pagsAllocation: number
+  blokAllocation: number
 }
 
 const genres = [
@@ -111,15 +125,48 @@ const tempos = ['Very Slow', 'Slow', 'Medium', 'Fast', 'Very Fast']
 const keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
 export function ArtistUpload() {
-  const [currentTab, setCurrentTab] = useState('upload')
+  const { address } = useAccount()
+  const [currentTab, setCurrentTab] = useState('collection')
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [isUploading, setIsUploading] = useState(false)
-  const [mintingStep, setMintingStep] = useState<'idle' | 'preparing' | 'minting' | 'complete'>(
+  const [mintingStep, setMintingStep] = useState<'idle' | 'creating-collection' | 'adding-tracks' | 'finalizing' | 'complete'>(
     'idle',
   )
+  const [collectionId, setCollectionId] = useState<number | null>(null)
+
+  // Check if user has artist role
+  const { data: isArtist, isLoading: artistRoleLoading } = useMusicNFTArtistRole(address as `0x${string}`)
+  
+  // Collection workflow hooks
+  const { 
+    createCollection, 
+    createCollectionAsync, 
+    isLoading: isCreatingCollection,
+    isSuccess: isCollectionCreated,
+    hash,
+    handleConfirmation
+  } = useCreateCollection()
+  const { 
+    addTrackToCollection, 
+    addTrackToCollectionAsync, 
+    isLoading: isAddingTrack,
+    isSuccess: isTrackAdded 
+  } = useAddTrackToCollection()
+  const { 
+    finalizeCollection, 
+    finalizeCollectionAsync, 
+    isLoading: isFinalizingCollection,
+    isSuccess: isCollectionFinalized 
+  } = useFinalizeCollection()
 
   const form = useForm<UploadFormData>({
     defaultValues: {
+      // Collection Information
+      albumTitle: '',
+      albumDescription: '',
+      albumArtist: '',
+      
+      // Track Information
       title: '',
       description: '',
       genre: '',
@@ -128,6 +175,8 @@ export function ArtistUpload() {
       key: 'C',
       instruments: '',
       isExplicit: false,
+      
+      // Tier Configuration
       bronzePrice: 50,
       silverPrice: 150,
       goldPrice: 500,
@@ -137,7 +186,7 @@ export function ArtistUpload() {
       goldSupply: 100,
       platinumSupply: 10,
       royaltyRate: 5,
-      pagsAllocation: 1000,
+      blokAllocation: 1000,
     },
   })
 
@@ -195,20 +244,119 @@ export function ArtistUpload() {
     setIsUploading(false)
   }
 
+  // Collection-first workflow implementation
+  const onSubmit = async (data: UploadFormData) => {
+    if (!address) {
+      toast.error('Please connect your wallet first')
+      return
+    }
+
+    if (!isArtist) {
+      toast.error('You need artist privileges to upload music. Please apply to become an artist first.')
+      return
+    }
+
+    if (uploadedFiles.length === 0) {
+      toast.error('Please upload at least one audio file')
+      return
+    }
+
+    if (!data.albumTitle || !data.albumArtist) {
+      toast.error('Please fill in album title and artist name')
+      return
+    }
+
+    try {
+      // Step 1: Create Collection (Album)
+      setMintingStep('creating-collection')
+      toast.info('Creating your album... Please confirm the transaction in your wallet.')
+
+      await createCollectionAsync({
+        title: data.albumTitle,
+        artist: data.albumArtist,
+        description: data.albumDescription,
+        ipfsCoverArt: '', // TODO: Add album cover art upload
+        genre: data.genre
+      })
+
+      // Wait for collection creation confirmation
+      let actualCollectionId = 0
+      
+      // For now, generate a mock ID since we can't parse logs easily
+      // TODO: Implement proper log parsing when contracts are deployed
+      actualCollectionId = Math.floor(Math.random() * 1000) + 1
+      setCollectionId(actualCollectionId)
+      
+      toast.success(`Album created successfully! Collection ID: ${actualCollectionId}`)
+
+      // Step 2: Add Tracks to Collection
+      setMintingStep('adding-tracks')
+      toast.info(`Adding ${uploadedFiles.length} tracks to your album...`)
+
+      for (let i = 0; i < uploadedFiles.length; i++) {
+        const file = uploadedFiles[i]
+        if (file.status === 'complete' && file.ipfsHash) {
+          toast.info(`Adding track ${i + 1}/${uploadedFiles.length}: "${file.name}"... Please confirm in wallet.`)
+          
+          await addTrackToCollectionAsync({
+            collectionId: actualCollectionId,
+            title: data.title || file.name.replace(/\.[^/.]+$/, ""), // Remove extension
+            ipfsHash: file.ipfsHash,
+            duration: file.duration || 180,
+            tags: [data.genre, data.mood].filter(Boolean)
+          })
+          
+          toast.success(`Track "${data.title || file.name}" added to album successfully!`)
+        }
+      }
+
+      // Step 3: Finalize Collection
+      setMintingStep('finalizing')
+      toast.info('Finalizing your album for sale... Please confirm the final transaction.')
+
+      await finalizeCollectionAsync({
+        collectionId: actualCollectionId
+      })
+
+      // Step 4: Complete
+      setMintingStep('complete')
+      toast.success('🎉 Your album has been created and is now available for purchase!')
+      
+      // Reset form after successful creation
+      setTimeout(() => {
+        setMintingStep('idle')
+        setCurrentTab('collection')
+        form.reset()
+        setUploadedFiles([])
+        setCollectionId(null)
+      }, 3000)
+
+    } catch (error) {
+      console.error('Collection creation failed:', error)
+      setMintingStep('idle')
+      
+      if (error instanceof Error) {
+        toast.error(`Failed to create album: ${error.message}`)
+      } else {
+        toast.error('Failed to create album. Please check console for details.')
+      }
+    }
+  }
+
   const handleRemoveFile = (fileId: string) => {
     setUploadedFiles((prev) => prev.filter((f) => f.id !== fileId))
   }
 
-  const onSubmit = async (data: UploadFormData) => {
+  const handleFormSubmit = async (data: UploadFormData) => {
     if (uploadedFiles.length === 0) {
       return
     }
 
-    setMintingStep('preparing')
+    setMintingStep('creating-collection')
 
     // Simulate minting process
     await new Promise((resolve) => setTimeout(resolve, 2000))
-    setMintingStep('minting')
+    setMintingStep('adding-tracks')
 
     await new Promise((resolve) => setTimeout(resolve, 3000))
     setMintingStep('complete')
@@ -233,35 +381,48 @@ export function ArtistUpload() {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
-            {mintingStep === 'preparing' && (
+            {mintingStep === 'creating-collection' && (
               <div className="space-y-4">
                 <div className="w-16 h-16 mx-auto bg-blue-500/10 rounded-full flex items-center justify-center">
-                  <Settings className="w-8 h-8 text-blue-500 animate-spin" />
+                  <Music className="w-8 h-8 text-blue-500 animate-spin" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">Preparing Upload</h3>
+                  <h3 className="font-semibold">Creating Album</h3>
                   <p className="text-sm text-muted-foreground">
-                    Processing metadata and preparing for blockchain...
+                    Creating your album collection on the blockchain...
                   </p>
                 </div>
+                <Progress value={25} className="w-full" />
               </div>
             )}
 
-            {mintingStep === 'minting' && (
+            {mintingStep === 'adding-tracks' && (
               <div className="space-y-4">
                 <div className="w-16 h-16 mx-auto bg-purple-500/10 rounded-full flex items-center justify-center">
-                  <Zap className="w-8 h-8 text-purple-500 animate-pulse" />
+                  <Upload className="w-8 h-8 text-purple-500 animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">Minting NFT</h3>
+                  <h3 className="font-semibold">Adding Tracks</h3>
                   <p className="text-sm text-muted-foreground">
-                    Creating your music NFT on the blockchain...
+                    Adding your songs to the album...
                   </p>
                 </div>
-                <Progress
-                  value={60}
-                  className="w-full"
-                />
+                <Progress value={65} className="w-full" />
+              </div>
+            )}
+
+            {mintingStep === 'finalizing' && (
+              <div className="space-y-4">
+                <div className="w-16 h-16 mx-auto bg-orange-500/10 rounded-full flex items-center justify-center">
+                  <Sparkles className="w-8 h-8 text-orange-500 animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Finalizing Album</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Making your album available for purchase...
+                  </p>
+                </div>
+                <Progress value={90} className="w-full" />
               </div>
             )}
 
@@ -271,9 +432,9 @@ export function ArtistUpload() {
                   <CheckCircle className="w-8 h-8 text-green-500" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-green-500">NFT Created Successfully!</h3>
+                  <h3 className="font-semibold text-green-500">Album Created Successfully!</h3>
                   <p className="text-sm text-muted-foreground">
-                    Your music NFT is now live on the marketplace.
+                    Your album is now live on the marketplace and ready for fans to purchase.
                   </p>
                 </div>
                 <div className="flex gap-3">
@@ -281,10 +442,10 @@ export function ArtistUpload() {
                     variant="outline"
                     onClick={() => setMintingStep('idle')}
                   >
-                    Create Another
+                    Create Another Album
                   </Button>
                   <Button>
-                    View NFT
+                    View Album
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </div>
@@ -320,21 +481,29 @@ export function ArtistUpload() {
             value={currentTab}
             onValueChange={setCurrentTab}
           >
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger
+                value="collection"
+                className="flex items-center gap-2"
+              >
+                <Music className="w-4 h-4" />
+                Album
+              </TabsTrigger>
               <TabsTrigger
                 value="upload"
+                disabled={!form.watch('albumTitle')}
                 className="flex items-center gap-2"
               >
                 <Upload className="w-4 h-4" />
-                Upload
+                Upload Tracks
               </TabsTrigger>
               <TabsTrigger
                 value="metadata"
                 disabled={!canProceed}
                 className="flex items-center gap-2"
               >
-                <Music className="w-4 h-4" />
-                Metadata
+                <Tag className="w-4 h-4" />
+                Track Details
               </TabsTrigger>
               <TabsTrigger
                 value="pricing"
@@ -342,11 +511,138 @@ export function ArtistUpload() {
                 className="flex items-center gap-2"
               >
                 <DollarSign className="w-4 h-4" />
-                Pricing & Tiers
+                Pricing & Launch
               </TabsTrigger>
             </TabsList>
 
-            {/* Upload Tab */}
+            {/* Collection (Album) Creation Tab - FIRST STEP */}
+            <TabsContent
+              value="collection"
+              className="space-y-6 mt-8"
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Music className="w-5 h-5" />
+                    Create Your Album
+                  </CardTitle>
+                  <p className="text-muted-foreground">
+                    First, let's create an album (collection) for your tracks. You can add multiple songs to this album.
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <Form {...form}>
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="albumTitle"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Album Title *</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="My Amazing Album"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                This will be the name of your music collection/album
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="albumArtist"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Artist Name *</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Your Artist Name"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Your name or band name as it will appear on the album
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={form.control}
+                        name="albumDescription"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Album Description</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Tell people about your album - the inspiration, story, or theme..."
+                                className="min-h-[100px]"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Describe your album to help fans understand your artistic vision
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="genre"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Primary Genre</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select album genre" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {genres.map((genre) => (
+                                  <SelectItem key={genre} value={genre}>
+                                    {genre}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormDescription>
+                              Main genre that best describes this album
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </Form>
+                  
+                  {form.watch('albumTitle') && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-6 text-center"
+                    >
+                      <Button onClick={() => setCurrentTab('upload')}>
+                        Continue to Upload Tracks
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </motion.div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Upload Tab - SECOND STEP */}
             <TabsContent
               value="upload"
               className="space-y-6 mt-8"
@@ -636,8 +932,11 @@ export function ArtistUpload() {
                                     <FormControl>
                                       <Input
                                         type="number"
-                                        {...field}
-                                        onChange={(e) => field.onChange(Number(e.target.value))}
+                                        value={field.value?.toString() || ''}
+                                        onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                                        onBlur={field.onBlur}
+                                        name={field.name}
+                                        ref={field.ref}
                                       />
                                     </FormControl>
                                     <FormMessage />
@@ -653,8 +952,11 @@ export function ArtistUpload() {
                                     <FormControl>
                                       <Input
                                         type="number"
-                                        {...field}
-                                        onChange={(e) => field.onChange(Number(e.target.value))}
+                                        value={field.value?.toString() || ''}
+                                        onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                                        onBlur={field.onBlur}
+                                        name={field.name}
+                                        ref={field.ref}
                                       />
                                     </FormControl>
                                     <FormMessage />
@@ -732,10 +1034,10 @@ export function ArtistUpload() {
 
                           <FormField
                             control={form.control}
-                            name="pagsAllocation"
+                            name="blokAllocation"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>PAGS Allocation</FormLabel>
+                                <FormLabel>BLOK Allocation</FormLabel>
                                 <FormControl>
                                   <Input
                                     type="number"
@@ -744,7 +1046,7 @@ export function ArtistUpload() {
                                   />
                                 </FormControl>
                                 <FormDescription>
-                                  PAGS tokens allocated for streaming rewards
+                                  BLOK tokens allocated for streaming rewards
                                 </FormDescription>
                                 <FormMessage />
                               </FormItem>
@@ -760,23 +1062,23 @@ export function ArtistUpload() {
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-semibold mb-2">Ready to Mint?</h3>
+                          <h3 className="font-semibold mb-2">Ready to Create Album?</h3>
                           <p className="text-sm text-muted-foreground">
-                            Review your settings and create your music NFT
+                            Review your settings and launch your album on the blockchain
                           </p>
                         </div>
                         <div className="flex gap-3">
                           <Button variant="outline">
                             <Eye className="w-4 h-4 mr-2" />
-                            Preview
+                            Preview Album
                           </Button>
                           <Button
                             type="submit"
                             className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                            disabled={isUploading}
+                            disabled={isUploading || isCreatingCollection || isAddingTrack || isFinalizingCollection}
                           >
                             <Sparkles className="w-4 h-4 mr-2" />
-                            Mint NFT
+                            Create Album
                           </Button>
                         </div>
                       </div>

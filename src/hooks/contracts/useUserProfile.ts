@@ -1,29 +1,31 @@
 import { useQuery } from '@tanstack/react-query'
 import { formatEther, type Address } from 'viem'
 import { 
-  useMusicNFTUserData,
-  useMusicNFTOwnedTokens,
-  useMusicNFTUserStats,
-  useMusicNFTHolderBenefits
+  useMusicNFTUserData
 } from './useMusicNFT'
-import { usePAGSBalance } from './usePAGSToken'
+import { useBLOKBalance } from './useBLOKToken'
 import { useArtistData } from './useArtistData'
 import { createQueryKey } from '@/src/utils/bigint'
 import type { MusicNFT } from '@/src/types/music-nft'
 import type { User, UserStats, Achievement } from '@/src/types/social'
+import { useAccount } from 'wagmi'
 
 export interface UserProfile extends User {
   stats: UserStats
   achievements: Achievement[]
   ownedNFTs: MusicNFT[]
+  blokBalance: number
+  isArtist: boolean
+  avatar: string
 }
 
 /**
  * Hook to get comprehensive user profile data from contracts
  */
 export function useUserProfile(userId: string) {
+  const { address: connectedAddress } = useAccount()
   // Try to interpret userId as an address or get from params
-  const userAddress = userId?.startsWith('0x') ? userId as Address : undefined
+  const userAddress = userId?.startsWith('0x') ? userId as Address : connectedAddress
   
   // Get basic user data
   const { 
@@ -32,17 +34,17 @@ export function useUserProfile(userId: string) {
     benefits, 
     collaboratorRoyalties,
     isLoading: userDataLoading 
-  } = useMusicNFTUserData(userAddress)
+  } = useMusicNFTUserData()
   
-  // Get PAGS balance
-  const { data: pagsBalance, isLoading: pagsLoading } = usePAGSBalance(userAddress)
+  // Get BLOK balance
+  const { data: blokBalance, isLoading: blokLoading } = useBLOKBalance(userAddress)
   
   // Check if user is also an artist
-  const { artistStats, isArtist } = useArtistData(userAddress)
+  const { artistStats, isArtist  } = useArtistData(userAddress)
 
   // Build comprehensive profile data
   const { data: userProfile, isLoading: profileLoading } = useQuery({
-    queryKey: createQueryKey('user-profile', userId, contractStats, pagsBalance, artistStats),
+    queryKey: createQueryKey('user-profile', userId, contractStats, blokBalance, artistStats),
     queryFn: async (): Promise<UserProfile> => {
       const address = userAddress || ''
       const displayName = artistStats?.name || `User ${address.slice(0, 6)}...${address.slice(-4)}`
@@ -58,14 +60,14 @@ export function useUserProfile(userId: string) {
         id: userId,
         username: displayName.toLowerCase().replace(/\s+/g, '-'),
         displayName,
-        avatar: artistStats?.avatar,
+        avatar: artistStats?.avatar || '/default-avatar.png',
         bio: isArtist 
           ? `Music artist with ${artistStats?.totalTracks || 0} tracks and ${artistStats?.totalPlays?.toLocaleString() || '0'} plays` 
           : `Music NFT collector with ${totalNFTs} NFTs in collection`,
         location: undefined, // Would come from off-chain profile data
         website: undefined, // Would come from off-chain profile data
         verified: isArtist || false,
-        isArtist,
+        isArtist: isArtist || false,
         walletAddress: address,
         followers: artistStats?.followers || Math.floor(totalNFTs * 10), // Estimate
         following: Math.floor((artistStats?.followers || totalNFTs) * 0.2), // Estimate
@@ -84,11 +86,11 @@ export function useUserProfile(userId: string) {
         nftsOwned: totalNFTs,
         nftsCreated: isArtist ? artistStats?.nftsCreated || 0 : 0,
         totalPlays: artistStats?.totalPlays || 0,
-        pagsEarned: tokenBalance,
-        achievementCount: calculateAchievements(totalNFTs, totalSpent, isArtist).length,
+        blokEarned: tokenBalance,
+        achievementCount: calculateAchievements(totalNFTs, totalSpent, isArtist || false).length,
       }
 
-      const achievements = calculateAchievements(totalNFTs, totalSpent, isArtist)
+      const achievements = calculateAchievements(totalNFTs, totalSpent, isArtist || false)
 
       // For now, owned NFTs would need to be fetched separately
       // This is a placeholder - in reality we'd need to get NFT metadata for each owned token
@@ -99,15 +101,18 @@ export function useUserProfile(userId: string) {
         stats,
         achievements,
         ownedNFTs,
+        blokBalance: Number(blokBalance || 0),
+        isArtist: isArtist || false,
+        avatar: user.avatar,
       }
     },
-    enabled: !userDataLoading && !pagsLoading,
+    enabled: !userDataLoading && !blokLoading,
     staleTime: 30000,
   })
 
   return {
     userProfile,
-    isLoading: userDataLoading || pagsLoading || profileLoading,
+    isLoading: userDataLoading || blokLoading || profileLoading,
     error: null,
     benefits, // Expose benefits for display
     collaboratorRoyalties, // Expose royalties
@@ -125,10 +130,10 @@ function calculateAchievements(nftsOwned: number, totalSpent: number, isArtist: 
   if (nftsOwned >= 1) {
     achievements.push({
       id: 'first-nft',
-      title: 'First Collection',
+      name: 'First Collection',
       description: 'Purchased your first music NFT',
       icon: 'music',
-      tier: 'bronze',
+      rarity: 'common',
       unlockedAt: '2024-01-15',
     })
   }
@@ -136,10 +141,10 @@ function calculateAchievements(nftsOwned: number, totalSpent: number, isArtist: 
   if (nftsOwned >= 5) {
     achievements.push({
       id: 'collector',
-      title: 'Collector',
+      name: 'Collector',
       description: 'Own 5 music NFTs',
       icon: 'trophy',
-      tier: 'silver',
+      rarity: 'rare',
       unlockedAt: '2024-02-01',
     })
   }
@@ -147,10 +152,10 @@ function calculateAchievements(nftsOwned: number, totalSpent: number, isArtist: 
   if (nftsOwned >= 10) {
     achievements.push({
       id: 'connoisseur',
-      title: 'Music Connoisseur',
+      name: 'Music Connoisseur',
       description: 'Own 10 music NFTs',
       icon: 'award',
-      tier: 'gold',
+      rarity: 'epic',
       unlockedAt: '2024-02-15',
     })
   }
@@ -158,10 +163,10 @@ function calculateAchievements(nftsOwned: number, totalSpent: number, isArtist: 
   if (nftsOwned >= 25) {
     achievements.push({
       id: 'curator',
-      title: 'Curator',
+      name: 'Curator',
       description: 'Own 25 music NFTs',
       icon: 'crown',
-      tier: 'platinum',
+      rarity: 'legendary',
       unlockedAt: '2024-03-01',
     })
   }
@@ -170,10 +175,10 @@ function calculateAchievements(nftsOwned: number, totalSpent: number, isArtist: 
   if (totalSpent >= 100) {
     achievements.push({
       id: 'supporter',
-      title: 'Artist Supporter',
+      name: 'Artist Supporter',
       description: 'Spent $100+ supporting artists',
       icon: 'heart',
-      tier: 'bronze',
+      rarity: 'common',
       unlockedAt: '2024-01-20',
     })
   }
@@ -181,10 +186,10 @@ function calculateAchievements(nftsOwned: number, totalSpent: number, isArtist: 
   if (totalSpent >= 1000) {
     achievements.push({
       id: 'patron',
-      title: 'Music Patron',
+      name: 'Music Patron',
       description: 'Spent $1000+ supporting artists',
       icon: 'star',
-      tier: 'gold',
+      rarity: 'epic',
       unlockedAt: '2024-02-10',
     })
   }
@@ -193,10 +198,10 @@ function calculateAchievements(nftsOwned: number, totalSpent: number, isArtist: 
   if (isArtist) {
     achievements.push({
       id: 'artist-verified',
-      title: 'Verified Artist',
+      name: 'Verified Artist',
       description: 'Verified as an artist on the platform',
       icon: 'check',
-      tier: 'gold',
+      rarity: 'epic',
       unlockedAt: '2024-01-01',
     })
   }

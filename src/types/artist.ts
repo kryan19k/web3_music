@@ -171,7 +171,6 @@ export type ArtistOnboardingStep =
   | 'wallet-connect'
   | 'profile-setup'
   | 'verification'
-  | 'first-track'
   | 'complete'
 
 // Form validation types

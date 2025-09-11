@@ -223,11 +223,11 @@ const mockNFTData: Record<string, MusicNFT & {
 const tierConfigs = {
   bronze: {
     name: 'Bronze',
-    color: 'from-orange-600 to-orange-400',
-    textColor: 'text-orange-300',
-    borderColor: 'border-orange-500/50',
-    bgColor: 'bg-orange-500/10',
-    glow: 'shadow-orange-500/25',
+    color: 'from-muted to-muted',
+    textColor: 'text-muted-foreground',
+    borderColor: 'border-border',
+    bgColor: 'bg-muted/10',
+    glow: 'shadow-muted/25',
     benefits: ['Basic NFT ownership', 'Monthly royalties', 'Community access'],
     apyRange: '6-8%',
     maxSupply: 1000,
@@ -247,11 +247,11 @@ const tierConfigs = {
   },
   gold: {
     name: 'Gold',
-    color: 'from-yellow-500 to-yellow-400',
-    textColor: 'text-yellow-300',
-    borderColor: 'border-yellow-500/50',
-    bgColor: 'bg-yellow-500/10',
-    glow: 'shadow-yellow-500/25',
+    color: 'from-accent to-accent',
+    textColor: 'text-accent-foreground',
+    borderColor: 'border-accent/50',
+    bgColor: 'bg-accent/10',
+    glow: 'hover-glow-accent',
     benefits: ['Gold ownership', 'Premium royalties', 'Artist meetups', 'Governance rights'],
     apyRange: '15-18%',
     maxSupply: 100,
@@ -259,11 +259,11 @@ const tierConfigs = {
   },
   platinum: {
     name: 'Platinum',
-    color: 'from-purple-500 to-pink-500',
-    textColor: 'text-purple-300',
-    borderColor: 'border-purple-500/50',
-    bgColor: 'bg-purple-500/10',
-    glow: 'shadow-purple-500/25',
+    color: 'from-primary to-primary',
+    textColor: 'text-primary-foreground',
+    borderColor: 'border-primary/50',
+    bgColor: 'bg-primary/10',
+    glow: 'hover-glow-primary',
     benefits: ['Ultimate ownership', 'Maximum royalties', 'All perks', 'Revenue sharing'],
     apyRange: '20-25%',
     maxSupply: 10,
@@ -863,13 +863,13 @@ export function NFTPurchasePage() {
 
                   <div className="space-y-3">
                     {!isWalletConnected ? (
-                      <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+                      <Button className="w-full btn-primary">
                         <Wallet className="w-4 h-4 mr-2" />
                         Connect Wallet to Purchase
                       </Button>
                     ) : (
                       <Button
-                        className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                        className="w-full btn-primary"
                         onClick={handlePurchase}
                         disabled={!nft.isListed || isMinting}
                       >

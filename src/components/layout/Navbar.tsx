@@ -66,21 +66,21 @@ export function Navbar() {
             whileHover={{ scale: 1.05 }}
             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
           >
-            <div className="flex items-center gap-00">
+            <div className="flex items-center gap-3">
               {/* Round Logo */}
               <div className="relative">
                 <img
                   src="/logogray.png"
                   alt="Pags Music Logo"
-                  width={80}
-                  height={80}
+                  width={40}
+                  height={40}
                   className="dark:hidden dim:hidden"
                 />
                 <img
                   src="/logowhite.png"
                   alt="Pags Music Logo"
-                  width={80}
-                  height={80}
+                  width={40}
+                  height={40}
                   className="hidden dark:block dim:block"
                 />
                 
@@ -197,7 +197,7 @@ export function Navbar() {
             <NavigationMenuItem>
               <NavigationMenuTrigger>
                 <Coins className="w-4 h-4 mr-2" />
-                PAGS Token
+                BLOK Token
               </NavigationMenuTrigger>
               <NavigationMenuContent>
                 <div className="grid gap-3 p-6 w-[300px]">
@@ -344,7 +344,7 @@ export function Navbar() {
               </Link>
 
               <div className="space-y-2">
-                <h4 className="font-medium text-sm text-muted-foreground px-3">PAGS Token</h4>
+                <h4 className="font-medium text-sm text-muted-foreground px-3">BLOK Token</h4>
                 <Link
                   to="/pags"
                   className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent transition-colors ml-3"

@@ -87,6 +87,11 @@ export function ProfileSetupStep() {
         setAvatarPreview(e.target?.result as string)
       }
       reader.readAsDataURL(file)
+      
+      // Notify user about avatar upload
+      toast.success('Avatar Selected', {
+        description: 'Avatar will be uploaded when you save your profile.'
+      })
     }
   }
 
@@ -111,11 +116,12 @@ export function ProfileSetupStep() {
       },
     }
 
+    // Avatar upload re-enabled with proper storage policies
     if (onboardingState.profile) {
-      // Update existing profile
+      // Update existing profile with avatar
       await updateArtistProfile(profileData, formData.avatar || undefined)
     } else {
-      // Create new profile
+      // Create new profile with avatar
       await createArtistProfile({
         ...profileData,
         avatarFile: formData.avatar || undefined
@@ -141,11 +147,12 @@ export function ProfileSetupStep() {
     console.log('handleContinue - Saving profile with:', profileData)
     
     let result
+    // Avatar upload re-enabled with proper storage policies
     if (onboardingState.profile) {
-      // Update existing profile
+      // Update existing profile with avatar
       result = await updateArtistProfile(profileData, formData.avatar || undefined)
     } else {
-      // Create new profile
+      // Create new profile with avatar
       result = await createArtistProfile({
         ...profileData,
         avatarFile: formData.avatar || undefined
@@ -154,14 +161,79 @@ export function ProfileSetupStep() {
 
     if (result?.success) {
       console.log('handleContinue - Profile saved, moving to verification')
-      // Force immediate navigation
+      
+      // Multiple approaches to ensure step transition works
+      console.log('🔄 [TRANSITION] Attempting to move to verification step...')
+      
+      // Immediate call
+      setCurrentStep('verification')
+      
+      // Backup with timeout
       setTimeout(() => {
-        console.log('handleContinue - Forcing navigation to verification')
+        console.log('🔄 [TRANSITION] Backup setCurrentStep call')
         setCurrentStep('verification')
+      }, 100)
+      
+      // Backup with custom event
+      setTimeout(() => {
+        console.log('🔄 [TRANSITION] Backup custom event dispatch')
+        window.dispatchEvent(new CustomEvent('forceStepChange', { detail: 'verification' }))
       }, 200)
     } else {
       console.error('handleContinue - Failed to save profile:', result?.error)
+      
+      // Handle specific error types
+      if (result?.error?.includes('Could not find') && result?.error?.includes('column')) {
+        toast.error('Database Schema Issue', {
+          description: 'Column name mismatch in database. Please check the database schema.'
+        })
+        console.error('🗄️ [SCHEMA ERROR] Database column mismatch:', result?.error)
+        console.error('💡 [SOLUTION] Check that database columns match the expected names')
+      } else if (result?.error?.includes('row-level security policy')) {
+        toast.error('Storage Permission Issue', {
+          description: 'Avatar upload blocked by storage policies. Profile saved without avatar.'
+        })
+        console.error('🔒 [STORAGE RLS] Storage bucket needs RLS policies!')
+        console.error('💡 [SOLUTION] Check console for SQL commands to fix storage policies')
+        
+        // If it's just a storage issue, continue to next step anyway
+        console.log('🔄 [WORKAROUND] Continuing to verification step without avatar')
+        
+        // Force immediate progression for storage-only errors
+        toast.info('Proceeding without avatar...', {
+          description: 'You can add an avatar later in your profile.'
+        })
+        
+        setCurrentStep('verification')
+        return
+      } else if (result?.error?.includes('displayName') || result?.error?.includes('schema cache')) {
+        toast.error('Database Schema Issue', {
+          description: 'Column name issue detected. Proceeding to next step for testing.'
+        })
+        console.error('🗄️ [SCHEMA ERROR] Display name column issue - proceeding anyway for testing')
+        
+        // Force progression despite schema error
+        console.log('🔄 [WORKAROUND] Continuing to verification step despite schema issue')
+        setTimeout(() => {
+          setCurrentStep('verification')
+        }, 1500)
+        return
+      } else {
+        toast.error('Profile Creation Issue', {
+          description: 'There was an issue saving your profile. Please try the demo mode.'
+        })
+      }
+      
+      console.error('🔧 [PROFILE ERROR] Profile creation failed:', result?.error)
     }
+  }
+
+  const handleSkipDatabase = () => {
+    console.log('🔧 [DEBUG] Skipping database creation for testing')
+    toast.info('Demo Mode', {
+      description: 'Proceeding without database storage for testing'
+    })
+    setCurrentStep('verification')
   }
 
   return (
@@ -398,9 +470,41 @@ export function ProfileSetupStep() {
 
         {/* Action Buttons */}
         <div className="flex justify-between">
-          <Button variant="outline" onClick={handleSaveProfile}>
-            Save Draft
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleSaveProfile}>
+              Save Draft
+            </Button>
+            
+            {/* Debug buttons - remove after database setup */}
+            <Button 
+              variant="outline" 
+              onClick={handleSkipDatabase}
+              className="text-xs border-orange-200 text-orange-600 hover:bg-orange-50"
+              size="sm"
+            >
+              🔧 Skip DB (Demo)
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                console.log('🔧 [DEBUG] Force proceeding to verification step')
+                toast.info('Forcing step change', {
+                  description: 'Moving to verification step...'
+                })
+                setCurrentStep('verification')
+                
+                // Also trigger custom event as backup
+                setTimeout(() => {
+                  window.dispatchEvent(new CustomEvent('forceStepChange', { detail: 'verification' }))
+                }, 100)
+              }}
+              className="text-xs border-blue-200 text-blue-600 hover:bg-blue-50"
+              size="sm"
+            >
+              🔧 Force → Verification
+            </Button>
+          </div>
           
           <Button
             onClick={handleContinue}

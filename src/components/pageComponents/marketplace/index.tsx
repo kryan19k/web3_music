@@ -28,6 +28,7 @@ import {
   Flame,
   Crown,
   Award,
+  Play,
   PlayCircle,
   Users,
   Eye,
@@ -415,13 +416,110 @@ const marketplaceNFTs: MusicNFT[] = [
   },
 ]
 
+// Collections (Albums) data for marketplace
+const marketplaceCollections = [
+  {
+    id: 1,
+    title: "Neon Dreams",
+    artist: "Luna Vista",
+    artistAvatar: "/api/placeholder/40/40",
+    description: "A synthwave journey through digital landscapes and retro-futuristic soundscapes",
+    coverArt: "/song_cover/electric.png",
+    trackCount: 8,
+    totalMinted: 156,
+    totalSupply: 500,
+    revenue: 4250,
+    createdAt: "2024-01-15T10:00:00Z",
+    isActive: true,
+    completionProgress: 100,
+    genre: "Synthwave",
+    tags: ["Electronic", "Retro", "Ambient"],
+    averageRating: 4.8,
+    totalPlays: 89432,
+    isVerified: true,
+    isTrending: true,
+    price: { min: 0.05, max: 0.25 },
+    tracks: ['1', '2'] // References to existing NFT tokenIds
+  },
+  {
+    id: 2,
+    title: "Ocean Depths",
+    artist: "Aqua Resonance", 
+    artistAvatar: "/api/placeholder/40/40",
+    description: "Ambient exploration of underwater worlds and marine mysteries",
+    coverArt: "/song_cover/ocean.jpg",
+    trackCount: 6,
+    totalMinted: 89,
+    totalSupply: 300,
+    revenue: 2100,
+    createdAt: "2024-02-01T14:30:00Z",
+    isActive: true,
+    completionProgress: 100,
+    genre: "Ambient",
+    tags: ["Chill", "Nature", "Meditation"],
+    averageRating: 4.6,
+    totalPlays: 67234,
+    isVerified: false,
+    isTrending: false,
+    price: { min: 0.03, max: 0.15 },
+    tracks: ['5']
+  },
+  {
+    id: 3,
+    title: "Urban Chronicles",
+    artist: "Street Symphony",
+    artistAvatar: "/api/placeholder/40/40",
+    description: "Raw hip-hop from the streets with electronic influences",
+    coverArt: "/song_cover/urban.png", 
+    trackCount: 12,
+    totalMinted: 234,
+    totalSupply: 1000,
+    revenue: 7800,
+    createdAt: "2024-03-10T09:15:00Z",
+    isActive: true,
+    completionProgress: 100,
+    genre: "Hip-Hop",
+    tags: ["Rap", "Electronic", "Urban"],
+    averageRating: 4.7,
+    totalPlays: 124567,
+    isVerified: true,
+    isTrending: true,
+    price: { min: 0.08, max: 0.35 },
+    tracks: ['3']
+  },
+  {
+    id: 4,
+    title: "Coffee House Acoustics",
+    artist: "Mellow Mornings",
+    artistAvatar: "/api/placeholder/40/40",
+    description: "Relaxing acoustic melodies for peaceful moments",
+    coverArt: "/song_cover/coffee.png",
+    trackCount: 10,
+    totalMinted: 67,
+    totalSupply: 200,
+    revenue: 3400,
+    createdAt: "2024-02-20T16:45:00Z",
+    isActive: true,
+    completionProgress: 100,
+    genre: "Acoustic",
+    tags: ["Folk", "Chill", "Instrumental"],
+    averageRating: 4.9,
+    totalPlays: 45678,
+    isVerified: false,
+    isTrending: false,
+    price: { min: 0.12, max: 0.45 },
+    tracks: ['4']
+  }
+]
+
 export function MarketplacePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTier, setSelectedTier] = useState('all')
   const [selectedGenre, setSelectedGenre] = useState('all')
   const [sortBy, setSortBy] = useState('trending')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [activeSection, setActiveSection] = useState('featured')
+  const [activeSection, setActiveSection] = useState('albums') // Changed default to albums
+  const [selectedCollection, setSelectedCollection] = useState<string | null>(null)
   const { play, pause, currentTrack, isPlaying } = useAudioPlayer()
 
   // Fetch real NFTs from contracts
@@ -482,13 +580,43 @@ export function MarketplacePage() {
     // In a real app, this would open the purchase modal
   }
 
-  // Get unique genres for filter
-  const genres = Array.from(new Set(marketplaceNFTs.map((nft) => nft.metadata.genre)))
+  const handleCollectionSelect = (collectionId: number) => {
+    setSelectedCollection(collectionId.toString())
+    setActiveSection('tracks')
+  }
+
+  const handleBackToAlbums = () => {
+    setSelectedCollection(null)
+    setActiveSection('albums')
+  }
+
+  // Get filtered collections
+  const filteredCollections = marketplaceCollections.filter((collection) => {
+    const matchesSearch = 
+      collection.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      collection.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      collection.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    const matchesGenre = selectedGenre === 'all' || collection.genre === selectedGenre
+    return matchesSearch && matchesGenre
+  })
+
+  // Get tracks for selected collection
+  const selectedCollectionTracks = selectedCollection 
+    ? marketplaceNFTs.filter(nft => {
+        const collection = marketplaceCollections.find(c => c.id.toString() === selectedCollection)
+        return collection?.tracks.includes(nft.tokenId)
+      })
+    : []
+
+  // Get unique genres for filter (both from collections and tracks)
+  const collectionGenres = Array.from(new Set(marketplaceCollections.map((collection) => collection.genre)))
+  const trackGenres = Array.from(new Set(marketplaceNFTs.map((nft) => nft.metadata.genre)))
+  const genres = Array.from(new Set([...collectionGenres, ...trackGenres]))
 
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative py-16 bg-gradient-to-br from-purple-900/10 via-background to-pink-900/10 overflow-hidden">
+      <section className="relative py-16 bg-gradient-to-br from-primary/10 via-background to-accent/10 overflow-hidden">
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5" />
         
         {/* Floating Elements */}
@@ -521,11 +649,11 @@ export function MarketplacePage() {
             className="text-center max-w-6xl mx-auto"
           >
             <div className="flex items-center justify-center gap-3 mb-6">
-              <Badge className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-400 border-green-500/30">
+              <Badge className="bg-gradient-to-r from-primary/20 to-accent/20 text-primary border-primary/30">
                 <Radio className="w-4 h-4 mr-2" />
                 LIVE MARKETPLACE
               </Badge>
-              <Badge className="bg-gradient-to-r from-orange-500/20 to-red-500/20 text-orange-400 border-orange-500/30">
+              <Badge className="bg-gradient-to-r from-accent/20 to-primary/20 text-accent border-accent/30">
                 <Flame className="w-4 h-4 mr-2" />
                 HOT DROPS
               </Badge>
@@ -533,7 +661,7 @@ export function MarketplacePage() {
 
             <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
               The Future of{' '}
-              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="gradient-text">
                 Music Ownership
               </span>
             </h1>
@@ -546,10 +674,10 @@ export function MarketplacePage() {
             {/* Enhanced Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mb-12">
               {[
-                { icon: Album, label: 'Collections', value: '1,247', change: '+12%', color: 'text-purple-400' },
-                { icon: DollarSign, label: 'Volume (24h)', value: '$2.4M', change: '+18%', color: 'text-green-400' },
-                { icon: Users, label: 'Active Collectors', value: '12.8K', change: '+8%', color: 'text-blue-400' },
-                { icon: TrendingUp, label: 'Floor Price', value: '0.05 ETH', change: '+24%', color: 'text-cyan-400' },
+                { icon: Album, label: 'Collections', value: '1,247', change: '+12%', color: 'text-primary' },
+                { icon: DollarSign, label: 'Volume (24h)', value: '$2.4M', change: '+18%', color: 'text-accent' },
+                { icon: Users, label: 'Active Collectors', value: '12.8K', change: '+8%', color: 'text-primary' },
+                { icon: TrendingUp, label: 'Floor Price', value: '0.05 ETH', change: '+24%', color: 'text-accent' },
               ].map((stat, i) => (
                 <motion.div
                   key={stat.label}
@@ -562,7 +690,7 @@ export function MarketplacePage() {
                       <stat.icon className={`w-8 h-8 mx-auto mb-3 ${stat.color} group-hover:scale-110 transition-transform duration-300`} />
                       <p className="text-3xl font-bold mb-1">{stat.value}</p>
                       <p className="text-sm text-muted-foreground mb-2">{stat.label}</p>
-                      <Badge variant="secondary" className="text-xs bg-green-500/20 text-green-400 border-green-500/30">
+                      <Badge variant="secondary" className="text-xs bg-primary/20 text-primary border-primary/30">
                         {stat.change}
                       </Badge>
                     </CardContent>
@@ -575,15 +703,17 @@ export function MarketplacePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-xl shadow-purple-500/25 px-8 py-4 text-lg group"
+                className="btn-primary px-8 py-4 text-lg group"
+                onClick={() => setActiveSection('albums')}
               >
                 <PlayCircle className="mr-2 w-5 h-5 group-hover:scale-110 transition-transform" />
-                Explore Collections
+                Explore Albums
               </Button>
               <Button
                 size="lg"
                 variant="outline"
                 className="border-2 border-border/30 text-foreground hover:bg-accent/20 backdrop-blur-xl px-8 py-4 text-lg"
+                onClick={() => setActiveSection('artists')}
               >
                 <Mic className="mr-2 w-5 h-5" />
                 Discover Artists
@@ -599,24 +729,43 @@ export function MarketplacePage() {
           <div className="flex items-center justify-between">
             {/* Section Navigation */}
             <div className="flex items-center gap-2 bg-card/30 backdrop-blur-sm rounded-full p-1">
-              {[
-                { id: 'featured', label: 'Featured', icon: Star },
-                { id: 'collections', label: 'Collections', icon: Album },
-                { id: 'artists', label: 'Artists', icon: Mic },
-                { id: 'trending', label: 'Trending', icon: Flame },
-                { id: 'explore', label: 'Explore All', icon: Search },
-              ].map((tab) => (
-                <Button
-                  key={tab.id}
-                  variant={activeSection === tab.id ? 'secondary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setActiveSection(tab.id)}
-                  className="rounded-full px-6 py-2"
-                >
-                  <tab.icon className="w-4 h-4 mr-2" />
-                  {tab.label}
-                </Button>
-              ))}
+              {selectedCollection ? (
+                /* Show back to albums when viewing collection tracks */
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleBackToAlbums}
+                    className="rounded-full px-6 py-2"
+                  >
+                    <ChevronRight className="w-4 h-4 mr-2 rotate-180" />
+                    Back to Albums
+                  </Button>
+                  <div className="text-sm text-muted-foreground px-4">
+                    {marketplaceCollections.find(c => c.id.toString() === selectedCollection)?.title} Tracks
+                  </div>
+                </>
+              ) : (
+                /* Main navigation tabs */
+                [
+                  { id: 'albums', label: 'Albums', icon: Album },
+                  { id: 'featured', label: 'Featured', icon: Star },
+                  { id: 'artists', label: 'Artists', icon: Mic },
+                  { id: 'trending', label: 'Trending', icon: Flame },
+                  { id: 'explore', label: 'Explore All', icon: Search },
+                ].map((tab) => (
+                  <Button
+                    key={tab.id}
+                    variant={activeSection === tab.id ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setActiveSection(tab.id)}
+                    className="rounded-full px-6 py-2"
+                  >
+                    <tab.icon className="w-4 h-4 mr-2" />
+                    {tab.label}
+                  </Button>
+                ))
+              )}
             </div>
 
             {/* Quick Search */}
@@ -633,9 +782,226 @@ export function MarketplacePage() {
         </div>
       </section>
 
+      {/* Albums Section */}
+      {activeSection === 'albums' && !selectedCollection && (
+        <section className="py-16 bg-gradient-to-b from-background to-primary/5">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center mb-12"
+            >
+              <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                Music{' '}
+                <span className="gradient-text">
+                  Albums
+                </span>
+              </h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Discover complete music collections from talented artists. Each album contains multiple tracks available as NFTs.
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+              {filteredCollections.map((collection, index) => (
+                <motion.div
+                  key={collection.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="group cursor-pointer"
+                  onClick={() => handleCollectionSelect(collection.id)}
+                >
+                  <Card className="overflow-hidden bg-card/50 backdrop-blur-xl border-border/30 hover:bg-card/70 transition-all duration-500 group-hover:scale-105 group-hover:shadow-2xl group-hover:shadow-primary/20">
+                    <div className="relative">
+                      <div className="aspect-square overflow-hidden">
+                        <img 
+                          src={collection.coverArt} 
+                          alt={collection.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                        
+                        {/* Overlay Info */}
+                        <div className="absolute bottom-4 left-4 right-4">
+                          <div className="flex items-center justify-between text-white mb-2">
+                            <Badge className="bg-black/60 text-white border-0">
+                              {collection.trackCount} tracks
+                            </Badge>
+                            <Badge className="bg-primary/80 text-primary-foreground border-0">
+                              {collection.totalMinted}/{collection.totalSupply} minted
+                            </Badge>
+                          </div>
+                        </div>
+
+                        {/* Hover Play Button */}
+                        <motion.button
+                          initial={{ scale: 0 }}
+                          whileHover={{ scale: 1 }}
+                          className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        >
+                          <PlayCircle className="w-16 h-16 text-white" />
+                        </motion.button>
+                      </div>
+                    </div>
+
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-xl font-bold group-hover:text-primary transition-colors">
+                          {collection.title}
+                        </h3>
+                        {collection.isVerified && (
+                          <Crown className="w-5 h-5 text-accent" />
+                        )}
+                        {collection.isTrending && (
+                          <Badge className="bg-accent/20 text-accent border-accent/30">
+                            <Flame className="w-3 h-3 mr-1" />
+                            Hot
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
+                        {collection.description}
+                      </p>
+                      
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <p className="text-xs text-muted-foreground">by {collection.artist}</p>
+                          <p className="text-lg font-bold text-primary">
+                            {collection.price.min.toFixed(3)} - {collection.price.max.toFixed(3)} ETH
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="ghost" className="p-2">
+                            <Heart className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" variant="ghost" className="p-2">
+                            <Share2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground mb-4">
+                        <div className="flex items-center gap-1">
+                          <Play className="w-4 h-4" />
+                          {collection.totalPlays.toLocaleString()} plays
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4" />
+                          {collection.averageRating.toFixed(1)} rating
+                        </div>
+                      </div>
+                      
+                      <Button className="w-full btn-primary">
+                        View Tracks
+                        <ChevronRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Album Tracks Section */}
+      {activeSection === 'tracks' && selectedCollection && (
+        <section className="py-16">
+          <div className="container mx-auto px-4">
+            {(() => {
+              const collection = marketplaceCollections.find(c => c.id.toString() === selectedCollection)
+              if (!collection) return null
+              
+              return (
+                <>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-12"
+                  >
+                    <div className="flex items-start gap-8 mb-8">
+                      <div className="w-64 h-64 rounded-2xl overflow-hidden shadow-2xl">
+                        <img 
+                          src={collection.coverArt} 
+                          alt={collection.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <h1 className="text-4xl font-bold mb-2">{collection.title}</h1>
+                        <p className="text-xl text-muted-foreground mb-4">by {collection.artist}</p>
+                        <p className="text-muted-foreground mb-6 max-w-2xl">{collection.description}</p>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                          <div>
+                            <p className="text-2xl font-bold">{collection.trackCount}</p>
+                            <p className="text-sm text-muted-foreground">Tracks</p>
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold">{collection.totalPlays.toLocaleString()}</p>
+                            <p className="text-sm text-muted-foreground">Total Plays</p>
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold">{collection.averageRating.toFixed(1)}</p>
+                            <p className="text-sm text-muted-foreground">Rating</p>
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold">{collection.totalMinted}</p>
+                            <p className="text-sm text-muted-foreground">NFTs Minted</p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-4">
+                          <Button size="lg" className="btn-primary">
+                            <PlayCircle className="w-5 h-5 mr-2" />
+                            Play Album
+                          </Button>
+                          <Button size="lg" variant="outline">
+                            <Heart className="w-5 h-5 mr-2" />
+                            Save
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  <div className="space-y-4">
+                    <h3 className="text-2xl font-bold mb-6">Tracks Available as NFTs</h3>
+                    <div className={
+                      viewMode === 'grid'
+                        ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
+                        : 'space-y-4'
+                    }>
+                      {selectedCollectionTracks.map((nft, index) => (
+                        <motion.div
+                          key={nft.tokenId}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                        >
+                          <MusicNFTCard
+                            nft={nft}
+                            isPlaying={currentTrack?.id === nft.tokenId && isPlaying}
+                            onPlay={handlePlay}
+                            onPause={handlePause}
+                            onPurchase={handlePurchase}
+                          />
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )
+            })()}
+          </div>
+        </section>
+      )}
+
       {/* Featured Collections Section */}
       {activeSection === 'featured' && (
-        <section className="py-16 bg-gradient-to-b from-background to-purple-950/5">
+        <section className="py-16 bg-gradient-to-b from-background to-primary/5">
           <div className="container mx-auto px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -644,7 +1010,7 @@ export function MarketplacePage() {
             >
               <h2 className="text-4xl md:text-5xl font-bold mb-4">
                 Featured{' '}
-                <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                <span className="gradient-text">
                   Collections
                 </span>
               </h2>
@@ -678,7 +1044,7 @@ export function MarketplacePage() {
                             <Badge className="bg-black/60 text-white border-0">
                               {collection.trackCount} tracks
                             </Badge>
-                            <Badge className="bg-green-500/80 text-white border-0">
+                            <Badge className="bg-primary/80 text-primary-foreground border-0">
                               {collection.growth}
                             </Badge>
                           </div>
@@ -701,7 +1067,7 @@ export function MarketplacePage() {
                           {collection.name}
                         </h3>
                         {collection.verified && (
-                          <Crown className="w-5 h-5 text-yellow-500" />
+                          <Crown className="w-5 h-5 text-accent" />
                         )}
                       </div>
                       
@@ -724,7 +1090,7 @@ export function MarketplacePage() {
                         </div>
                       </div>
                       
-                      <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
+                      <Button className="w-full btn-primary">
                         View Collection
                         <ChevronRight className="w-4 h-4 ml-2" />
                       </Button>
@@ -743,7 +1109,7 @@ export function MarketplacePage() {
             >
               <div className="flex items-center justify-between mb-8">
                 <h3 className="text-3xl font-bold flex items-center gap-2">
-                  <Flame className="w-8 h-8 text-orange-500" />
+                  <Flame className="w-8 h-8 text-accent" />
                   Trending Albums
                 </h3>
                 <Button variant="outline" className="group">
@@ -791,7 +1157,7 @@ export function MarketplacePage() {
                           
                           <div className="text-right">
                             <p className="text-lg font-bold text-primary mb-1">{album.price}</p>
-                            <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                            <Badge className="bg-primary/20 text-primary border-primary/30">
                               {album.growth}
                             </Badge>
                           </div>
@@ -811,7 +1177,7 @@ export function MarketplacePage() {
             >
               <div className="flex items-center justify-between mb-8">
                 <h3 className="text-3xl font-bold flex items-center gap-2">
-                  <Award className="w-8 h-8 text-purple-500" />
+                  <Award className="w-8 h-8 text-primary" />
                   Featured Artists
                 </h3>
                 <Button variant="outline" className="group">
@@ -839,7 +1205,7 @@ export function MarketplacePage() {
                             />
                           </div>
                           {artist.verified && (
-                            <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center border-2 border-background">
+                            <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-accent rounded-full flex items-center justify-center border-2 border-background">
                               <Star className="w-4 h-4 text-white fill-white" />
                             </div>
                           )}
@@ -886,8 +1252,8 @@ export function MarketplacePage() {
             </div>
           ) : nftsError ? (
             <div className="text-center py-20">
-              <Music className="w-16 h-16 mx-auto mb-4 text-red-500" />
-              <h3 className="text-xl font-semibold mb-2 text-red-500">Failed to Load NFTs</h3>
+              <Music className="w-16 h-16 mx-auto mb-4 text-destructive" />
+              <h3 className="text-xl font-semibold mb-2 text-destructive">Failed to Load NFTs</h3>
               <p className="text-muted-foreground">{nftsError.message || 'Unable to fetch NFT data from contracts'}</p>
               <Button 
                 className="mt-4" 

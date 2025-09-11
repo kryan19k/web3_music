@@ -29,8 +29,8 @@ import { useState } from 'react'
 const tierConfigs: Record<string, TierConfig> = {
   bronze: {
     name: 'Bronze',
-    color: 'bg-orange-500/20 text-orange-300 border-orange-500/50',
-    glow: 'shadow-orange-500/25',
+    color: 'bg-muted/40 text-muted-foreground border-border',
+    glow: 'shadow-muted/25',
     maxSupply: 1000,
     pagsMultiplier: 1,
     royaltyRate: 0.5,
@@ -38,8 +38,8 @@ const tierConfigs: Record<string, TierConfig> = {
   },
   silver: {
     name: 'Silver',
-    color: 'bg-slate-500/20 text-slate-300 border-slate-500/50',
-    glow: 'shadow-slate-500/25',
+    color: 'bg-secondary/40 text-secondary-foreground border-secondary',
+    glow: 'shadow-secondary/25',
     maxSupply: 500,
     pagsMultiplier: 2,
     royaltyRate: 1.0,
@@ -47,8 +47,8 @@ const tierConfigs: Record<string, TierConfig> = {
   },
   gold: {
     name: 'Gold',
-    color: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50',
-    glow: 'shadow-yellow-500/25',
+    color: 'bg-accent/20 text-accent-foreground border-accent/50',
+    glow: 'hover-glow-accent',
     maxSupply: 100,
     pagsMultiplier: 5,
     royaltyRate: 2.5,
@@ -56,8 +56,8 @@ const tierConfigs: Record<string, TierConfig> = {
   },
   platinum: {
     name: 'Platinum',
-    color: 'bg-purple-500/20 text-purple-300 border-purple-500/50',
-    glow: 'shadow-purple-500/25',
+    color: 'bg-primary/20 text-primary-foreground border-primary/50',
+    glow: 'hover-glow-primary',
     maxSupply: 10,
     pagsMultiplier: 10,
     royaltyRate: 5.0,
@@ -168,7 +168,7 @@ export function MusicNFTCard({
                         className="w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white"
                         onClick={() => setIsLiked(!isLiked)}
                       >
-                        <Heart className={cn('w-4 h-4', isLiked && 'fill-red-500 text-red-500')} />
+                        <Heart className={cn('w-4 h-4', isLiked && 'fill-destructive text-destructive')} />
                       </Button>
                       <AddToPlaylistDialog
                         track={nftAsTrack}
@@ -203,7 +203,7 @@ export function MusicNFTCard({
                   {/* Rarity Indicator */}
                   <div className="absolute bottom-4 left-4">
                     <div className="flex items-center gap-1 bg-black/60 backdrop-blur-sm rounded-full px-3 py-1">
-                      <Sparkles className="w-3 h-3 text-yellow-400" />
+                      <Sparkles className="w-3 h-3 text-primary" />
                       <span className="text-xs text-white font-medium">
                         #{nft.metadata.edition}/{nft.metadata.maxSupply}
                       </span>
@@ -263,13 +263,13 @@ export function MusicNFTCard({
                   {/* Earnings */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-3 bg-muted/50 rounded-lg">
-                      <p className="text-sm font-semibold text-green-500">
+                      <p className="text-sm font-semibold text-primary">
                         ${nft.earnings?.daily?.toFixed(2) || '0.00'}
                       </p>
                       <p className="text-xs text-muted-foreground">Daily</p>
                     </div>
                     <div className="text-center p-3 bg-muted/50 rounded-lg">
-                      <p className="text-sm font-semibold text-blue-500">
+                      <p className="text-sm font-semibold text-accent">
                         {nft.earnings?.apy?.toFixed(1) || '0.0'}%
                       </p>
                       <p className="text-xs text-muted-foreground">APY</p>
@@ -310,7 +310,8 @@ export function MusicNFTCard({
                       className="flex-1"
                     >
                       <Button
-                        className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0"
+                        variant="default"
+                        className="w-full border-0"
                         disabled={!nft.isListed}
                       >
                         <DollarSign className="w-4 h-4 mr-2" />${nft.priceUSD?.toFixed(0) || '0'}
@@ -414,7 +415,7 @@ export function MusicNFTCard({
                             </span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <Coins className="w-3 h-3 text-yellow-500" />
+                            <Coins className="w-3 h-3 text-primary" />
                             <span className="text-xs font-mono">
                               ${((nft.priceUSD || 0) * (1 + Math.random() * 0.2)).toFixed(2)}
                             </span>
@@ -446,7 +447,8 @@ export function MusicNFTCard({
                     className="block"
                   >
                     <Button
-                      className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 mt-6"
+                      variant="default"
+                      className="w-full border-0 mt-6"
                       disabled={!nft.isListed}
                     >
                       <DollarSign className="w-4 h-4 mr-2" />

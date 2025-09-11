@@ -65,16 +65,14 @@ const STEP_ORDER: ArtistOnboardingStep[] = [
   'wallet-connect',
   'profile-setup',
   'verification',
-  'first-track',
   'complete'
 ]
 
 const STEP_WEIGHTS = {
-  'wallet-connect': 10,
-  'profile-setup': 30,
-  'verification': 15,
-  'first-track': 40,
-  'complete': 5
+  'wallet-connect': 15,
+  'profile-setup': 40,
+  'verification': 35,
+  'complete': 10
 }
 
 export function useSupabaseArtistSignup() {
@@ -141,11 +139,25 @@ export function useSupabaseArtistSignup() {
           // Artist exists - determine current step based on completion
           let currentStep: ArtistOnboardingStep = 'complete'
           
-          if (!artist.verified && artist.verification_status === 'pending') {
+          console.log('🔍 [EXISTING ARTIST] Found artist data:', {
+            displayName: artist.display_name,
+            verified: artist.verified,
+            verificationStatus: artist.verification_status,
+            email: artist.email,
+            bio: artist.bio
+          })
+          
+          // Check if profile is incomplete
+          const hasCompleteProfile = artist.display_name && artist.bio && artist.email
+          
+          if (!hasCompleteProfile) {
+            console.log('🔄 [PROFILE INCOMPLETE] Redirecting to profile setup')
+            currentStep = 'profile-setup'
+          } else if (!artist.verified && (artist.verification_status === 'pending' || !artist.verification_status)) {
+            console.log('🔄 [VERIFICATION NEEDED] Redirecting to verification')
             currentStep = 'verification'
-          } else if (artist.total_tracks === 0) {
-            currentStep = 'first-track'
           }
+          // Note: Removed first-track step - tracks are now created in dashboard after approval
 
           setState(prev => ({
             ...prev,
@@ -156,6 +168,7 @@ export function useSupabaseArtistSignup() {
           }))
         } else {
           // New artist - start profile setup
+          console.log('🆕 [NEW ARTIST] No existing data, starting profile setup')
           setState(prev => ({
             ...prev,
             currentStep: 'profile-setup',
@@ -271,6 +284,9 @@ export function useSupabaseArtistSignup() {
     setState(prev => ({ ...prev, isLoading: true, error: null }))
 
     try {
+      console.log('🔍 [HOOK] updateArtistProfile called with:', { updates, avatarFile: !!avatarFile })
+      console.log('🔍 [HOOK] Artist ID:', state.artist.id)
+      
       const { artist, error } = await ArtistService.updateArtist(
         state.artist.id,
         updates,
@@ -571,10 +587,11 @@ export function useSupabaseArtistSignup() {
       isComplete: true
     }))
 
-    toast.success('🎉 Welcome to PAGS!', {
-      description: 'Your artist profile is now live. Start creating and selling your music NFTs!'
+    toast.success('🎉 Welcome to BLOK!', {
+      description: 'Your artist application has been submitted successfully!'
     })
   }, [])
+
 
   const reset = useCallback(() => {
     setState({
@@ -602,7 +619,8 @@ export function useSupabaseArtistSignup() {
         return !state.isLoading && !!state.artist
       
       case 'verification':
-        return state.artist?.verification_status === 'approved'
+        // Allow progression after submitting verification application (regardless of approval status)
+        return !state.isLoading && !!state.artist
       
       case 'first-track':
         return state.trackUpload.currentPhase === 'complete'

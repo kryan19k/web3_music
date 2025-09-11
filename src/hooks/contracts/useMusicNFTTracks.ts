@@ -20,11 +20,9 @@ export function useMusicNFTAllTracks() {
       
       for (let i = 0; i < trackQueries.length; i++) {
         const trackData = trackQueries[i].data
-        if (trackData && trackData.active && trackData.title && trackData.title.length > 0) {
-          activeTracks.push({
-            trackId: i,
-            ...trackData
-          })
+        // Parse track data from tuple: [id, collectionId, title, ipfsHash, duration, active]
+        if (trackData && trackData[5] && trackData[2] && trackData[2].length > 0) { // index 5 is active, index 2 is title
+          activeTracks.push(trackData) // Keep the original tuple structure
         }
       }
       
@@ -68,11 +66,10 @@ export function useMusicNFTTracksSequential(maxTrackId: number = 10) {
       const activeTracks = []
       
       for (const trackQuery of trackQueries) {
-        if (trackQuery.data && trackQuery.data.active && trackQuery.data.title && trackQuery.data.title.length > 0) {
-          activeTracks.push({
-            trackId: trackQuery.trackId,
-            ...trackQuery.data
-          })
+        const trackData = trackQuery.data
+        // Parse track data from tuple: [id, collectionId, title, ipfsHash, duration, active]
+        if (trackData && trackData[5] && trackData[2] && trackData[2].length > 0) { // index 5 is active, index 2 is title
+          activeTracks.push(trackData) // Keep the original tuple structure
         }
       }
       

@@ -35,7 +35,7 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     stats: {
       nftsOwned: 24,
       totalSpent: 2847.5,
-      pagsEarned: 1250,
+      blokEarned: 1250,
       totalPlays: 45680,
       joinedDate: 'Jan 2024',
     },
@@ -116,9 +116,9 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
               <CardContent className="p-4 text-center">
                 <Star className="w-6 h-6 mx-auto mb-2 text-yellow-500" />
                 <div className="font-bold text-xl">
-                  {mockProfile.stats.pagsEarned.toLocaleString()}
+                  {mockProfile.stats.blokEarned.toLocaleString()}
                 </div>
-                <div className="text-sm text-muted-foreground">PAGS Earned</div>
+                <div className="text-sm text-muted-foreground">BLOK Earned</div>
               </CardContent>
             </Card>
 

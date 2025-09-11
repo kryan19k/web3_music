@@ -4,10 +4,9 @@ import { formatEther } from 'viem'
 import { 
   useMusicNFTTrackInfo, 
   useMusicNFTAllTiers, 
-  useMusicNFTArtistRole,
-  useMusicNFTUserStats
+  useMusicNFTArtistRole
 } from './useMusicNFT'
-import { usePAGSBalance } from './usePAGSToken'
+import { useBLOKBalance } from './useBLOKToken'
 import { createQueryKey } from '@/src/utils/bigint'
 import type { MusicNFT } from '@/src/types/music-nft'
 
@@ -21,7 +20,7 @@ export interface ArtistStats {
   // Financial stats
   totalEarnings: number
   pendingPayouts: number
-  pagsBalance: number
+  blokBalance: number
   
   // Track stats
   totalTracks: number
@@ -43,13 +42,10 @@ export function useArtistData(artistAddress?: string) {
   const targetAddress = artistAddress || connectedAddress
 
   // Check if user has artist role
-  const { data: hasArtistRole, isLoading: roleLoading } = useMusicNFTArtistRole(targetAddress)
+  const { data: hasArtistRole, isLoading: roleLoading } = useMusicNFTArtistRole(targetAddress as `0x${string}`)
   
-  // Get user stats from contract
-  const { data: userStats, isLoading: statsLoading } = useMusicNFTUserStats(targetAddress)
-  
-  // Get PAGS token balance
-  const { data: pagsBalance, isLoading: pagsLoading } = usePAGSBalance(targetAddress)
+  // Get BLOK token balance
+  const { data: blokBalance, isLoading: blokLoading } = useBLOKBalance(targetAddress as `0x${string}`)
   
   // Get tier configurations to understand NFT structure
   const { tiers, isLoading: tiersLoading } = useMusicNFTAllTiers()
@@ -59,43 +55,40 @@ export function useArtistData(artistAddress?: string) {
 
   // Aggregate all data
   const { data: artistStats, isLoading: aggregateLoading } = useQuery({
-    queryKey: createQueryKey('artist-data', targetAddress, hasArtistRole, userStats, pagsBalance, trackInfo),
+    queryKey: createQueryKey('artist-data', targetAddress, hasArtistRole, blokBalance, trackInfo),
     queryFn: async (): Promise<ArtistStats> => {
-      // Parse user stats from contract
-      const totalNFTs = userStats ? Number(userStats[0]) : 0 // userTotalNFTs
-      const totalSpent = userStats ? Number(formatEther(userStats[1])) : 0 // userTotalSpent  
-      const pagsTokenBalance = userStats ? Number(formatEther(userStats[2])) : 0 // pagsBalance
-      const referrer = userStats?.[3] // userReferrer
-      const referralEarnings = userStats ? Number(formatEther(userStats[4])) : 0 // referralEarnings
+      // Get BLOK token balance
+      const blokTokenBalance = blokBalance ? Number(formatEther(blokBalance)) : 0
 
-      // Calculate additional stats
-      const totalPlays = trackInfo ? Number(trackInfo.totalStreams) : 0
+      // Parse track data from tuple: [id, collectionId, title, ipfsHash, duration, active]
+      const trackTitle = trackInfo ? trackInfo[2] : '' // index 2 is title
+      const trackActive = trackInfo ? trackInfo[5] : false // index 5 is active
       
       return {
-        name: trackInfo?.artist || `Artist ${targetAddress?.slice(0, 6)}...${targetAddress?.slice(-4)}`,
+        name: trackTitle || `Artist ${targetAddress?.slice(0, 6)}...${targetAddress?.slice(-4)}`,
         address: targetAddress || '',
-        avatar: trackInfo?.ipfsCoverArt ? `https://ipfs.io/ipfs/${trackInfo.ipfsCoverArt}` : undefined,
+        avatar: undefined, // TODO: Get from collection metadata
         verified: hasArtistRole || false,
         isArtist: hasArtistRole || false,
         
         // Financial stats
-        totalEarnings: totalSpent, // This is what they've received from sales
-        pendingPayouts: referralEarnings, // Available referral earnings  
-        pagsBalance: pagsTokenBalance,
+        totalEarnings: 0, // TODO: Implement collection-based earnings tracking
+        pendingPayouts: 0, // TODO: Implement collection-based payouts
+        blokBalance: blokTokenBalance,
         
         // Track stats
-        totalTracks: trackInfo?.active ? 1 : 0, // We only have one track for now
-        nftsCreated: totalNFTs, // NFTs they own (which might be ones they created)
-        nftsSold: 0, // We'd need additional contract tracking for this
+        totalTracks: trackActive ? 1 : 0, // TODO: Update for collections
+        nftsCreated: 0, // TODO: Implement collection-based NFT tracking
+        nftsSold: 0, // TODO: Implement collection-based sales tracking
         
         // Engagement stats
-        totalPlays,
-        monthlyListeners: Math.floor(totalPlays * 0.3), // Estimate based on total plays
-        followers: Math.floor(totalPlays * 0.05), // Estimate based on engagement
+        totalPlays: 0, // TODO: Implement streaming stats in collection contract
+        monthlyListeners: 0, // TODO: Implement streaming stats
+        followers: 0, // TODO: Implement follower system
         averageRating: 4.2 + Math.random() * 0.6, // Mock rating for now
       }
     },
-    enabled: !!(targetAddress && !roleLoading && !statsLoading && !pagsLoading),
+    enabled: !!(targetAddress && !roleLoading && !blokLoading),
     staleTime: 30000,
     refetchInterval: 60000,
   })
@@ -103,8 +96,7 @@ export function useArtistData(artistAddress?: string) {
   return {
     artistStats,
     trackInfo, // Expose for debugging
-    userStats, // Expose for debugging
-    isLoading: roleLoading || statsLoading || pagsLoading || trackLoading || tiersLoading || aggregateLoading,
+    isLoading: roleLoading || blokLoading || trackLoading || tiersLoading || aggregateLoading,
     isArtist: hasArtistRole,
     error: null,
   }
@@ -125,17 +117,23 @@ export function useArtistNFTs(artistAddress?: string) {
     queryFn: async (): Promise<MusicNFT[]> => {
       const nfts: MusicNFT[] = []
 
-      if (!trackInfo || !trackInfo.active) {
+      // Parse track data from tuple: [id, collectionId, title, ipfsHash, duration, active]
+      if (!trackInfo || !trackInfo[5]) { // index 5 is active
         return nfts
       }
 
+      const trackTitle = trackInfo[2] // index 2 is title
+      const trackIpfsHash = trackInfo[3] // index 3 is ipfsHash  
+      const trackDuration = Number(trackInfo[4]) // index 4 is duration
+
       // Create NFT objects for each tier that has supply
       for (const [tierKey, tierData] of Object.entries(tiers)) {
-        if (!tierData || Number(tierData.currentSupply) === 0) continue
+        // Parse tier data from tuple: [name, price, blokAllocation, maxSupply, currentSupply, startId, saleActive, metadataURI, artistRoyalty]
+        if (!tierData || Number(tierData[4]) === 0) continue // index 4 is currentSupply
 
         const tierNum = parseInt(tierKey)
         const tierName = getTierName(tierNum)
-        const startId = Number(tierData.startId)
+        const startId = Number(tierData[5]) // index 5 is startId
         
         // Create one representative NFT for this tier
         const nft: MusicNFT = {
@@ -143,37 +141,37 @@ export function useArtistNFTs(artistAddress?: string) {
           tier: tierName.toLowerCase() as any,
           metadata: {
             id: startId.toString(),
-            title: trackInfo.title,
-            artist: trackInfo.artist,
-            image: trackInfo.ipfsCoverArt ? `https://ipfs.io/ipfs/${trackInfo.ipfsCoverArt}` : '/song_cover/placeholder.png',
-            audioUrl: trackInfo.ipfsAudioHash ? `https://ipfs.io/ipfs/${trackInfo.ipfsAudioHash}` : '',
-            duration: Number(trackInfo.duration),
+            title: trackTitle,
+            artist: 'Unknown Artist', // TODO: Get from collection metadata
+            image: '/song_cover/placeholder.png', // TODO: Get from collection metadata
+            audioUrl: trackIpfsHash ? `https://ipfs.io/ipfs/${trackIpfsHash}` : '',
+            duration: trackDuration,
             edition: 1,
-            maxSupply: Number(tierData.maxSupply),
-            description: `${tierName} tier music NFT for "${trackInfo.title}"`,
-            genre: trackInfo.genre,
-            releaseDate: new Date(Number(trackInfo.releaseDate) * 1000).toISOString().split('T')[0],
-            pagsAmount: Number(formatEther(tierData.pagsAllocation)),
-            dailyStreams: Number(trackInfo.totalStreams),
+            maxSupply: Number(tierData[3]), // index 3 is maxSupply
+            description: `${tierName} tier music NFT for "${trackTitle}"`,
+            genre: 'Unknown', // TODO: Get from collection metadata
+            releaseDate: new Date().toISOString().split('T')[0], // TODO: Get from collection metadata
+            blokAmount: Number(formatEther(tierData[2])), // index 2 is blokAllocation
+            dailyStreams: 0, // TODO: Implement streaming stats
             attributes: [
               { trait_type: 'Tier', value: tierName },
-              { trait_type: 'Artist', value: trackInfo.artist },
-              { trait_type: 'Genre', value: trackInfo.genre },
-              { trait_type: 'Duration', value: `${Math.floor(Number(trackInfo.duration) / 60)}:${(Number(trackInfo.duration) % 60).toString().padStart(2, '0')}` },
+              { trait_type: 'Artist', value: 'Unknown Artist' },
+              { trait_type: 'Genre', value: 'Unknown' },
+              { trait_type: 'Duration', value: `${Math.floor(trackDuration / 60)}:${(trackDuration % 60).toString().padStart(2, '0')}` },
             ]
           },
-          price: formatEther(tierData.price),
-          priceUSD: Number(formatEther(tierData.price)) * 1785,
+          price: formatEther(tierData[1]), // index 1 is price
+          priceUSD: Number(formatEther(tierData[1])) * 1785,
           earnings: {
             daily: Math.random() * 50,
-            total: Number(formatEther(trackInfo.totalRoyaltiesGenerated || 0n)),
+            total: 0, // TODO: Implement earnings tracking
             apy: Math.random() * 25,
           },
           owner: targetAddress || '',
-          isListed: tierData.saleActive,
+          isListed: tierData[6], // index 6 is saleActive
           streamingStats: {
-            totalPlays: Number(trackInfo.totalStreams),
-            uniqueListeners: Math.floor(Number(trackInfo.totalStreams) * 0.3),
+            totalPlays: 0, // TODO: Implement streaming stats
+            uniqueListeners: 0,
             averageCompletion: 80 + Math.floor(Math.random() * 15),
           },
         }

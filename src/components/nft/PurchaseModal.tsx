@@ -40,7 +40,7 @@ type PurchaseStep = 'confirm' | 'processing' | 'success' | 'error'
 const tierConfigs = {
   bronze: {
     name: 'Bronze',
-    color: 'bg-orange-500/20 text-orange-300 border-orange-500/50',
+    color: 'bg-muted/40 text-muted-foreground border-border',
     benefits: ['Basic NFT ownership', 'Monthly royalties', 'Community access'],
     apy: '6-8%',
   },
@@ -52,13 +52,13 @@ const tierConfigs = {
   },
   gold: {
     name: 'Gold',
-    color: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50',
+    color: 'bg-accent/20 text-accent-foreground border-accent/50',
     benefits: ['Gold ownership', 'Premium royalties', 'Artist meetups', 'Governance rights'],
     apy: '15-18%',
   },
   platinum: {
     name: 'Platinum',
-    color: 'bg-purple-500/20 text-purple-300 border-purple-500/50',
+    color: 'bg-primary/20 text-primary-foreground border-primary/50',
     benefits: ['Ultimate ownership', 'Maximum royalties', 'All perks', 'Revenue sharing'],
     apy: '20-25%',
   },
@@ -155,7 +155,7 @@ export function PurchaseModal({ nft, isOpen, onOpenChange, onPurchase }: Purchas
                         key={benefit}
                         className="flex items-center gap-2 text-sm"
                       >
-                        <CheckCircle className="w-3 h-3 text-green-500" />
+                        <CheckCircle className="w-3 h-3 text-primary" />
                         {benefit}
                       </li>
                     ))}
@@ -183,22 +183,22 @@ export function PurchaseModal({ nft, isOpen, onOpenChange, onPurchase }: Purchas
               </Card>
 
               {/* Earnings Projection */}
-              <Card className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/20">
+              <Card className="bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <TrendingUp className="w-4 h-4 text-green-500" />
+                    <TrendingUp className="w-4 h-4 text-primary" />
                     <h4 className="font-semibold">Projected Earnings</h4>
                   </div>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-muted-foreground">Monthly Est.</p>
-                      <p className="font-semibold text-green-500">
+                      <p className="font-semibold text-primary">
                         ${monthlyProjection.toFixed(2)}
                       </p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">APY Range</p>
-                      <p className="font-semibold text-green-500">{tierConfig.apy}</p>
+                      <p className="font-semibold text-primary">{tierConfig.apy}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -239,7 +239,8 @@ export function PurchaseModal({ nft, isOpen, onOpenChange, onPurchase }: Purchas
                   Cancel
                 </Button>
                 <Button
-                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  variant="default"
+                  className="flex-1"
                   onClick={handlePurchase}
                 >
                   <Wallet className="w-4 h-4 mr-2" />
@@ -279,11 +280,11 @@ export function PurchaseModal({ nft, isOpen, onOpenChange, onPurchase }: Purchas
               animate={{ opacity: 1, scale: 1 }}
               className="text-center py-8 space-y-4"
             >
-              <div className="w-16 h-16 mx-auto bg-green-500/10 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-8 h-8 text-green-500" />
+              <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-green-500">Purchase Successful!</h3>
+                <h3 className="font-semibold text-primary">Purchase Successful!</h3>
                 <p className="text-sm text-muted-foreground">
                   Congratulations! You now own this music NFT.
                 </p>
@@ -291,7 +292,7 @@ export function PurchaseModal({ nft, isOpen, onOpenChange, onPurchase }: Purchas
               <Card className="bg-muted/50">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 text-sm">
-                    <Coins className="w-4 h-4 text-yellow-500" />
+                    <Coins className="w-4 h-4 text-accent" />
                     <span>You'll start earning PAGS rewards within 24 hours</span>
                   </div>
                 </CardContent>
@@ -313,11 +314,11 @@ export function PurchaseModal({ nft, isOpen, onOpenChange, onPurchase }: Purchas
               animate={{ opacity: 1, scale: 1 }}
               className="text-center py-8 space-y-4"
             >
-              <div className="w-16 h-16 mx-auto bg-red-500/10 rounded-full flex items-center justify-center">
-                <AlertTriangle className="w-8 h-8 text-red-500" />
+              <div className="w-16 h-16 mx-auto bg-destructive/10 rounded-full flex items-center justify-center">
+                <AlertTriangle className="w-8 h-8 text-destructive" />
               </div>
               <div>
-                <h3 className="font-semibold text-red-500">Transaction Failed</h3>
+                <h3 className="font-semibold text-destructive">Transaction Failed</h3>
                 <p className="text-sm text-muted-foreground">{error}</p>
               </div>
               <div className="flex gap-3">

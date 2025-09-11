@@ -157,12 +157,12 @@ export const FeaturedArtistsHero = () => {
             {/* Now Playing Header */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
                 <span className="text-xs text-muted-foreground font-medium">NOW TRENDING</span>
               </div>
               <div className="flex items-center gap-1">
-                <Flame className="w-4 h-4 text-orange-500" />
-                <span className="text-xs text-orange-500 font-bold">HOT</span>
+                <Flame className="w-4 h-4 text-accent" />
+                <span className="text-xs text-accent font-bold">HOT</span>
               </div>
             </div>
 
@@ -206,7 +206,7 @@ export const FeaturedArtistsHero = () => {
 
                   {/* Change Badge */}
                   <div className="absolute top-4 right-4">
-                    <Badge className="bg-green-500/90 text-white border-0 shadow-lg">
+                    <Badge className="bg-primary/90 text-primary-foreground border-0 shadow-lg">
                       {currentSong.change}
                     </Badge>
                   </div>
@@ -301,14 +301,14 @@ export const FeaturedArtistsHero = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-2 mb-1">
-                    <TrendingUp className="w-4 h-4 text-green-500" />
+                    <TrendingUp className="w-4 h-4 text-primary" />
                     <span className="text-2xl font-bold text-foreground">234</span>
                   </div>
                   <p className="text-xs text-muted-foreground">Tracks Listed</p>
                 </div>
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-2 mb-1">
-                    <Users className="w-4 h-4 text-blue-500" />
+                    <Users className="w-4 h-4 text-accent" />
                     <span className="text-2xl font-bold text-foreground">1.8K</span>
                   </div>
                   <p className="text-xs text-muted-foreground">Active Artists</p>
@@ -329,7 +329,7 @@ export const FeaturedArtistsHero = () => {
             <div className="p-4 bg-gradient-to-r from-primary/5 to-transparent border-b border-border/20">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-yellow-500" />
+                  <Zap className="w-4 h-4 text-primary" />
                   Up Next
                 </h3>
                 <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -361,7 +361,7 @@ export const FeaturedArtistsHero = () => {
                     
                     <div className="text-right">
                       <p className="text-xs font-semibold text-foreground">{song.price}</p>
-                      <p className="text-xs text-green-500">{song.change}</p>
+                      <p className="text-xs text-primary">{song.change}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -381,7 +381,7 @@ export const FeaturedArtistsHero = () => {
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="flex-1 py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl text-white text-sm font-semibold transition-all duration-300 shadow-lg shadow-purple-500/25"
+            className="flex-1 py-3 px-4 btn-primary rounded-xl text-sm font-semibold"
           >
             Explore All
           </motion.button>

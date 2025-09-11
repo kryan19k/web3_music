@@ -62,14 +62,17 @@ export function CompleteStep() {
           transition={{ delay: 0.3 }}
         >
           <h1 className="text-4xl font-bold mb-4">
-            🎉 Welcome to PAGS!
+            🎉 Application Submitted!
           </h1>
           <p className="text-xl text-muted-foreground mb-2">
-            Your artist profile is now live and ready to rock!
+            Your artist verification application has been submitted successfully!
           </p>
-          <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300">
+          <p className="text-lg text-muted-foreground mb-4">
+            We'll review your application and notify you within <strong>24-48 hours</strong>.
+          </p>
+          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300">
             <Trophy className="w-4 h-4 mr-1" />
-            Artist Verified
+            Application Pending
           </Badge>
         </motion.div>
       </motion.div>
@@ -86,8 +89,8 @@ export function CompleteStep() {
             <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-xl flex items-center justify-center mx-auto mb-3">
               <Music className="w-6 h-6 text-purple-600" />
             </div>
-            <h3 className="font-semibold text-lg">1</h3>
-            <p className="text-sm text-muted-foreground">Track Created</p>
+            <h3 className="font-semibold text-lg">Pending</h3>
+            <p className="text-sm text-muted-foreground">Artist Status</p>
           </CardContent>
         </Card>
 
@@ -122,7 +125,7 @@ export function CompleteStep() {
           <CardHeader>
             <CardTitle className="text-2xl">What's Next?</CardTitle>
             <p className="text-muted-foreground">
-              Here are some recommended next steps to grow your presence on PAGS
+              Here are some recommended next steps to grow your presence on BLOK
             </p>
           </CardHeader>
           <CardContent>
@@ -132,9 +135,9 @@ export function CompleteStep() {
                   <Music className="w-5 h-5 text-purple-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-1">Upload More Tracks</h3>
+                  <h3 className="font-semibold mb-1">Prepare Your Music</h3>
                   <p className="text-sm text-muted-foreground">
-                    Create more music NFTs to give fans more ways to support you
+                    Get your tracks ready to upload once your application is approved
                   </p>
                 </div>
               </div>
@@ -146,7 +149,7 @@ export function CompleteStep() {
                 <div>
                   <h3 className="font-semibold mb-1">Share Your Profile</h3>
                   <p className="text-sm text-muted-foreground">
-                    Promote your PAGS profile on social media to attract fans
+                    Promote your BLOK profile on social media to attract fans
                   </p>
                 </div>
               </div>

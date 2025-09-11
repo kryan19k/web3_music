@@ -7,7 +7,12 @@ import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
+import { Input } from '@/src/components/ui/input'
+import { Label } from '@/src/components/ui/label'
+import { Textarea } from '@/src/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
 import { useSupabaseArtistSignup } from '@/src/hooks/useSupabaseArtistSignup'
+import { ArtistService } from '@/src/services/artist.service'
 import { 
   Shield, 
   CheckCircle, 
@@ -37,6 +42,17 @@ export function VerificationStep() {
     social: false,
     streaming: false,
     manual: false,
+  })
+  
+  // Application form state
+  const [applicationForm, setApplicationForm] = useState({
+    musicBackground: '',
+    howDidYouHear: '',
+    artistGoals: '',
+    additionalInfo: '',
+    expectedMonthlyReleases: '',
+    hasOriginalMusic: '',
+    socialMediaFollowing: ''
   })
 
   const handleSocialVerification = () => {
@@ -75,12 +91,134 @@ export function VerificationStep() {
     })
   }
 
-  const handleSkipVerification = () => {
+  const handleSubmitApplication = async () => {
+    // Validate required fields
+    const requiredFields = ['musicBackground', 'howDidYouHear', 'artistGoals', 'hasOriginalMusic']
+    const missingFields = requiredFields.filter(field => !applicationForm[field as keyof typeof applicationForm])
+    
+    if (missingFields.length > 0) {
+      toast.error('Please fill in all required fields', {
+        description: 'Music background, referral source, goals, and original music status are required.'
+      })
+      return
+    }
+
+    // Save application data to database
+    try {
+      const applicationData = {
+        artistId: onboardingState.profile?.id,
+        musicBackground: applicationForm.musicBackground,
+        howDidYouHear: applicationForm.howDidYouHear,
+        artistGoals: applicationForm.artistGoals,
+        hasOriginalMusic: applicationForm.hasOriginalMusic,
+        expectedMonthlyReleases: applicationForm.expectedMonthlyReleases,
+        socialMediaFollowing: applicationForm.socialMediaFollowing,
+        additionalInfo: applicationForm.additionalInfo,
+        verificationMethods: verificationMethods,
+        submittedAt: new Date().toISOString()
+      }
+      
+      console.log('Saving application data:', applicationData)
+      
+      // Save to database using ArtistService
+      const saveResult = await ArtistService.saveApplicationData(
+        onboardingState.profile?.id || '',
+        applicationData
+      )
+      
+      if (!saveResult.success) {
+        throw new Error(saveResult.error || 'Failed to save application data')
+      }
+      
+      console.log('Application submitted successfully:', { 
+        profile: onboardingState.profile,
+        application: applicationForm,
+        verificationMethods 
+      })
+      
+      toast.success('Application submitted!', {
+        description: 'Your artist application has been submitted for review. We\'ll notify you within 24-48 hours.'
+      })
+      
+      // Multiple approaches to ensure step transition works
+      console.log('🔄 [VERIFICATION] Moving to complete step...')
+      setCurrentStep('complete')
+      
+      // Backup approaches
+      setTimeout(() => {
+        console.log('🔄 [VERIFICATION] Backup setCurrentStep call')
+        setCurrentStep('complete')
+      }, 100)
+      
+      setTimeout(() => {
+        console.log('🔄 [VERIFICATION] Backup custom event dispatch')
+        window.dispatchEvent(new CustomEvent('forceStepChange', { detail: 'complete' }))
+      }, 200)
+      
+    } catch (error) {
+      console.error('Failed to save application:', error)
+      toast.error('Failed to save application', {
+        description: 'Please try again or contact support.'
+      })
+    }
+  }
+
+  const handleSkipVerification = async () => {
+    // For users who want to skip detailed application
     setVerificationMethods(prev => ({ ...prev, manual: true }))
-    toast.info('Verification skipped', {
-      description: 'You can complete verification later in your profile.'
-    })
-    setCurrentStep('first-track')
+    
+    try {
+      // Save basic application data
+      const basicApplicationData = {
+        artistId: onboardingState.profile?.id,
+        musicBackground: 'Basic application - no detailed background provided',
+        howDidYouHear: 'Not specified',
+        artistGoals: 'Basic application - no detailed goals provided', 
+        hasOriginalMusic: 'Not specified',
+        expectedMonthlyReleases: 'Not specified',
+        socialMediaFollowing: 'Not specified',
+        additionalInfo: 'Submitted as basic application',
+        verificationMethods: { ...verificationMethods, manual: true },
+        submittedAt: new Date().toISOString(),
+        applicationType: 'basic'
+      }
+      
+      console.log('Saving basic application data:', basicApplicationData)
+      
+      // Save basic application to database using ArtistService
+      const saveResult = await ArtistService.saveApplicationData(
+        onboardingState.profile?.id || '',
+        basicApplicationData
+      )
+      
+      if (!saveResult.success) {
+        throw new Error(saveResult.error || 'Failed to save basic application data')
+      }
+      
+      toast.info('Basic application submitted!', {
+        description: 'Your basic artist profile has been submitted for review.'
+      })
+      
+      // Multiple approaches to ensure step transition works
+      console.log('🔄 [VERIFICATION] Moving to complete step (basic)...')
+      setCurrentStep('complete')
+      
+      setTimeout(() => {
+        console.log('🔄 [VERIFICATION] Backup setCurrentStep call (basic)')
+        setCurrentStep('complete')
+      }, 100)
+      
+      setTimeout(() => {
+        console.log('🔄 [VERIFICATION] Backup custom event dispatch (basic)')
+        window.dispatchEvent(new CustomEvent('forceStepChange', { detail: 'complete' }))
+      }, 200)
+      
+    } catch (error) {
+      console.error('Failed to save basic application:', error)
+      toast.error('Failed to submit application', {
+        description: 'Please try again or contact support.'
+      })
+    }
   }
 
   const handleContinue = async () => {
@@ -89,21 +227,21 @@ export function VerificationStep() {
     console.log('VerificationStep - Can proceed:', canProceed)
     
     if (canProceed) {
-      console.log('VerificationStep - Moving to first-track step')
+      console.log('VerificationStep - Moving to complete step')
       
       // Show immediate feedback
       toast.success('Verification complete!', {
-        description: 'Moving to track upload...'
+        description: 'Artist application submitted!'
       })
       
       // Try multiple approaches to ensure navigation
       console.log('VerificationStep - Calling setCurrentStep...')
-      setCurrentStep('first-track')
+      setCurrentStep('complete')
       
       // Add a small delay and try again
       setTimeout(() => {
         console.log('VerificationStep - Retry setCurrentStep after 100ms')
-        setCurrentStep('first-track')
+        setCurrentStep('complete')
       }, 100)
       
       // Force direct DOM manipulation as last resort
@@ -114,10 +252,10 @@ export function VerificationStep() {
           // Try to force a re-render by manipulating the parent component
           const flowElement = document.querySelector('[data-step="verification"]')
           if (flowElement) {
-            flowElement.setAttribute('data-step', 'first-track')
+            flowElement.setAttribute('data-step', 'complete')
           }
           // Also try to trigger a custom event
-          window.dispatchEvent(new CustomEvent('forceStepChange', { detail: 'first-track' }))
+          window.dispatchEvent(new CustomEvent('forceStepChange', { detail: 'complete' }))
         }
       }, 500)
       
@@ -303,6 +441,173 @@ export function VerificationStep() {
         </motion.div>
       </div>
 
+      {/* Artist Application Form */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-center flex items-center justify-center gap-2">
+              <Music className="w-5 h-5 text-blue-600" />
+              Artist Application
+            </CardTitle>
+            <p className="text-sm text-muted-foreground text-center">
+              Tell us about yourself to complete your artist verification
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Music Background */}
+            <div className="space-y-2">
+              <Label htmlFor="musicBackground" className="text-sm font-medium">
+                Tell us about your music background *
+              </Label>
+              <Textarea
+                id="musicBackground"
+                placeholder="Describe your musical journey, experience, and style..."
+                value={applicationForm.musicBackground}
+                onChange={(e) => setApplicationForm(prev => ({ ...prev, musicBackground: e.target.value }))}
+                className="min-h-[100px] resize-none"
+              />
+            </div>
+
+            {/* How did you hear about us */}
+            <div className="space-y-2">
+              <Label htmlFor="howDidYouHear" className="text-sm font-medium">
+                How did you hear about our platform? *
+              </Label>
+              <Select
+                value={applicationForm.howDidYouHear}
+                onValueChange={(value) => setApplicationForm(prev => ({ ...prev, howDidYouHear: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select an option..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="social-media">Social Media</SelectItem>
+                  <SelectItem value="friend-referral">Friend/Artist Referral</SelectItem>
+                  <SelectItem value="google-search">Google Search</SelectItem>
+                  <SelectItem value="music-blogs">Music Blogs/Press</SelectItem>
+                  <SelectItem value="discord-community">Discord/Community</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Original Music */}
+              <div className="space-y-2">
+                <Label htmlFor="hasOriginalMusic" className="text-sm font-medium">
+                  Do you create original music? *
+                </Label>
+                <Select
+                  value={applicationForm.hasOriginalMusic}
+                  onValueChange={(value) => setApplicationForm(prev => ({ ...prev, hasOriginalMusic: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="yes-original">Yes, all original</SelectItem>
+                    <SelectItem value="yes-mostly">Yes, mostly original</SelectItem>
+                    <SelectItem value="mix">Mix of original & covers</SelectItem>
+                    <SelectItem value="covers-only">Covers only</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Expected Releases */}
+              <div className="space-y-2">
+                <Label htmlFor="expectedReleases" className="text-sm font-medium">
+                  Expected monthly releases
+                </Label>
+                <Select
+                  value={applicationForm.expectedMonthlyReleases}
+                  onValueChange={(value) => setApplicationForm(prev => ({ ...prev, expectedMonthlyReleases: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 track</SelectItem>
+                    <SelectItem value="2-3">2-3 tracks</SelectItem>
+                    <SelectItem value="4-5">4-5 tracks</SelectItem>
+                    <SelectItem value="5+">5+ tracks</SelectItem>
+                    <SelectItem value="irregular">Irregular schedule</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Social Media Following */}
+            <div className="space-y-2">
+              <Label htmlFor="socialFollowing" className="text-sm font-medium">
+                Total social media following (approximate)
+              </Label>
+              <Select
+                value={applicationForm.socialMediaFollowing}
+                onValueChange={(value) => setApplicationForm(prev => ({ ...prev, socialMediaFollowing: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select range..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0-100">0-100</SelectItem>
+                  <SelectItem value="100-500">100-500</SelectItem>
+                  <SelectItem value="500-1k">500-1K</SelectItem>
+                  <SelectItem value="1k-5k">1K-5K</SelectItem>
+                  <SelectItem value="5k-10k">5K-10K</SelectItem>
+                  <SelectItem value="10k+">10K+</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Artist Goals */}
+            <div className="space-y-2">
+              <Label htmlFor="artistGoals" className="text-sm font-medium">
+                What are your goals as an artist on our platform? *
+              </Label>
+              <Textarea
+                id="artistGoals"
+                placeholder="Describe your goals, what you hope to achieve, and how we can help..."
+                value={applicationForm.artistGoals}
+                onChange={(e) => setApplicationForm(prev => ({ ...prev, artistGoals: e.target.value }))}
+                className="min-h-[80px] resize-none"
+              />
+            </div>
+
+            {/* Additional Information */}
+            <div className="space-y-2">
+              <Label htmlFor="additionalInfo" className="text-sm font-medium">
+                Additional information
+              </Label>
+              <Textarea
+                id="additionalInfo"
+                placeholder="Anything else you'd like us to know? Links to your work, achievements, etc."
+                value={applicationForm.additionalInfo}
+                onChange={(e) => setApplicationForm(prev => ({ ...prev, additionalInfo: e.target.value }))}
+                className="min-h-[60px] resize-none"
+              />
+            </div>
+
+            {/* Submit Application Button */}
+            <div className="pt-4 border-t">
+              <Button
+                onClick={handleSubmitApplication}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3"
+                size="lg"
+              >
+                Submit Artist Application
+              </Button>
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                * Required fields. We'll review your application within 24-48 hours.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
       {/* Verification Benefits */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -350,8 +655,10 @@ export function VerificationStep() {
       >
         {/* Debug Section - Only in development */}
         {process.env.NODE_ENV === 'development' && (
-          <div className="mb-6">
-            <ContractDebugButton />
+          <div className="mb-6 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded text-sm">
+            <p className="text-yellow-800 dark:text-yellow-200">
+              🔧 <strong>Development Mode:</strong> Contract role checking is bypassed for testing.
+            </p>
           </div>
         )}
 
@@ -360,7 +667,7 @@ export function VerificationStep() {
           onClick={handleSkipVerification}
           className="text-muted-foreground"
         >
-          Skip for now
+          Submit Basic Application
         </Button>
 
         <div className="flex gap-3">
@@ -381,9 +688,9 @@ export function VerificationStep() {
               handleContinue()
             }}
             disabled={!canProceed}
-            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 min-w-[200px]"
+            className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0 min-w-[200px]"
           >
-            Continue to Track Upload
+            Complete Application
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>

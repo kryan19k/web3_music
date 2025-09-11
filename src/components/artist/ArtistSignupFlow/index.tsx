@@ -10,30 +10,27 @@ import { useSupabaseArtistSignup } from '@/src/hooks/useSupabaseArtistSignup'
 import { WalletConnectionStep } from './steps/WalletConnectionStep'
 import { ProfileSetupStep } from './steps/ProfileSetupStep'
 import { VerificationStep } from './steps/VerificationStep'
-import { FirstTrackStep } from './steps/FirstTrackStep'
+// Removed FirstTrackStep - track creation now happens in dashboard
 import { CompleteStep } from './steps/CompleteStep'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export function ArtistSignupFlow() {
   const { onboardingState, progressPercentage, isLoading, setCurrentStep } = useSupabaseArtistSignup()
   const [forceRender, setForceRender] = React.useState(0)
-  const [localStep, setLocalStep] = React.useState(onboardingState.currentStep)
+  const [localStep, setLocalStep] = React.useState<string | null>(null)
   
   // Debug: Track when component re-renders
   React.useEffect(() => {
-    console.log('ArtistSignupFlow - Component re-rendered with step:', onboardingState.currentStep)
-    console.log('ArtistSignupFlow - Loading state:', isLoading)
-    console.log('ArtistSignupFlow - Full onboarding state:', onboardingState)
-  }, [onboardingState.currentStep, isLoading, onboardingState])
+    console.log('ArtistSignupFlow - Step:', onboardingState.currentStep, '| Loading:', isLoading)
+  }, [onboardingState.currentStep, isLoading])
 
   // Sync local step with hook step
   React.useEffect(() => {
-    console.log('ArtistSignupFlow - Hook step changed from', localStep, 'to', onboardingState.currentStep)
     if (localStep !== onboardingState.currentStep) {
       setLocalStep(onboardingState.currentStep)
       setForceRender(prev => prev + 1)
     }
-  }, [onboardingState.currentStep, localStep])
+  }, [onboardingState.currentStep])
 
   // Listen for custom force step change events
   React.useEffect(() => {
@@ -51,8 +48,8 @@ export function ArtistSignupFlow() {
   }, [setCurrentStep])
 
   const renderCurrentStep = () => {
-    const currentStep = localStep || onboardingState.currentStep
-    console.log('ArtistSignupFlow - Rendering step:', currentStep, '(local:', localStep, ', hook:', onboardingState.currentStep, ')')
+    const currentStep = onboardingState.currentStep
+    console.log('🎨 [RENDER] Step:', currentStep)
     
     switch (currentStep) {
       case 'wallet-connect':
@@ -61,12 +58,10 @@ export function ArtistSignupFlow() {
         return <ProfileSetupStep />
       case 'verification':
         return <VerificationStep />
-      case 'first-track':
-        return <FirstTrackStep />
       case 'complete':
         return <CompleteStep />
       default:
-        console.log('Unknown step, defaulting to wallet-connect')
+        console.log('🎨 [RENDER] Unknown step:', currentStep)
         return <WalletConnectionStep />
     }
   }
@@ -88,10 +83,10 @@ export function ArtistSignupFlow() {
             transition={{ duration: 0.6 }}
           >
             <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent mb-2">
-              Join PAGS as an Artist
+              Join Blockify as an Artist
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Create, mint, and sell your music as NFTs. Build a direct connection with your fans and earn from your art.
+              Create, mint, and sell your music as NFTs. Build a direct connection with your fans and earn from your Music.
             </p>
           </motion.div>
         </div>
@@ -118,11 +113,10 @@ export function ArtistSignupFlow() {
               {[
                 { step: 'wallet-connect', label: 'Connect' },
                 { step: 'profile-setup', label: 'Profile' },
-                { step: 'verification', label: 'Verify' },
-                { step: 'first-track', label: 'Track' },
+                { step: 'verification', label: 'Apply' },
                 { step: 'complete', label: 'Done' },
               ].map(({ step, label }) => {
-                const isCurrentStep = (localStep || onboardingState.currentStep) === step
+                const isCurrentStep = onboardingState.currentStep === step
                 const stepProgress = getStepProgress(step)
                 const isCompleted = progressPercentage > stepProgress
                 
@@ -160,13 +154,13 @@ export function ArtistSignupFlow() {
         <div className="max-w-4xl mx-auto">
           <AnimatePresence mode="wait">
             <motion.div
-              key={`${localStep || onboardingState.currentStep}-${forceRender}`}
+              key={`step-${onboardingState.currentStep}-${forceRender}`}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.4 }}
             >
-              <div data-step={localStep || onboardingState.currentStep}>
+              <div data-step={onboardingState.currentStep}>
                 {renderCurrentStep()}
               </div>
             </motion.div>
@@ -179,8 +173,8 @@ export function ArtistSignupFlow() {
 
 // Helper function to calculate step progress
 function getStepProgress(step: string): number {
-  const steps = ['wallet-connect', 'profile-setup', 'verification', 'first-track', 'complete']
-  const weights = [10, 30, 15, 40, 5]
+  const steps = ['wallet-connect', 'profile-setup', 'verification', 'complete']
+  const weights = [15, 40, 35, 10]
   
   const stepIndex = steps.indexOf(step)
   if (stepIndex === -1) return 0

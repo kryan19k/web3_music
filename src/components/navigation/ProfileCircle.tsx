@@ -29,6 +29,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
+import { useBLOKBalance } from '@/src/hooks/contracts'
 
 /**
  * Floating profile circle with stats popover
@@ -50,8 +51,11 @@ export function ProfileCircle() {
     isLoading: userLoading 
   } = useMusicNFTUserData()
 
-  // Properly destructure benefits tuple from contract: [hasAnyNFT, benefitsObject, highestTier]
-  const [hasAnyNFT, benefitsObject, highestTier] = rawBenefits || [false, null, 0]
+  // Note: useMusicNFTUserData is deprecated, using mock data for benefits
+  // TODO: Replace with collection-specific benefits tracking
+  const hasAnyNFT = false // Mock data since hook is deprecated
+  const benefitsObject = null // Benefits are now handled at collection level
+  const highestTier = 0
 
   if (!isConnected || !address) {
     return null
@@ -176,7 +180,7 @@ export function ProfileCircle() {
                             </div>
                             <div className="bg-muted/50 rounded-lg p-3 text-center">
                               <p className="text-lg font-bold text-orange-500">
-                                {artistStats.pagsBalance.toFixed(0)}
+                                {artistStats.blokBalance.toFixed(0)}
                               </p>
                               <p className="text-xs text-muted-foreground">PAGS</p>
                             </div>
@@ -214,24 +218,14 @@ export function ProfileCircle() {
                             Benefits
                           </h4>
                           <div className="flex flex-wrap gap-1">
-                            {benefitsObject?.hasBackstageAccess && (
-                              <Badge variant="secondary" className="text-xs">
-                                <Star className="w-3 h-3 mr-1" />
-                                Backstage
-                              </Badge>
-                            )}
-                            {benefitsObject?.hasRemixRights && (
-                              <Badge variant="secondary" className="text-xs">
-                                <Music className="w-3 h-3 mr-1" />
-                                Remix Rights
-                              </Badge>
-                            )}
-                            {benefitsObject?.hasGovernanceRights && (
-                              <Badge variant="secondary" className="text-xs">
-                                <Award className="w-3 h-3 mr-1" />
-                                Governance
-                              </Badge>
-                            )}
+                            {/* Benefits temporarily disabled - TODO: Implement collection-based benefits */}
+                            <Badge variant="secondary" className="text-xs">
+                              <Star className="w-3 h-3 mr-1" />
+                              Coming Soon
+                            </Badge>
+                            <p className="text-xs text-muted-foreground mt-2">
+                              Collection-based benefits will be available soon
+                            </p>
                           </div>
                         </div>
                       )}

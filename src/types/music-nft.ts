@@ -12,7 +12,7 @@ export interface NFTMetadata {
   description: string
   genre: string
   releaseDate: string
-  pagsAmount: number
+  blokAmount: number
   dailyStreams: number
   attributes: { trait_type: string; value: string }[]
 }
@@ -44,7 +44,7 @@ export interface TierConfig {
   color: string
   glow: string
   maxSupply: number
-  pagsMultiplier: number
+  blokMultiplier: number
   royaltyRate: number
   benefits: string[]
 }

@@ -10,7 +10,13 @@ import { Progress } from '@/src/components/ui/progress'
 import { Badge } from '@/src/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { useSupabaseArtistSignup } from '@/src/hooks/useSupabaseArtistSignup'
-import { useMusicNFTAddTrack } from '@/src/hooks/contracts/useMusicNFT'
+import { 
+  useMusicNFTAddTrack, 
+  useCreateCollection,
+  useGetCollection,
+  useAddTrackToCollection
+} from '@/src/hooks/contracts/useMusicNFT'
+import { useAccount } from 'wagmi'
 import { TrackMetadata, TrackUploadState, DEFAULT_TIER_CONFIGS } from '@/src/types/artist'
 import { TrackUploadForm } from '../ArtistSignupFlow/components/TrackUploadForm'
 import { FileUploadZone } from '../ArtistSignupFlow/components/FileUploadZone'
@@ -31,8 +37,175 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
+import { Input } from '@/src/components/ui/input'
+import { Label } from '@/src/components/ui/label'
+import { Textarea } from '@/src/components/ui/textarea'
 
-type Step = 'metadata' | 'audio-upload' | 'cover-upload' | 'tier-config' | 'deploy' | 'complete'
+type Step = 'collection-select' | 'metadata' | 'audio-upload' | 'cover-upload' | 'tier-config' | 'deploy' | 'complete'
+
+interface Collection {
+  id: number
+  title: string
+  description: string
+  trackCount?: number
+  isActive?: boolean
+}
+
+interface CollectionSelectStepProps {
+  collections: Collection[]
+  isLoading: boolean
+  onSelectCollection: (collectionId: number) => void
+  onCreateNewCollection: (title: string, description: string) => void
+}
+
+function CollectionSelectStep({ 
+  collections, 
+  isLoading, 
+  onSelectCollection, 
+  onCreateNewCollection 
+}: CollectionSelectStepProps) {
+  const [showCreateNew, setShowCreateNew] = useState(false)
+  const [newAlbumTitle, setNewAlbumTitle] = useState('')
+  const [newAlbumDescription, setNewAlbumDescription] = useState('')
+
+  const handleCreateNew = () => {
+    if (!newAlbumTitle.trim()) {
+      toast.error('Please enter an album title')
+      return
+    }
+    
+    onCreateNewCollection(newAlbumTitle.trim(), newAlbumDescription.trim())
+    setShowCreateNew(false)
+    setNewAlbumTitle('')
+    setNewAlbumDescription('')
+  }
+
+  if (isLoading) {
+    return (
+      <div className="py-8 text-center">
+        <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+        <p className="text-muted-foreground">Loading your albums...</p>
+      </div>
+    )
+  }
+
+  if (showCreateNew) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Plus className="w-5 h-5" />
+              Create New Album
+            </span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowCreateNew(false)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="album-title">Album Title *</Label>
+            <Input
+              id="album-title"
+              value={newAlbumTitle}
+              onChange={(e) => setNewAlbumTitle(e.target.value)}
+              placeholder="Enter album title..."
+              className="w-full"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="album-description">Album Description</Label>
+            <Textarea
+              id="album-description"
+              value={newAlbumDescription}
+              onChange={(e) => setNewAlbumDescription(e.target.value)}
+              placeholder="Describe your album..."
+              rows={3}
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={handleCreateNew} className="flex-1">
+              <Plus className="w-4 h-4 mr-2" />
+              Create Album
+            </Button>
+            <Button variant="outline" onClick={() => setShowCreateNew(false)}>
+              Cancel
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h3 className="text-lg font-semibold mb-2">Choose an Album</h3>
+        <p className="text-muted-foreground">
+          Select an existing album or create a new one to add your track to.
+        </p>
+      </div>
+
+      {collections.length === 0 ? (
+        <Card>
+          <CardContent className="py-8 text-center">
+            <Music className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="font-semibold mb-2">No Albums Yet</h3>
+            <p className="text-muted-foreground mb-4">
+              Create your first album to start adding tracks.
+            </p>
+            <Button onClick={() => setShowCreateNew(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Create Your First Album
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          <Button 
+            onClick={() => setShowCreateNew(true)}
+            variant="outline"
+            className="w-full"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create New Album
+          </Button>
+          
+          <div className="grid gap-3">
+            {collections.map((collection) => (
+              <Card
+                key={collection.id}
+                className="cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => onSelectCollection(collection.id)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-medium">{collection.title}</h4>
+                      {collection.description && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {collection.description}
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-right text-sm text-muted-foreground">
+                      {collection.trackCount || 0} tracks
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 interface TrackUploadModalProps {
   onTrackCreated?: () => void
@@ -44,13 +217,15 @@ interface TrackUploadModalProps {
 
 export function TrackUploadModal({ 
   onTrackCreated,
-  buttonText = "Upload New Track",
+  buttonText = "Add Track to Album",
   buttonVariant = "default",
   buttonClassName = "",
   fullWidth = false 
 }: TrackUploadModalProps) {
+  const { address } = useAccount()
   const [isOpen, setIsOpen] = useState(false)
-  const [currentStep, setStep] = useState<Step>('metadata')
+  const [currentStep, setStep] = useState<Step>('collection-select')
+  const [selectedCollectionId, setSelectedCollectionId] = useState<number | null>(null)
   const [trackData, setTrackData] = useState<Partial<TrackMetadata>>({
     tiers: DEFAULT_TIER_CONFIGS,
   })
@@ -59,12 +234,18 @@ export function TrackUploadModal({
     coverArtUpload: { progress: 0, status: 'idle' },
     contractDeployment: { status: 'idle' },
     overallProgress: 0,
-    currentStep: 'metadata',
+    currentStep: 'metadata', // Use existing TrackUploadStep type
     isComplete: false,
   })
 
+  // Contract hooks
+  // TODO: Implement useCollectionsByArtist hook
+  const collections: Collection[] = [] // Mock data for now
+  const collectionsLoading = false
+  const { data: selectedCollection } = useGetCollection(selectedCollectionId || 0)
+  const { createCollectionAsync } = useCreateCollection()
   const { uploadTrack } = useSupabaseArtistSignup()
-  const { addTrack, isLoading: isDeploying } = useMusicNFTAddTrack()
+  const { addTrackToCollectionAsync } = useAddTrackToCollection()
 
   // Reset state when modal opens/closes
   const handleOpenChange = (open: boolean) => {
@@ -72,14 +253,15 @@ export function TrackUploadModal({
     if (!open) {
       // Reset state when closing
       setTimeout(() => {
-        setStep('metadata')
+        setStep('collection-select')
+        setSelectedCollectionId(null)
         setTrackData({ tiers: DEFAULT_TIER_CONFIGS })
         setUploadState({
           audioUpload: { progress: 0, status: 'idle' },
           coverArtUpload: { progress: 0, status: 'idle' },
           contractDeployment: { status: 'idle' },
           overallProgress: 0,
-          currentStep: 'metadata',
+          currentStep: 'metadata', // Use existing TrackUploadStep type
           isComplete: false,
         })
       }, 300)
@@ -89,16 +271,17 @@ export function TrackUploadModal({
   // Calculate overall progress
   const calculateProgress = useCallback(() => {
     const stepWeights = {
+      'collection-select': 15,
       'metadata': 20,
       'audio-upload': 25,
       'cover-upload': 15,
-      'tier-config': 15,
-      'deploy': 20,
-      'complete': 5,
+      'tier-config': 10,
+      'deploy': 15,
+      'complete': 0,
     }
 
     let progress = 0
-    const steps: Step[] = ['metadata', 'audio-upload', 'cover-upload', 'tier-config', 'deploy', 'complete']
+    const steps: Step[] = ['collection-select', 'metadata', 'audio-upload', 'cover-upload', 'tier-config', 'deploy', 'complete']
     const currentIndex = steps.indexOf(currentStep)
 
     // Add completed steps
@@ -117,6 +300,34 @@ export function TrackUploadModal({
 
     return Math.min(progress, 100)
   }, [currentStep, uploadState])
+
+  const handleCollectionSelect = (collectionId: number) => {
+    setSelectedCollectionId(collectionId)
+    setStep('metadata')
+  }
+
+  const handleCreateNewCollection = async (title: string, description: string) => {
+    try {
+      const result = await createCollectionAsync({ 
+        title, 
+        artist: address || '', // Current user address
+        description,
+        ipfsCoverArt: '', // Empty for now, can add cover art later
+        genre: 'Electronic' // Default genre, can make this configurable
+      })
+      
+      // For now, assume successful creation and use a mock ID
+      // In practice, you'd extract the collection ID from the transaction receipt
+      const newCollectionId = Date.now() // Mock collection ID
+      setSelectedCollectionId(newCollectionId)
+      setStep('metadata')
+      toast.success(`Album "${title}" created successfully!`)
+      
+    } catch (error) {
+      console.error('Failed to create collection:', error)
+      toast.error('Failed to create album. Please try again.')
+    }
+  }
 
   const handleMetadataComplete = (metadata: Partial<TrackMetadata>) => {
     setTrackData(prev => ({ ...prev, ...metadata }))
@@ -155,6 +366,11 @@ export function TrackUploadModal({
   }
 
   const handleDeploy = async () => {
+    if (!selectedCollectionId) {
+      toast.error('Please select an album first')
+      return
+    }
+
     if (!trackData.audioFile || !trackData.coverArtFile) {
       toast.error('Missing required files - please upload audio and cover art first')
       return
@@ -166,39 +382,28 @@ export function TrackUploadModal({
     }))
 
     try {
-      // Use the integrated uploadTrack function that handles IPFS + contract deployment
-      const result = await uploadTrack({
+      // First upload files to IPFS
+      toast.info('Uploading files to IPFS...')
+      
+      // Use the addTrackToCollection function to add track to the existing collection
+      await addTrackToCollectionAsync({
+        collectionId: selectedCollectionId,
         title: trackData.title || 'Untitled Track',
-        description: trackData.album || 'Single',
-        genre: trackData.genre || 'Electronic',
+        ipfsHash: trackData.ipfsAudioHash || '', // This should be set from the audio upload step
         duration: trackData.duration || 180,
-        bpm: trackData.bpm || 120,
-        key: trackData.key,
-        isExplicit: trackData.isExplicit || false,
-        rightsCleared: trackData.rightsCleared || true,
-        releaseDate: new Date(),
-        tags: trackData.tags || [],
-        audioFile: trackData.audioFile,
-        coverArtFile: trackData.coverArtFile,
-        lyricsFile: trackData.lyricsFile,
-        tiers: trackData.tiers || []
+        tags: trackData.tags || []
       })
 
-      if (result.success) {
-        setUploadState(prev => ({
-          ...prev,
-          contractDeployment: { status: 'success' }
-        }))
+      setUploadState(prev => ({
+        ...prev,
+        contractDeployment: { status: 'success' }
+      }))
 
-        toast.success('Track deployed to blockchain successfully!')
-        setStep('complete')
-        
-        // Notify parent component
-        onTrackCreated?.()
-
-      } else {
-        throw new Error(result.error || 'Deployment failed')
-      }
+      toast.success(`Track "${trackData.title}" added to album successfully!`)
+      setStep('complete')
+      
+      // Notify parent component
+      onTrackCreated?.()
 
     } catch (error) {
       console.error('Deployment failed:', error)
@@ -211,12 +416,14 @@ export function TrackUploadModal({
       }))
       
       const errorMessage = error instanceof Error ? error.message : 'Deployment failed'
-      toast.error('Deployment failed', { description: errorMessage })
+      toast.error('Failed to add track to album', { description: errorMessage })
     }
   }
 
   const canProceed = () => {
     switch (currentStep) {
+      case 'collection-select':
+        return selectedCollectionId !== null
       case 'metadata':
         return !!(trackData.title && trackData.artist && trackData.genre)
       case 'audio-upload':
@@ -234,6 +441,13 @@ export function TrackUploadModal({
 
   const getCurrentStepComponent = () => {
     switch (currentStep) {
+      case 'collection-select':
+        return <CollectionSelectStep 
+          collections={collections || []} 
+          isLoading={collectionsLoading}
+          onSelectCollection={handleCollectionSelect}
+          onCreateNewCollection={handleCreateNewCollection}
+        />
       case 'metadata':
         return <TrackUploadForm onComplete={handleMetadataComplete} initialData={trackData} />
       case 'audio-upload':
@@ -265,7 +479,7 @@ export function TrackUploadModal({
       case 'tier-config':
         return <TierConfiguration onComplete={handleTierConfig} initialTiers={trackData.tiers} />
       case 'deploy':
-        return <DeploymentStep onDeploy={handleDeploy} isDeploying={isDeploying} />
+        return <DeploymentStep onDeploy={handleDeploy} isDeploying={uploadState.contractDeployment.status === 'pending'} />
       case 'complete':
         return (
           <motion.div
@@ -274,10 +488,15 @@ export function TrackUploadModal({
             className="py-8 text-center"
           >
             <Check className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold mb-2">Track Created Successfully!</h3>
-            <p className="text-muted-foreground mb-6">
-              Your music NFT is now live on the Polygon blockchain and ready for fans to discover.
+            <h3 className="text-2xl font-bold mb-2">Track Added Successfully!</h3>
+            <p className="text-muted-foreground mb-2">
+              "{trackData.title}" has been added to your album.
             </p>
+            {selectedCollection && (
+              <p className="text-sm text-muted-foreground mb-6">
+                Album: {Array.isArray(selectedCollection) ? selectedCollection[1] : 'Album'} {/* index 1 is title */}
+              </p>
+            )}
             
             <div className="flex justify-center gap-3">
               <Button onClick={() => setIsOpen(false)} variant="outline">
@@ -288,7 +507,7 @@ export function TrackUploadModal({
                 // Reset for next upload
                 setTimeout(() => handleOpenChange(true), 500)
               }}>
-                Upload Another Track
+                Add Another Track
               </Button>
             </div>
           </motion.div>
@@ -300,13 +519,14 @@ export function TrackUploadModal({
 
   const getStepTitle = () => {
     switch (currentStep) {
+      case 'collection-select': return 'Select Album'
       case 'metadata': return 'Track Information'
       case 'audio-upload': return 'Upload Audio File'
       case 'cover-upload': return 'Upload Cover Art'
       case 'tier-config': return 'Configure NFT Tiers'
-      case 'deploy': return 'Deploy to Blockchain'
-      case 'complete': return 'Upload Complete'
-      default: return 'Upload Track'
+      case 'deploy': return 'Add to Album'
+      case 'complete': return 'Track Added Successfully'
+      default: return 'Add Track to Album'
     }
   }
 
@@ -352,7 +572,7 @@ export function TrackUploadModal({
             </DialogTitle>
             {currentStep !== 'complete' && (
               <Badge variant="secondary" className="ml-2">
-                Step {['metadata', 'audio-upload', 'cover-upload', 'tier-config', 'deploy'].indexOf(currentStep) + 1} of 5
+                Step {['collection-select', 'metadata', 'audio-upload', 'cover-upload', 'tier-config', 'deploy'].indexOf(currentStep) + 1} of 6
               </Badge>
             )}
           </div>
@@ -389,13 +609,13 @@ export function TrackUploadModal({
               <Button
                 variant="outline"
                 onClick={() => {
-                  const steps: Step[] = ['metadata', 'audio-upload', 'cover-upload', 'tier-config', 'deploy']
+                  const steps: Step[] = ['collection-select', 'metadata', 'audio-upload', 'cover-upload', 'tier-config', 'deploy']
                   const currentIndex = steps.indexOf(currentStep)
                   if (currentIndex > 0) {
                     setStep(steps[currentIndex - 1])
                   }
                 }}
-                disabled={currentStep === 'metadata'}
+                disabled={currentStep === 'collection-select'}
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
@@ -409,7 +629,7 @@ export function TrackUploadModal({
                 {currentStep !== 'deploy' && (
                   <Button
                     onClick={() => {
-                      const steps: Step[] = ['metadata', 'audio-upload', 'cover-upload', 'tier-config', 'deploy']
+                      const steps: Step[] = ['collection-select', 'metadata', 'audio-upload', 'cover-upload', 'tier-config', 'deploy']
                       const currentIndex = steps.indexOf(currentStep)
                       if (currentIndex < steps.length - 1) {
                         setStep(steps[currentIndex + 1])

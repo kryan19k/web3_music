@@ -15,6 +15,7 @@ import { type Track, useAudioPlayer } from '@/src/hooks/useAudioPlayer'
 import { useArtistData, useArtistNFTs, useArtistAnalytics } from '@/src/hooks/contracts/useArtistData'
 import { useArtistProfile } from '@/src/hooks/useArtistProfile'
 import { TrackUploadModal } from '@/src/components/artist/TrackUpload/TrackUploadModal'
+import { CollectionList } from '@/src/components/pageComponents/collections/CollectionList'
 import type { MusicNFT } from '@/src/types/music-nft'
 import { Link } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
@@ -55,8 +56,54 @@ const artistData = {
   totalTracks: 24,
   nftsCreated: 12,
   nftsSold: 847,
-  pagsEarned: 24851,
+  blokEarned: 24851,
 }
+
+// Mock collections data
+const mockCollections = [
+  {
+    id: 1,
+    title: "Neon Dreams",
+    artist: "Luna Vista",
+    description: "A synthwave journey through digital landscapes and retro-futuristic soundscapes",
+    coverArt: "/api/placeholder/300/300",
+    trackCount: 8,
+    totalMinted: 156,
+    totalSupply: 500,
+    revenue: 4250,
+    createdAt: "2024-01-15T10:00:00Z",
+    isActive: true,
+    completionProgress: 85
+  },
+  {
+    id: 2,
+    title: "Ocean Depths",
+    artist: "Luna Vista", 
+    description: "Ambient exploration of underwater worlds and marine mysteries",
+    coverArt: "/api/placeholder/300/300",
+    trackCount: 6,
+    totalMinted: 89,
+    totalSupply: 300,
+    revenue: 2100,
+    createdAt: "2024-02-01T14:30:00Z",
+    isActive: true,
+    completionProgress: 100
+  },
+  {
+    id: 3,
+    title: "Urban Pulse",
+    artist: "Luna Vista",
+    description: "Electronic beats capturing the rhythm and energy of city life",
+    coverArt: "/api/placeholder/300/300", 
+    trackCount: 12,
+    totalMinted: 0,
+    totalSupply: 1000,
+    revenue: 0,
+    createdAt: "2024-03-10T09:15:00Z",
+    isActive: false,
+    completionProgress: 45
+  }
+]
 
 // Mock track data for artist
 const artistTracks: MusicNFT[] = [
@@ -75,7 +122,7 @@ const artistTracks: MusicNFT[] = [
       description: 'An ethereal journey through ambient soundscapes',
       genre: 'Ambient',
       releaseDate: '2024-01-15',
-      pagsAmount: 1000,
+      blokAmount: 1000,
       dailyStreams: 15420,
       attributes: [],
     },
@@ -101,7 +148,7 @@ const artistTracks: MusicNFT[] = [
       description: 'Synthwave vibes with modern production',
       genre: 'Synthwave',
       releaseDate: '2024-02-03',
-      pagsAmount: 500,
+      blokAmount: 500,
       dailyStreams: 32100,
       attributes: [],
     },
@@ -164,7 +211,7 @@ export function ArtistDashboard() {
 
   // Fetch real artist data from contracts and database
   const { artistStats, isLoading: artistLoading, isArtist, trackInfo } = useArtistData()
-  const { nfts: artistTracks, isLoading: nftsLoading, refetch: refetchTracks } = useArtistNFTs()
+  const { nfts: artistTracks, isLoading: nftsLoading } = useArtistNFTs()
   const { monthlyData } = useArtistAnalytics()
   
   // Get enhanced profile with database data
@@ -195,7 +242,7 @@ export function ArtistDashboard() {
         artwork: nft.metadata.image || '/api/placeholder/300/300',
         audioUrl: nft.metadata.audioUrl,
         duration: nft.metadata.duration,
-        pagsPerStream: nft.metadata.pagsAmount ? nft.metadata.pagsAmount / 1000 : undefined,
+        pagsPerStream: nft.metadata.blokAmount ? nft.metadata.blokAmount / 1000 : undefined,
       }
       play(track)
     }
@@ -254,8 +301,8 @@ export function ArtistDashboard() {
     totalTracks: enhancedProfile?.totalTracks || artistStats?.totalTracks || 0,
     nftsCreated: artistStats?.nftsCreated || 0,
     nftsSold: artistStats?.nftsSold || 0,
-    pagsBalance: artistStats?.pagsBalance || 0,
-    pagsEarned: artistStats?.totalEarnings || 0, // Fix: Add pagsEarned property
+    blokBalance: artistStats?.blokBalance || 0,
+    blokEarned: artistStats?.totalEarnings || 0, // Fix: Add blokEarned property
     
     // Additional database fields
     bio: dbProfile?.bio,
@@ -325,7 +372,6 @@ export function ArtistDashboard() {
                 buttonText="Upload Track"
                 buttonVariant="gradient"
                 onTrackCreated={() => {
-                  refetchTracks()
                   toast.success('Track added to your collection!')
                 }} 
               />
@@ -341,8 +387,9 @@ export function ArtistDashboard() {
           onValueChange={setSelectedTab}
         >
           <div className="flex items-center justify-between mb-8">
-            <TabsList className="grid w-full max-w-md grid-cols-4">
+            <TabsList className="grid w-full max-w-lg grid-cols-5">
               <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="collections">Albums</TabsTrigger>
               <TabsTrigger value="tracks">Tracks</TabsTrigger>
               <TabsTrigger value="analytics">Analytics</TabsTrigger>
               <TabsTrigger value="fans">Fans</TabsTrigger>
@@ -440,11 +487,11 @@ export function ArtistDashboard() {
                       <div className="flex items-center justify-between mb-4">
                         <Zap className="w-8 h-8 text-yellow-500" />
                         <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20">
-                          PAGS
+                          BLOK
                         </Badge>
                       </div>
-                      <p className="text-3xl font-bold">{artistData.pagsEarned.toLocaleString()}</p>
-                      <p className="text-sm text-muted-foreground">PAGS Earned</p>
+                      <p className="text-3xl font-bold">{artistData.blokEarned.toLocaleString()}</p>
+                      <p className="text-sm text-muted-foreground">BLOK Earned</p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -559,10 +606,9 @@ export function ArtistDashboard() {
                       <TrackUploadModal 
                         buttonVariant="outline"
                         fullWidth={true}
-                        onTrackCreated={() => {
-                          refetchTracks()
-                          toast.success('Track added to your collection!')
-                        }} 
+                onTrackCreated={() => {
+                  toast.success('Track added to your collection!')
+                }}
                       />
                       <Button
                         variant="outline"
@@ -585,6 +631,34 @@ export function ArtistDashboard() {
             </div>
           </TabsContent>
 
+          {/* Collections (Albums) Tab */}
+          <TabsContent value="collections">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-semibold">Your Albums</h2>
+                  <p className="text-muted-foreground">Manage your music collections and track progress</p>
+                </div>
+                <Button asChild className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+                  <Link to="/artist/upload">
+                    <Music className="w-4 h-4 mr-2" />
+                    Create New Album
+                  </Link>
+                </Button>
+              </div>
+
+              <CollectionList
+                collections={mockCollections}
+                isLoading={false}
+                showCreateButton={true}
+                onCollectionSelect={(collection) => {
+                  // Navigate to collection detail or open modal
+                  toast.info(`Viewing ${collection.title}`)
+                }}
+              />
+            </div>
+          </TabsContent>
+
           {/* Tracks Tab */}
           <TabsContent value="tracks">
             <div className="space-y-6">
@@ -595,8 +669,7 @@ export function ArtistDashboard() {
                 </div>
                 <TrackUploadModal 
                   onTrackCreated={() => {
-                    // Refresh tracks data after successful upload
-                    refetchTracks()
+                    // Track added successfully
                     toast.success('Track added to your collection!')
                   }} 
                 />

@@ -53,10 +53,10 @@ export function AdminOverview() {
 
   // Calculate platform metrics
   const totalSupplyFormatted = Number(platformStats.totalSupply).toLocaleString()
-  const platformRevenueETH = formatEther(platformStats.totalPlatformRevenue)
+  const platformRevenueETH = formatEther(BigInt(platformStats.totalPlatformRevenue || 0))
   const platformRevenueUSD = Number.parseFloat(platformRevenueETH) * 3000 // Assuming ETH = $3000
-  const royaltiesReceivedETH = formatEther(platformStats.totalRoyaltiesReceived)
-  const royaltiesDistributedETH = formatEther(platformStats.totalRoyaltiesDistributed)
+  const royaltiesReceivedETH = formatEther(BigInt(platformStats.totalRoyaltiesReceived || 0))
+  const royaltiesDistributedETH = formatEther(BigInt(platformStats.totalRoyaltiesDistributed || 0))
   const platformFeePercent = Number(platformStats.platformFeePercentage) / 100
 
   // Calculate tier statistics
@@ -80,10 +80,10 @@ export function AdminOverview() {
       active: saleActive || false,
       price: formatEther(price || 0n),
     }
-  }).filter(Boolean)
+  }).filter((tier): tier is NonNullable<typeof tier> => tier !== null)
 
-  const totalMinted = tierStats.reduce((sum, tier) => sum + (tier?.minted || 0), 0)
-  const totalAvailable = tierStats.reduce((sum, tier) => sum + (tier?.total || 0), 0)
+  const totalMinted = tierStats.reduce((sum, tier) => sum + tier.minted, 0)
+  const totalAvailable = tierStats.reduce((sum, tier) => sum + tier.total, 0)
   const overallMintPercent = totalAvailable > 0 ? (totalMinted / totalAvailable) * 100 : 0
 
   return (
