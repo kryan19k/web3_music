@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { COLLECTION_MUSIC_NFT_ABI } from '@/src/constants/contracts/abis/CollectionMusicNFT'
 import { getContractAddress, isChainSupported } from '@/src/constants/contracts/contracts'
+import React from 'react'
 
 // Get contract address based on current chain
 function useMusicNFTAddress() {
@@ -845,9 +846,10 @@ export function useCreateCollection() {
 
 export function useAddTrackToCollection() {
   const { writeContract, data: hash, isPending, error: writeError } = useWriteContract()
-  const { isLoading: isConfirming, isSuccess, error: receiptError } = useWaitForTransactionReceipt({ 
+  const { isLoading: isConfirming, isSuccess, error: receiptError, data: receipt } = useWaitForTransactionReceipt({ 
     hash 
   })
+  const { address: userAddress } = useAccount()
   const contractAddress = useMusicNFTAddress()
   const queryClient = useQueryClient()
 
@@ -865,6 +867,41 @@ export function useAddTrackToCollection() {
       duration: number
       tags: string[]
     }) => {
+      // Validate inputs before contract call
+      console.log('🎵 [ADD_TRACK] Starting contract call with params:', {
+        collectionId,
+        title: title || 'EMPTY_TITLE',
+        ipfsHash: ipfsHash || 'EMPTY_HASH',
+        duration,
+        tags: tags?.length || 0,
+        contractAddress,
+        userAddress
+      })
+
+      // Input validation
+      if (!collectionId || collectionId <= 0) {
+        throw new Error(`Invalid collection ID: ${collectionId}. Collection ID must be greater than 0.`)
+      }
+      
+      if (!title || title.trim() === '') {
+        throw new Error('Track title is required and cannot be empty.')
+      }
+      
+      if (!ipfsHash || ipfsHash.trim() === '') {
+        throw new Error('IPFS hash is required and cannot be empty.')
+      }
+      
+      if (duration <= 0) {
+        throw new Error(`Invalid duration: ${duration}. Duration must be greater than 0.`)
+      }
+
+      // Validate IPFS hash format
+      if (!ipfsHash.match(/^(Qm|bafy)[a-zA-Z0-9]{40,}$/)) {
+        throw new Error(`Invalid IPFS hash format: ${ipfsHash}. Expected format: Qm... or bafy...`)
+      }
+
+      console.log('✅ [ADD_TRACK] Input validation passed, submitting transaction...')
+
       // Step 1: Submit transaction
       const txHash = await writeContract({
         address: contractAddress as Address,
@@ -873,18 +910,53 @@ export function useAddTrackToCollection() {
         args: [BigInt(collectionId), title, ipfsHash, BigInt(duration), tags],
       })
 
+      console.log('🔄 [ADD_TRACK] Transaction submitted:', { txHash, collectionId, title })
       return { hash: txHash }
     },
     onSuccess: () => {
-      toast.success('Track added to collection!')
+      console.log('✅ [ADD_TRACK] Mutation onSuccess triggered')
       queryClient.invalidateQueries({ queryKey: ['collections'] })
       queryClient.invalidateQueries({ queryKey: ['tracks'] })
     },
     onError: (error) => {
-      toast.error('Failed to add track')
-      console.error('Add track error:', error)
+      console.error('❌ [ADD_TRACK] Mutation onError triggered:', error)
+      
+      // Extract detailed error information
+      let errorMessage = 'Failed to add track to collection'
+      let errorDetails = ''
+      
+      if (error instanceof Error) {
+        errorDetails = error.message
+        
+        if (error.message.includes('addTrackToCollection')) {
+          errorMessage = 'Contract call failed: addTrackToCollection reverted'
+          
+          if (error.message.includes('JSON-RPC')) {
+            errorMessage += ' (Network/RPC error)'
+          }
+        } else if (error.message.includes('Invalid collection ID')) {
+          errorMessage = 'Invalid collection ID - collection may not exist'
+        } else if (error.message.includes('IPFS hash')) {
+          errorMessage = 'Invalid IPFS hash format'
+        } else if (error.message.includes('User rejected')) {
+          errorMessage = 'Transaction rejected by user'
+        }
+      }
+      
+      console.error('❌ [ADD_TRACK] Error details:', { errorMessage, errorDetails })
+      // Don't show toast here - let the component handle it
     },
   })
+
+  // Wagmi automatically handles transaction confirmation via useWaitForTransactionReceipt
+  // When isSuccess becomes true, the transaction is confirmed
+  React.useEffect(() => {
+    if (isSuccess && receipt) {
+      console.log('✅ [ADD_TRACK] Track added successfully to collection!')
+      queryClient.invalidateQueries({ queryKey: ['collections'] })
+      queryClient.invalidateQueries({ queryKey: ['tracks'] })
+    }
+  }, [isSuccess, receipt, queryClient])
 
   return {
     addTrackToCollection: addTrackToCollection.mutate,
@@ -893,6 +965,7 @@ export function useAddTrackToCollection() {
     isSuccess,
     error: writeError || receiptError,
     hash,
+    receipt,
   }
 }
 

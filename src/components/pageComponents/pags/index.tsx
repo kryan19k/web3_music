@@ -25,8 +25,8 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 
-// Mock PAGS token data
-const pagsData = {
+// Mock BLOK token data
+const blokData = {
   balance: 15420,
   stakedAmount: 8500,
   availableToStake: 6920,
@@ -89,24 +89,24 @@ const rewardsHistory = [
   { date: '2024-05-18', amount: 71.2, type: 'NFT Royalties' },
 ]
 
-export function PagsDashboard() {
+export function BlokDashboard() {
   const [selectedTab, setSelectedTab] = useState('overview')
   const [stakeAmount, setStakeAmount] = useState(1000)
   const [swapAmount, setSwapAmount] = useState('')
-  const [swapDirection, setSwapDirection] = useState<'eth-to-pags' | 'pags-to-eth'>('eth-to-pags')
+  const [swapDirection, setSwapDirection] = useState<'eth-to-blok' | 'blok-to-eth'>('eth-to-blok')
 
   const currentTier =
-    stakingTiers.find((tier) => pagsData.stakedAmount >= tier.minAmount) || stakingTiers[0]
+    stakingTiers.find((tier) => blokData.stakedAmount >= tier.minAmount) || stakingTiers[0]
 
-  const nextTier = stakingTiers.find((tier) => tier.minAmount > pagsData.stakedAmount)
+  const nextTier = stakingTiers.find((tier) => tier.minAmount > blokData.stakedAmount)
 
   const handleStake = () => {
-    console.log('Staking', stakeAmount, 'PAGS tokens')
+    console.log('Staking', stakeAmount, 'BLOK tokens')
     // In a real app, this would call smart contract
   }
 
   const handleClaim = () => {
-    console.log('Claiming', pagsData.pendingRewards, 'PAGS rewards')
+    console.log('Claiming', blokData.pendingRewards, 'BLOK rewards')
     // In a real app, this would call smart contract
   }
 
@@ -130,19 +130,19 @@ export function PagsDashboard() {
           >
             <div className="flex items-center justify-center gap-2 mb-4">
               <img
-                src="/pags.png"
-                alt="PAGS Token"
+                src="/blok.png"
+                alt="BLOK Token"
                 className="w-32 h-32 rounded-full shadow-lg"
               />
               <h1 className="text-5xl md:text-6xl font-bold">
-                PAGS{' '}
+                BLOK{' '}
                 <span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
                   Dashboard
                 </span>
               </h1>
             </div>
             <p className="text-xl text-muted-foreground mb-8">
-              Stake, earn, and manage your PAGS tokens. Unlock exclusive benefits and maximize your
+              Stake, earn, and manage your BLOK tokens. Unlock exclusive benefits and maximize your
               music investment returns.
             </p>
 
@@ -150,21 +150,21 @@ export function PagsDashboard() {
             <div className="inline-flex items-center gap-4 bg-card/50 backdrop-blur-sm border border-border/50 rounded-full px-6 py-3">
               <div className="flex items-center gap-2">
                 <img
-                  src="/pags.png"
-                  alt="PAGS"
+                  src="/blok.png"
+                  alt="BLOK"
                   className="w-5 h-5 rounded-full"
                 />
-                <span className="font-semibold">${pagsData.currentPrice.toFixed(4)}</span>
+                <span className="font-semibold">${blokData.currentPrice.toFixed(4)}</span>
               </div>
               <Badge
-                className={`${pagsData.priceChange24h > 0 ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}
+                className={`${blokData.priceChange24h > 0 ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}
               >
-                {pagsData.priceChange24h > 0 ? (
+                {blokData.priceChange24h > 0 ? (
                   <ArrowUpRight className="w-3 h-3 mr-1" />
                 ) : (
                   <ArrowDownRight className="w-3 h-3 mr-1" />
                 )}
-                {Math.abs(pagsData.priceChange24h)}% 24h
+                {Math.abs(blokData.priceChange24h)}% 24h
               </Badge>
             </div>
           </motion.div>
@@ -184,15 +184,15 @@ export function PagsDashboard() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <img
-                      src="/pags.png"
-                      alt="PAGS Token"
+                      src="/blok.png"
+                      alt="BLOK Token"
                       className="w-8 h-8 rounded-full shadow-md"
                     />
                     <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20">
-                      PAGS
+                      BLOK
                     </Badge>
                   </div>
-                  <p className="text-3xl font-bold">{pagsData.balance.toLocaleString()}</p>
+                  <p className="text-3xl font-bold">{blokData.balance.toLocaleString()}</p>
                   <p className="text-sm text-muted-foreground">Total Balance</p>
                 </CardContent>
               </Card>
@@ -211,7 +211,7 @@ export function PagsDashboard() {
                       Staked
                     </Badge>
                   </div>
-                  <p className="text-3xl font-bold">{pagsData.stakedAmount.toLocaleString()}</p>
+                  <p className="text-3xl font-bold">{blokData.stakedAmount.toLocaleString()}</p>
                   <p className="text-sm text-muted-foreground">Staked Amount</p>
                 </CardContent>
               </Card>
@@ -230,7 +230,7 @@ export function PagsDashboard() {
                       Rewards
                     </Badge>
                   </div>
-                  <p className="text-3xl font-bold">{pagsData.pendingRewards.toFixed(2)}</p>
+                  <p className="text-3xl font-bold">{blokData.pendingRewards.toFixed(2)}</p>
                   <p className="text-sm text-muted-foreground">Pending Rewards</p>
                 </CardContent>
               </Card>
@@ -311,11 +311,11 @@ export function PagsDashboard() {
                       {nextTier && (
                         <div className="pt-4 border-t">
                           <p className="text-sm text-muted-foreground">
-                            Stake {(nextTier.minAmount - pagsData.stakedAmount).toLocaleString()}{' '}
-                            more PAGS to unlock {nextTier.name}
+                            Stake {(nextTier.minAmount - blokData.stakedAmount).toLocaleString()}{' '}
+                            more BLOK to unlock {nextTier.name}
                           </p>
                           <Progress
-                            value={(pagsData.stakedAmount / nextTier.minAmount) * 100}
+                            value={(blokData.stakedAmount / nextTier.minAmount) * 100}
                             className="mt-2"
                           />
                         </div>
@@ -383,19 +383,19 @@ export function PagsDashboard() {
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Market Cap</span>
                         <span className="font-semibold">
-                          ${(pagsData.marketCap / 1000000).toFixed(1)}M
+                          ${(blokData.marketCap / 1000000).toFixed(1)}M
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Total Supply</span>
                         <span className="font-semibold">
-                          {(pagsData.totalSupply / 1000000).toFixed(0)}M
+                          {(blokData.totalSupply / 1000000).toFixed(0)}M
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Circulating Supply</span>
                         <span className="font-semibold">
-                          {((pagsData.totalSupply * 0.6) / 1000000).toFixed(0)}M
+                          {((blokData.totalSupply * 0.6) / 1000000).toFixed(0)}M
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -416,10 +416,10 @@ export function PagsDashboard() {
                       <Button
                         className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
                         onClick={handleClaim}
-                        disabled={pagsData.pendingRewards === 0}
+                        disabled={blokData.pendingRewards === 0}
                       >
                         <Gift className="w-4 h-4 mr-2" />
-                        Claim {pagsData.pendingRewards.toFixed(2)} PAGS Rewards
+                        Claim {blokData.pendingRewards.toFixed(2)} BLOK Rewards
                       </Button>
                       <Button
                         variant="outline"
@@ -451,7 +451,7 @@ export function PagsDashboard() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Lock className="w-5 h-5" />
-                      Stake PAGS Tokens
+                      Stake BLOK Tokens
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -476,7 +476,7 @@ export function PagsDashboard() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => setStakeAmount(pagsData.availableToStake)}
+                              onClick={() => setStakeAmount(blokData.availableToStake)}
                             >
                               MAX
                             </Button>
@@ -484,12 +484,12 @@ export function PagsDashboard() {
                           <Slider
                             value={[stakeAmount]}
                             onValueChange={([value]) => setStakeAmount(value)}
-                            max={pagsData.availableToStake}
-                            min={pagsData.minimumStake}
+                            max={blokData.availableToStake}
+                            min={blokData.minimumStake}
                             step={100}
                           />
                           <p className="text-xs text-muted-foreground">
-                            Available: {pagsData.availableToStake.toLocaleString()} PAGS
+                            Available: {blokData.availableToStake.toLocaleString()} BLOK
                           </p>
                         </div>
                       </div>
@@ -502,13 +502,13 @@ export function PagsDashboard() {
                         <div className="flex justify-between">
                           <span className="text-sm">Lock Period:</span>
                           <span className="text-sm font-semibold">
-                            {pagsData.stakingPeriod} days
+                            {blokData.stakingPeriod} days
                           </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm">Projected Monthly:</span>
                           <span className="text-sm font-semibold text-green-500">
-                            +{projectedRewards.toFixed(2)} PAGS
+                            +{projectedRewards.toFixed(2)} BLOK
                           </span>
                         </div>
                       </div>
@@ -516,10 +516,10 @@ export function PagsDashboard() {
                       <Button
                         className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
                         onClick={handleStake}
-                        disabled={stakeAmount < pagsData.minimumStake}
+                        disabled={stakeAmount < blokData.minimumStake}
                       >
                         <Lock className="w-4 h-4 mr-2" />
-                        Stake {stakeAmount.toLocaleString()} PAGS
+                        Stake {stakeAmount.toLocaleString()} BLOK
                       </Button>
                     </div>
                   </CardContent>
@@ -539,7 +539,7 @@ export function PagsDashboard() {
                         <div
                           key={tier.name}
                           className={`p-4 rounded-lg border-2 ${
-                            pagsData.stakedAmount >= tier.minAmount
+                            blokData.stakedAmount >= tier.minAmount
                               ? 'border-primary bg-primary/5'
                               : 'border-border'
                           }`}
@@ -551,13 +551,13 @@ export function PagsDashboard() {
                             </Badge>
                           </div>
                           <p className="text-sm text-muted-foreground mb-2">
-                            Minimum: {tier.minAmount.toLocaleString()} PAGS
+                            Minimum: {tier.minAmount.toLocaleString()} BLOK
                           </p>
                           <div className="text-xs text-muted-foreground">
                             {tier.rewards.slice(0, 2).join(' • ')}
                             {tier.rewards.length > 2 && ' • ...'}
                           </div>
-                          {pagsData.stakedAmount >= tier.minAmount && (
+                          {blokData.stakedAmount >= tier.minAmount && (
                             <div className="mt-2">
                               <Badge
                                 variant="secondary"
@@ -590,18 +590,18 @@ export function PagsDashboard() {
                       {/* Swap Direction Toggle */}
                       <div className="flex border border-border rounded-lg">
                         <Button
-                          variant={swapDirection === 'eth-to-pags' ? 'secondary' : 'ghost'}
+                          variant={swapDirection === 'eth-to-blok' ? 'secondary' : 'ghost'}
                           className="flex-1 rounded-r-none"
-                          onClick={() => setSwapDirection('eth-to-pags')}
+                          onClick={() => setSwapDirection('eth-to-blok')}
                         >
-                          ETH → PAGS
+                          ETH → BLOK
                         </Button>
                         <Button
-                          variant={swapDirection === 'pags-to-eth' ? 'secondary' : 'ghost'}
+                          variant={swapDirection === 'blok-to-eth' ? 'secondary' : 'ghost'}
                           className="flex-1 rounded-l-none"
-                          onClick={() => setSwapDirection('pags-to-eth')}
+                          onClick={() => setSwapDirection('blok-to-eth')}
                         >
-                          PAGS → ETH
+                          BLOK → ETH
                         </Button>
                       </div>
 
@@ -612,21 +612,21 @@ export function PagsDashboard() {
                             htmlFor="swap-from-input"
                             className="text-sm font-medium"
                           >
-                            From ({swapDirection === 'eth-to-pags' ? 'ETH' : 'PAGS'})
+                            From ({swapDirection === 'eth-to-blok' ? 'ETH' : 'BLOK'})
                           </label>
                           <Input
                             id="swap-from-input"
                             type="number"
                             value={swapAmount}
                             onChange={(e) => setSwapAmount(e.target.value)}
-                            placeholder={`Enter ${swapDirection === 'eth-to-pags' ? 'ETH' : 'PAGS'} amount`}
+                            placeholder={`Enter ${swapDirection === 'eth-to-blok' ? 'ETH' : 'BLOK'} amount`}
                             className="mt-2"
                           />
                           <p className="text-xs text-muted-foreground mt-1">
                             Balance:{' '}
-                            {swapDirection === 'eth-to-pags'
+                            {swapDirection === 'eth-to-blok'
                               ? '2.45 ETH'
-                              : `${pagsData.balance.toLocaleString()} PAGS`}
+                              : `${blokData.balance.toLocaleString()} BLOK`}
                           </p>
                         </div>
 
@@ -636,7 +636,7 @@ export function PagsDashboard() {
                             size="icon"
                             onClick={() =>
                               setSwapDirection(
-                                swapDirection === 'eth-to-pags' ? 'pags-to-eth' : 'eth-to-pags',
+                                swapDirection === 'eth-to-blok' ? 'blok-to-eth' : 'eth-to-blok',
                               )
                             }
                           >
@@ -646,20 +646,20 @@ export function PagsDashboard() {
 
                         <div>
                           <span className="text-sm font-medium">
-                            To ({swapDirection === 'eth-to-pags' ? 'PAGS' : 'ETH'})
+                            To ({swapDirection === 'eth-to-blok' ? 'BLOK' : 'ETH'})
                           </span>
                           <div className="mt-2 p-3 bg-muted rounded-lg">
                             <p className="font-semibold">
                               {swapAmount
-                                ? swapDirection === 'eth-to-pags'
+                                ? swapDirection === 'eth-to-blok'
                                   ? (
-                                      Number.parseFloat(swapAmount) / pagsData.currentPrice
+                                      Number.parseFloat(swapAmount) / blokData.currentPrice
                                     ).toLocaleString()
-                                  : (Number.parseFloat(swapAmount) * pagsData.currentPrice).toFixed(
+                                  : (Number.parseFloat(swapAmount) * blokData.currentPrice).toFixed(
                                       6,
                                     )
                                 : '0'}{' '}
-                              {swapDirection === 'eth-to-pags' ? 'PAGS' : 'ETH'}
+                              {swapDirection === 'eth-to-blok' ? 'BLOK' : 'ETH'}
                             </p>
                           </div>
                         </div>
@@ -669,7 +669,7 @@ export function PagsDashboard() {
                       <div className="p-4 bg-muted/50 rounded-lg space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span>Exchange Rate:</span>
-                          <span>1 ETH = {(1 / pagsData.currentPrice).toLocaleString()} PAGS</span>
+                          <span>1 ETH = {(1 / blokData.currentPrice).toLocaleString()} BLOK</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Network Fee:</span>
@@ -687,7 +687,7 @@ export function PagsDashboard() {
                         disabled={!swapAmount}
                       >
                         <ArrowLeftRight className="w-4 h-4 mr-2" />
-                        Swap {swapDirection === 'eth-to-pags' ? 'ETH for PAGS' : 'PAGS for ETH'}
+                        Swap {swapDirection === 'eth-to-blok' ? 'ETH for BLOK' : 'BLOK for ETH'}
                       </Button>
                     </div>
                   </CardContent>
@@ -730,10 +730,10 @@ export function PagsDashboard() {
                             </div>
                             <div className="text-right">
                               <p className="font-semibold text-green-500">
-                                +{reward.amount.toFixed(2)} PAGS
+                                +{reward.amount.toFixed(2)} BLOK
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                ${(reward.amount * pagsData.currentPrice).toFixed(2)}
+                                ${(reward.amount * blokData.currentPrice).toFixed(2)}
                               </p>
                             </div>
                           </div>
@@ -755,17 +755,17 @@ export function PagsDashboard() {
                       <div className="text-center space-y-4">
                         <div>
                           <p className="text-3xl font-bold text-green-500">
-                            {pagsData.pendingRewards.toFixed(2)}
+                            {blokData.pendingRewards.toFixed(2)}
                           </p>
-                          <p className="text-sm text-muted-foreground">PAGS Tokens</p>
+                          <p className="text-sm text-muted-foreground">BLOK Tokens</p>
                           <p className="text-xs text-muted-foreground">
-                            ≈ ${(pagsData.pendingRewards * pagsData.currentPrice).toFixed(2)} USD
+                            ≈ ${(blokData.pendingRewards * blokData.currentPrice).toFixed(2)} USD
                           </p>
                         </div>
                         <Button
                           className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
                           onClick={handleClaim}
-                          disabled={pagsData.pendingRewards === 0}
+                          disabled={blokData.pendingRewards === 0}
                         >
                           <Gift className="w-4 h-4 mr-2" />
                           Claim Rewards
@@ -781,8 +781,8 @@ export function PagsDashboard() {
                     <CardContent>
                       <div className="space-y-3">
                         <div>
-                          <p className="text-2xl font-bold">{pagsData.totalEarned.toFixed(2)}</p>
-                          <p className="text-sm text-muted-foreground">Total PAGS Earned</p>
+                          <p className="text-2xl font-bold">{blokData.totalEarned.toFixed(2)}</p>
+                          <p className="text-sm text-muted-foreground">Total BLOK Earned</p>
                         </div>
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">

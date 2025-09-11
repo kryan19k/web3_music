@@ -391,10 +391,10 @@ export const Home = () => {
                   title: 'Purchase & Own',
                   subtitle: 'Secure Your Stake',
                   description:
-                    'Instantly mint your NFT and receive PAGS tokens representing your ownership stake. Your investment is secured on the blockchain forever.',
+                    'Instantly mint your NFT and receive BLOK tokens representing your ownership stake. Your investment is secured on the blockchain forever.',
                   features: [
                     '⚡ Instant blockchain minting',
-                    '🪙 PAGS token rewards',
+                    '🪙 BLOK token rewards',
                     '🔒 Immutable ownership proof',
                     '📜 Smart contract verified',
                   ],
@@ -451,7 +451,7 @@ export const Home = () => {
                           transition={{ duration: 0.8 }}
                           className={`w-24 h-24 rounded-3xl bg-gradient-to-br ${item.color} flex items-center justify-center mx-auto mb-6 shadow-2xl ring-4 ring-white/10 group-hover:ring-white/30 transition-all duration-500`}
                         >
-                          <item.icon className="w-12 h-12 text-white" />
+                          <item.icon className="w-12 h-12 text-primary-foreground" />
                         </motion.div>
 
                         <h3 className="text-3xl font-bold mb-2 group-hover:text-primary transition-colors">
@@ -464,7 +464,7 @@ export const Home = () => {
 
                       {/* Stats Badge */}
                       <div className="flex justify-center mb-6">
-                        <Badge className={`bg-gradient-to-r ${item.color} text-white border-0 px-6 py-2 text-sm font-bold shadow-lg`}>
+                        <Badge className={`bg-gradient-to-r ${item.color} text-primary-foreground border-0 px-6 py-2 text-sm font-bold shadow-lg`}>
                           {item.stats.label}: {item.stats.value}
                         </Badge>
                       </div>
@@ -488,7 +488,7 @@ export const Home = () => {
                             className="flex items-center justify-start gap-3 text-left"
                           >
                             <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${item.color} flex items-center justify-center flex-shrink-0`}>
-                              <CheckCircle className="w-4 h-4 text-white" />
+                              <CheckCircle className="w-4 h-4 text-primary-foreground" />
                             </div>
                             <span className="text-sm text-foreground group-hover:text-primary transition-colors font-medium">
                               {feature}
@@ -513,7 +513,7 @@ export const Home = () => {
                         transition={{ duration: 0.5 }}
                         className={`w-16 h-16 rounded-full bg-gradient-to-r ${item.color} flex items-center justify-center shadow-2xl ring-4 ring-white/20 hover:ring-white/40 transition-all duration-300`}
                       >
-                        <ArrowRight className="w-8 h-8 text-white" />
+                        <ArrowRight className="w-8 h-8 text-primary-foreground" />
                       </motion.div>
                     </motion.div>
                   )}
@@ -662,7 +662,7 @@ export const Home = () => {
               </span>
             </h2>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-              Join PAGS and let your fans invest in your success. 
+              Join BLOK and let your fans invest in your success. 
               <span className="text-primary font-semibold"> Create NFTs, earn royalties, and build a sustainable music career. </span>
             </p>
           </motion.div>
@@ -712,11 +712,11 @@ export const Home = () => {
                       transition={{ duration: 0.6 }}
                       className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${benefit.color} flex items-center justify-center mx-auto mb-6 shadow-xl ring-4 ring-white/10 group-hover:ring-white/20 transition-all duration-500`}
                     >
-                      <benefit.icon className="w-10 h-10 text-white" />
+                      <benefit.icon className="w-10 h-10 text-primary-foreground" />
                     </motion.div>
 
                     {/* Content */}
-                    <h3 className="text-2xl font-bold mb-4 group-hover:text-emerald-400 transition-colors">
+                    <h3 className="text-2xl font-bold mb-4 group-hover:text-primary transition-colors">
                       {benefit.title}
                     </h3>
                     
@@ -736,9 +736,9 @@ export const Home = () => {
                           className="flex items-center justify-center gap-3"
                         >
                           <div className={`w-6 h-6 rounded-full bg-gradient-to-r ${benefit.color} flex items-center justify-center flex-shrink-0`}>
-                            <CheckCircle className="w-3 h-3 text-white" />
+                            <CheckCircle className="w-3 h-3 text-primary-foreground" />
                           </div>
-                          <span className="text-sm text-foreground group-hover:text-emerald-300 transition-colors font-medium">
+                          <span className="text-sm text-foreground group-hover:text-primary transition-colors font-medium">
                             {feature}
                           </span>
                         </motion.div>
@@ -775,7 +775,7 @@ export const Home = () => {
                       Your Talent?
                     </h3>
                     <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                      Join hundreds of artists who are already earning sustainable income from their music on PAGS
+                      Join hundreds of artists who are already earning sustainable income from their music on BLOK
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
@@ -890,7 +890,7 @@ export const Home = () => {
                       id: 'general-1',
                       question: 'What exactly am I buying when I purchase a music NFT?',
                       answer:
-                        "When you purchase a music NFT on PAGS, you're buying a percentage of ownership in that specific song. This includes rights to future royalties from streaming, licensing, and sales. You also receive PAGS tokens that represent your stake in the platform's success.",
+                        "When you purchase a music NFT on BLOK, you're buying a percentage of ownership in that specific song. This includes rights to future royalties from streaming, licensing, and sales. You also receive BLOK tokens that represent your stake in the platform's success.",
                     },
                     {
                       id: 'general-2',
@@ -979,9 +979,9 @@ export const Home = () => {
                     },
                     {
                       id: 'finance-4',
-                      question: 'What are PAGS tokens and how do I use them?',
+                      question: 'What are BLOK tokens and how do I use them?',
                       answer:
-                        "PAGS tokens are the platform's native currency. You earn them through NFT ownership, can stake them for additional rewards, use them for governance voting, and trade them on decentralized exchanges.",
+                        "BLOK tokens are the platform's native currency. You earn them through NFT ownership, can stake them for additional rewards, use them for governance voting, and trade them on decentralized exchanges.",
                     },
                   ].map((faq) => (
                     <motion.div
@@ -1042,9 +1042,9 @@ export const Home = () => {
                 {[
                   {
                     id: 'tech-1',
-                    question: 'Which blockchain does PAGS use?',
+                    question: 'Which blockchain does BLOK use?',
                     answer:
-                      'PAGS is built on Ethereum for maximum security and compatibility. We also support Layer 2 solutions like Polygon for lower transaction fees. Your NFTs are fully compatible with all major wallets and marketplaces.',
+                      'BLOK is built on Ethereum for maximum security and compatibility. We also support Layer 2 solutions like Polygon for lower transaction fees. Your NFTs are fully compatible with all major wallets and marketplaces.',
                   },
                   {
                     id: 'tech-2',
@@ -1116,7 +1116,7 @@ export const Home = () => {
             >
               <h3 className="text-2xl font-bold mb-4">Still have questions?</h3>
               <p className="text-muted-foreground mb-6">
-                Our team is here to help you understand every aspect of music ownership on PAGS
+                Our team is here to help you understand every aspect of music ownership on BLOK
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <Button

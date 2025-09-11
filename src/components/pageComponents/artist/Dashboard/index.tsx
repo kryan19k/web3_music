@@ -324,7 +324,7 @@ export function ArtistDashboard() {
                 <AvatarFallback className="text-2xl">{artistData.name[0]}</AvatarFallback>
               </Avatar>
               {artistData.verified && (
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
                   <Award className="w-3 h-3 text-white" />
                 </div>
               )}
@@ -345,15 +345,15 @@ export function ArtistDashboard() {
               </p>
               <div className="flex items-center gap-6 text-sm">
                 <div className="flex items-center gap-1">
-                  <Star className="w-4 h-4 text-yellow-500" />
+                  <Star className="w-4 h-4 text-primary" />
                   <span>{artistData.averageRating} rating</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Music className="w-4 h-4" />
+                  <Music className="w-4 h-4 text-primary" />
                   <span>{artistData.totalTracks} tracks</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Headphones className="w-4 h-4" />
+                  <Headphones className="w-4 h-4 text-primary" />
                   <span>{artistData.monthlyListeners.toLocaleString()} monthly listeners</span>
                 </div>
               </div>
@@ -370,7 +370,7 @@ export function ArtistDashboard() {
               </Button>
               <TrackUploadModal 
                 buttonText="Upload Track"
-                buttonVariant="gradient"
+                buttonVariant="default"
                 onTrackCreated={() => {
                   toast.success('Track added to your collection!')
                 }} 
@@ -426,8 +426,8 @@ export function ArtistDashboard() {
                   <Card>
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between mb-4">
-                        <DollarSign className="w-8 h-8 text-green-500" />
-                        <Badge className="bg-green-500/10 text-green-500 border-green-500/20">
+                        <DollarSign className="w-8 h-8 text-primary" />
+                        <Badge className="bg-primary/10 text-primary border-primary/20">
                           +12.4%
                         </Badge>
                       </div>
@@ -447,8 +447,8 @@ export function ArtistDashboard() {
                   <Card>
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between mb-4">
-                        <Headphones className="w-8 h-8 text-blue-500" />
-                        <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20">
+                        <Headphones className="w-8 h-8 text-primary" />
+                        <Badge className="bg-primary/10 text-primary border-primary/20">
                           +8.2%
                         </Badge>
                       </div>
@@ -466,8 +466,8 @@ export function ArtistDashboard() {
                   <Card>
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between mb-4">
-                        <Users className="w-8 h-8 text-purple-500" />
-                        <Badge className="bg-purple-500/10 text-purple-500 border-purple-500/20">
+                        <Users className="w-8 h-8 text-primary" />
+                        <Badge className="bg-primary/10 text-primary border-primary/20">
                           +15.7%
                         </Badge>
                       </div>
@@ -485,8 +485,8 @@ export function ArtistDashboard() {
                   <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/20">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between mb-4">
-                        <Zap className="w-8 h-8 text-yellow-500" />
-                        <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20">
+                        <Zap className="w-8 h-8 text-accent" />
+                        <Badge className="bg-accent/10 text-accent border-accent/20">
                           BLOK
                         </Badge>
                       </div>
@@ -516,16 +516,16 @@ export function ArtistDashboard() {
                           >
                             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                               {activity.type === 'sale' && (
-                                <DollarSign className="w-4 h-4 text-green-500" />
+                                <DollarSign className="w-4 h-4 text-primary" />
                               )}
                               {activity.type === 'stream' && (
-                                <Play className="w-4 h-4 text-blue-500" />
+                                <Play className="w-4 h-4 text-primary" />
                               )}
                               {activity.type === 'follow' && (
-                                <Users className="w-4 h-4 text-purple-500" />
+                                <Users className="w-4 h-4 text-primary" />
                               )}
                               {activity.type === 'review' && (
-                                <Star className="w-4 h-4 text-yellow-500" />
+                                <Star className="w-4 h-4 text-primary" />
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -585,12 +585,12 @@ export function ArtistDashboard() {
                     <CardContent>
                       <div className="text-center space-y-4">
                         <div>
-                          <p className="text-3xl font-bold text-green-500">
+                          <p className="text-3xl font-bold text-primary">
                             ${artistData.pendingPayouts.toFixed(2)}
                           </p>
                           <p className="text-sm text-muted-foreground">Available to withdraw</p>
                         </div>
-                        <Button className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600">
+                        <Button className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90">
                           <Download className="w-4 h-4 mr-2" />
                           Withdraw
                         </Button>

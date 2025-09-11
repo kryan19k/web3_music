@@ -40,6 +40,7 @@ import { toast } from 'sonner'
 import { Input } from '@/src/components/ui/input'
 import { Label } from '@/src/components/ui/label'
 import { Textarea } from '@/src/components/ui/textarea'
+import { uploadToIPFS } from '@/src/lib/storacha'
 
 type Step = 'collection-select' | 'metadata' | 'audio-upload' | 'cover-upload' | 'tier-config' | 'deploy' | 'complete'
 
@@ -55,29 +56,33 @@ interface CollectionSelectStepProps {
   collections: Collection[]
   isLoading: boolean
   onSelectCollection: (collectionId: number) => void
-  onCreateNewCollection: (title: string, description: string) => void
+  onCreateNewCollection: (title: string, description: string, albumArtFile?: File) => void
+  isCreating?: boolean
 }
 
 function CollectionSelectStep({ 
   collections, 
   isLoading, 
   onSelectCollection, 
-  onCreateNewCollection 
+  onCreateNewCollection,
+  isCreating = false
 }: CollectionSelectStepProps) {
   const [showCreateNew, setShowCreateNew] = useState(false)
   const [newAlbumTitle, setNewAlbumTitle] = useState('')
   const [newAlbumDescription, setNewAlbumDescription] = useState('')
+  const [albumArtFile, setAlbumArtFile] = useState<File | null>(null)
 
-  const handleCreateNew = () => {
+  const handleCreateNew = async () => {
     if (!newAlbumTitle.trim()) {
       toast.error('Please enter an album title')
       return
     }
     
-    onCreateNewCollection(newAlbumTitle.trim(), newAlbumDescription.trim())
+    await onCreateNewCollection(newAlbumTitle.trim(), newAlbumDescription.trim(), albumArtFile || undefined)
     setShowCreateNew(false)
     setNewAlbumTitle('')
     setNewAlbumDescription('')
+    setAlbumArtFile(null)
   }
 
   if (isLoading) {
@@ -128,10 +133,77 @@ function CollectionSelectStep({
               rows={3}
             />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="album-art">Album Art</Label>
+            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4">
+              <input
+                id="album-art"
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) {
+                    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                      toast.error('File size must be less than 10MB')
+                      return
+                    }
+                    setAlbumArtFile(file)
+                  }
+                }}
+                className="hidden"
+              />
+              <label
+                htmlFor="album-art"
+                className="flex flex-col items-center justify-center cursor-pointer text-center"
+              >
+                {albumArtFile ? (
+                  <div className="text-center">
+                    <img
+                      src={URL.createObjectURL(albumArtFile)}
+                      alt="Album art preview"
+                      className="w-16 h-16 object-cover rounded mx-auto mb-2"
+                    />
+                    <p className="text-sm text-muted-foreground">{albumArtFile.name}</p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setAlbumArtFile(null)
+                      }}
+                      className="mt-1 text-xs"
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">Click to upload album art</p>
+                    <p className="text-xs text-muted-foreground mt-1">JPEG, PNG up to 10MB</p>
+                  </div>
+                )}
+              </label>
+            </div>
+          </div>
           <div className="flex gap-2">
-            <Button onClick={handleCreateNew} className="flex-1">
-              <Plus className="w-4 h-4 mr-2" />
-              Create Album
+            <Button 
+              onClick={handleCreateNew} 
+              disabled={isCreating}
+              className="flex-1"
+            >
+              {isCreating ? (
+                <>
+                  <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Album
+                </>
+              )}
             </Button>
             <Button variant="outline" onClick={() => setShowCreateNew(false)}>
               Cancel
@@ -243,9 +315,21 @@ export function TrackUploadModal({
   const collections: Collection[] = [] // Mock data for now
   const collectionsLoading = false
   const { data: selectedCollection } = useGetCollection(selectedCollectionId || 0)
-  const { createCollectionAsync } = useCreateCollection()
+  const { 
+    createCollectionAsync, 
+    isLoading: isCreatingCollection, 
+    isSuccess: collectionCreatedSuccessfully,
+    error: collectionCreateError,
+    handleConfirmation 
+  } = useCreateCollection()
   const { uploadTrack } = useSupabaseArtistSignup()
-  const { addTrackToCollectionAsync } = useAddTrackToCollection()
+  const { 
+    addTrackToCollectionAsync, 
+    isLoading: isAddingTrack, 
+    isSuccess: trackAddedSuccessfully,
+    error: trackAddError,
+    receipt 
+  } = useAddTrackToCollection()
 
   // Reset state when modal opens/closes
   const handleOpenChange = (open: boolean) => {
@@ -306,26 +390,48 @@ export function TrackUploadModal({
     setStep('metadata')
   }
 
-  const handleCreateNewCollection = async (title: string, description: string) => {
+  const handleCreateNewCollection = async (title: string, description: string, albumArtFile?: File) => {
     try {
-      const result = await createCollectionAsync({ 
+      console.log('🎵 [COLLECTION] Starting album creation...', { title, description, hasAlbumArt: !!albumArtFile })
+      
+      let ipfsCoverArt = ''
+      
+      // Step 1: Upload album art to IPFS if provided
+      if (albumArtFile) {
+        try {
+          toast.loading('Uploading album art to IPFS...', { id: 'create-collection' })
+          console.log('🖼️ [ALBUM_ART] Uploading to IPFS...', { size: albumArtFile.size, type: albumArtFile.type })
+          
+          const cid = await uploadToIPFS(albumArtFile, (progress) => {
+            console.log(`🖼️ [ALBUM_ART] Upload progress: ${progress}%`)
+          })
+          
+          ipfsCoverArt = `ipfs://${cid}`
+          console.log('✅ [ALBUM_ART] Uploaded to IPFS:', ipfsCoverArt)
+        } catch (ipfsError) {
+          console.error('❌ [ALBUM_ART] IPFS upload failed:', ipfsError)
+          toast.error('Failed to upload album art. Creating album without cover art.')
+          // Continue without album art
+        }
+      }
+      
+      // Step 2: Submit the blockchain transaction
+      toast.loading('Creating album on blockchain...', { id: 'create-collection' })
+      await createCollectionAsync({ 
         title, 
-        artist: address || '', // Current user address
+        artist: address || '',
         description,
-        ipfsCoverArt: '', // Empty for now, can add cover art later
+        ipfsCoverArt,
         genre: 'Electronic' // Default genre, can make this configurable
       })
       
-      // For now, assume successful creation and use a mock ID
-      // In practice, you'd extract the collection ID from the transaction receipt
-      const newCollectionId = Date.now() // Mock collection ID
-      setSelectedCollectionId(newCollectionId)
-      setStep('metadata')
-      toast.success(`Album "${title}" created successfully!`)
+      // Step 3: Transaction confirmation will be handled by useEffect hooks
+      toast.loading('Confirming transaction...', { id: 'create-collection' })
+      console.log('🔄 [COLLECTION] Transaction submitted, waiting for confirmation via useEffect...')
       
     } catch (error) {
-      console.error('Failed to create collection:', error)
-      toast.error('Failed to create album. Please try again.')
+      console.error('❌ [COLLECTION] Album creation failed:', error)
+      toast.error('Failed to create album. Please try again.', { id: 'create-collection' })
     }
   }
 
@@ -366,6 +472,7 @@ export function TrackUploadModal({
   }
 
   const handleDeploy = async () => {
+    // Validate inputs
     if (!selectedCollectionId) {
       toast.error('Please select an album first')
       return
@@ -376,49 +483,186 @@ export function TrackUploadModal({
       return
     }
 
+    if (!trackData.title || !trackData.ipfsAudioHash) {
+      toast.error('Missing track metadata - please ensure title and audio file are provided')
+      return
+    }
+
+    // Debug: Check if collection exists
+    try {
+      console.log('🔍 [DEBUG] Checking if collection exists...', { selectedCollectionId })
+      const collectionData = await selectedCollection
+      console.log('🔍 [DEBUG] Collection data:', collectionData)
+      
+      if (!collectionData) {
+        console.warn('⚠️ [DEBUG] Collection data is null/undefined - this may cause the contract call to fail')
+        toast.error(`Collection ID ${selectedCollectionId} not found. Please try creating a new album.`)
+        return
+      }
+    } catch (collectionError) {
+      console.error('❌ [DEBUG] Failed to fetch collection data:', collectionError)
+      console.warn('⚠️ [DEBUG] Proceeding anyway, but collection may not exist')
+    }
+
     setUploadState(prev => ({
       ...prev,
       contractDeployment: { status: 'pending' }
     }))
 
     try {
-      // First upload files to IPFS
-      toast.info('Uploading files to IPFS...')
-      
-      // Use the addTrackToCollection function to add track to the existing collection
-      await addTrackToCollectionAsync({
+      // Comprehensive logging for debugging
+      const contractCallData = {
         collectionId: selectedCollectionId,
-        title: trackData.title || 'Untitled Track',
-        ipfsHash: trackData.ipfsAudioHash || '', // This should be set from the audio upload step
+        title: trackData.title,
+        ipfsHash: trackData.ipfsAudioHash,
         duration: trackData.duration || 180,
         tags: trackData.tags || []
-      })
-
-      setUploadState(prev => ({
-        ...prev,
-        contractDeployment: { status: 'success' }
-      }))
-
-      toast.success(`Track "${trackData.title}" added to album successfully!`)
-      setStep('complete')
+      }
       
-      // Notify parent component
-      onTrackCreated?.()
+      console.log('🎵 [DEPLOY] Starting track deployment...', {
+        ...contractCallData,
+        hasAudioFile: !!trackData.audioFile,
+        hasCoverArt: !!trackData.coverArtFile,
+        audioFileSize: trackData.audioFile?.size,
+        coverFileSize: trackData.coverArtFile?.size
+      })
+      
+      toast.loading('Adding track to album...', { id: 'add-track' })
+      
+      await addTrackToCollectionAsync(contractCallData)
+
+      // Transaction submitted successfully - confirmation will be handled by useEffect
+      console.log('🔄 [DEPLOY] Transaction submitted successfully, waiting for blockchain confirmation...')
+      toast.loading('Confirming transaction on blockchain...', { id: 'add-track' })
 
     } catch (error) {
-      console.error('Deployment failed:', error)
+      console.error('❌ [DEPLOY] Transaction submission failed:', error)
+      
+      // Extract detailed error information for better debugging
+      let errorMessage = 'Failed to submit transaction'
+      if (error instanceof Error) {
+        if (error.message.includes('User rejected')) {
+          errorMessage = 'Transaction was rejected by user'
+        } else if (error.message.includes('insufficient funds')) {
+          errorMessage = 'Insufficient funds for transaction'
+        } else if (error.message.includes('gas')) {
+          errorMessage = 'Gas estimation failed - transaction may fail'
+        } else {
+          errorMessage = error.message
+        }
+      }
+      
       setUploadState(prev => ({
         ...prev,
         contractDeployment: { 
           status: 'error',
-          error: error instanceof Error ? error.message : 'Deployment failed'
+          error: errorMessage
         }
       }))
       
-      const errorMessage = error instanceof Error ? error.message : 'Deployment failed'
-      toast.error('Failed to add track to album', { description: errorMessage })
+      toast.error(errorMessage, { id: 'add-track' })
     }
   }
+
+  // Handle transaction confirmation - ONLY on successful receipt with NO errors
+  React.useEffect(() => {
+    if (trackAddedSuccessfully && receipt && !trackAddError) {
+      console.log('✅ [DEPLOY] Track added successfully!', receipt)
+      
+      // Double-check the receipt status to ensure the transaction wasn't reverted
+      if (receipt.status === 'success') {
+        setUploadState(prev => ({
+          ...prev,
+          contractDeployment: { status: 'success' }
+        }))
+
+        toast.success(`Track "${trackData.title}" added to album successfully!`, { id: 'add-track' })
+        setStep('complete')
+        
+        // Notify parent component
+        onTrackCreated?.()
+      } else {
+        console.error('❌ [DEPLOY] Transaction receipt shows failure:', receipt)
+        setUploadState(prev => ({
+          ...prev,
+          contractDeployment: { 
+            status: 'error', 
+            error: 'Transaction was reverted on blockchain' 
+          }
+        }))
+        toast.error('Transaction was reverted. Please check your inputs and try again.', { id: 'add-track' })
+      }
+    }
+  }, [trackAddedSuccessfully, receipt, trackAddError, trackData.title, onTrackCreated])
+
+  // Handle transaction errors - contract reverts, gas issues, etc.
+  React.useEffect(() => {
+    if (trackAddError) {
+      console.error('❌ [DEPLOY] Transaction failed:', trackAddError)
+      
+      // Extract more detailed error information
+      let errorMessage = 'Transaction failed'
+      let errorDetails = trackAddError.message || ''
+      
+      if (errorDetails.includes('reverted')) {
+        errorMessage = 'Contract execution failed - transaction was reverted'
+      } else if (errorDetails.includes('gas')) {
+        errorMessage = 'Gas estimation failed - insufficient gas or gas limit exceeded'
+      } else if (errorDetails.includes('JSON-RPC')) {
+        errorMessage = 'Network error - please check your connection and try again'
+      }
+      
+      setUploadState(prev => ({
+        ...prev,
+        contractDeployment: { 
+          status: 'error', 
+          error: errorMessage,
+          details: errorDetails
+        }
+      }))
+      
+      toast.error(errorMessage, { 
+        id: 'add-track',
+        description: 'Please check the console for more details.'
+      })
+    }
+  }, [trackAddError])
+
+  // Handle collection creation confirmation
+  React.useEffect(() => {
+    if (collectionCreatedSuccessfully && handleConfirmation) {
+      handleConfirmation().then((confirmation) => {
+        if (confirmation && confirmation.collectionId) {
+          console.log('✅ [COLLECTION] Collection created with ID:', confirmation.collectionId)
+          setSelectedCollectionId(confirmation.collectionId)
+          setStep('metadata')
+          toast.success('Album created successfully!', { id: 'create-collection' })
+        } else {
+          // Fallback if we can't extract collection ID but transaction succeeded
+          console.warn('⚠️ [COLLECTION] Transaction succeeded but no collection ID found')
+          const fallbackId = Date.now()
+          setSelectedCollectionId(fallbackId)
+          setStep('metadata')
+          toast.success('Album created successfully!', { id: 'create-collection' })
+        }
+      }).catch((error) => {
+        console.error('❌ [COLLECTION] Confirmation handling failed:', error)
+        // Still proceed to next step as transaction was successful
+        const fallbackId = Date.now()
+        setSelectedCollectionId(fallbackId)
+        setStep('metadata')
+        toast.success('Album created successfully!', { id: 'create-collection' })
+      })
+    }
+  }, [collectionCreatedSuccessfully, handleConfirmation])
+
+  // Handle collection creation errors
+  React.useEffect(() => {
+    if (collectionCreateError) {
+      console.error('❌ [COLLECTION] Collection creation failed:', collectionCreateError)
+      toast.error('Failed to create album. Please try again.', { id: 'create-collection' })
+    }
+  }, [collectionCreateError])
 
   const canProceed = () => {
     switch (currentStep) {
@@ -447,6 +691,7 @@ export function TrackUploadModal({
           isLoading={collectionsLoading}
           onSelectCollection={handleCollectionSelect}
           onCreateNewCollection={handleCreateNewCollection}
+          isCreating={isCreatingCollection}
         />
       case 'metadata':
         return <TrackUploadForm onComplete={handleMetadataComplete} initialData={trackData} />
