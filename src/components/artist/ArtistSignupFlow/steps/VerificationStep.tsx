@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
+import { ContractDebugButton } from '@/src/components/debug/ContractDebugButton'
 
 // Helper function to safely parse social links
 function getSocialLinks(socialLinksJson: any): { twitter?: string; instagram?: string; spotify?: string; soundcloud?: string; youtube?: string } {
@@ -347,6 +348,13 @@ export function VerificationStep() {
         transition={{ duration: 0.5, delay: 0.5 }}
         className="flex justify-between items-center"
       >
+        {/* Debug Section - Only in development */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-6">
+            <ContractDebugButton />
+          </div>
+        )}
+
         <Button
           variant="ghost"
           onClick={handleSkipVerification}

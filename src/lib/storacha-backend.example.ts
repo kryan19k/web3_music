@@ -163,3 +163,4 @@ app.post('/api/storacha-delegation', async (req, res) => {
  * 
  * 8. Update your frontend to use the delegation endpoint instead of direct client creation
  */`
+

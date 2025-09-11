@@ -338,3 +338,4 @@ export interface TierBenefits {
   maxGuestListSpots: number
   hasGovernanceRights: boolean
 }
+

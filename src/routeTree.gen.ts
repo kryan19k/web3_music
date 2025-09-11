@@ -23,6 +23,7 @@ import { Route as ProfileUserIdImport } from './routes/profile/$userId'
 import { Route as MarketplaceNftIdImport } from './routes/marketplace/$nftId'
 import { Route as ArtistUploadImport } from './routes/artist/upload'
 import { Route as ArtistDashboardImport } from './routes/artist/dashboard'
+import { Route as ArtistApplicationStatusImport } from './routes/artist/application-status'
 import { Route as ArtistSignupIndexImport } from './routes/artist/signup/index'
 import { Route as MarketplacePurchaseNftIdImport } from './routes/marketplace/purchase/$nftId'
 
@@ -114,6 +115,12 @@ const ArtistDashboardRoute = ArtistDashboardImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const ArtistApplicationStatusRoute = ArtistApplicationStatusImport.update({
+  id: '/artist/application-status',
+  path: '/artist/application-status',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const ArtistSignupIndexRoute = ArtistSignupIndexImport.update({
   id: '/artist/signup/',
   path: '/artist/signup/',
@@ -149,6 +156,13 @@ declare module '@tanstack/react-router' {
       path: '/playlists'
       fullPath: '/playlists'
       preLoaderRoute: typeof PlaylistsLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/artist/application-status': {
+      id: '/artist/application-status'
+      path: '/artist/application-status'
+      fullPath: '/artist/application-status'
+      preLoaderRoute: typeof ArtistApplicationStatusImport
       parentRoute: typeof rootRoute
     }
     '/artist/dashboard': {
@@ -244,6 +258,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminLazyRoute
   '/playlists': typeof PlaylistsLazyRoute
+  '/artist/application-status': typeof ArtistApplicationStatusRoute
   '/artist/dashboard': typeof ArtistDashboardRoute
   '/artist/upload': typeof ArtistUploadRoute
   '/marketplace/$nftId': typeof MarketplaceNftIdRoute
@@ -262,6 +277,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminLazyRoute
   '/playlists': typeof PlaylistsLazyRoute
+  '/artist/application-status': typeof ArtistApplicationStatusRoute
   '/artist/dashboard': typeof ArtistDashboardRoute
   '/artist/upload': typeof ArtistUploadRoute
   '/marketplace/$nftId': typeof MarketplaceNftIdRoute
@@ -281,6 +297,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminLazyRoute
   '/playlists': typeof PlaylistsLazyRoute
+  '/artist/application-status': typeof ArtistApplicationStatusRoute
   '/artist/dashboard': typeof ArtistDashboardRoute
   '/artist/upload': typeof ArtistUploadRoute
   '/marketplace/$nftId': typeof MarketplaceNftIdRoute
@@ -301,6 +318,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/playlists'
+    | '/artist/application-status'
     | '/artist/dashboard'
     | '/artist/upload'
     | '/marketplace/$nftId'
@@ -318,6 +336,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/playlists'
+    | '/artist/application-status'
     | '/artist/dashboard'
     | '/artist/upload'
     | '/marketplace/$nftId'
@@ -335,6 +354,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/playlists'
+    | '/artist/application-status'
     | '/artist/dashboard'
     | '/artist/upload'
     | '/marketplace/$nftId'
@@ -354,6 +374,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminLazyRoute: typeof AdminLazyRoute
   PlaylistsLazyRoute: typeof PlaylistsLazyRoute
+  ArtistApplicationStatusRoute: typeof ArtistApplicationStatusRoute
   ArtistDashboardRoute: typeof ArtistDashboardRoute
   ArtistUploadRoute: typeof ArtistUploadRoute
   MarketplaceNftIdRoute: typeof MarketplaceNftIdRoute
@@ -372,6 +393,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminLazyRoute: AdminLazyRoute,
   PlaylistsLazyRoute: PlaylistsLazyRoute,
+  ArtistApplicationStatusRoute: ArtistApplicationStatusRoute,
   ArtistDashboardRoute: ArtistDashboardRoute,
   ArtistUploadRoute: ArtistUploadRoute,
   MarketplaceNftIdRoute: MarketplaceNftIdRoute,
@@ -399,6 +421,7 @@ export const routeTree = rootRoute
         "/",
         "/admin",
         "/playlists",
+        "/artist/application-status",
         "/artist/dashboard",
         "/artist/upload",
         "/marketplace/$nftId",
@@ -421,6 +444,9 @@ export const routeTree = rootRoute
     },
     "/playlists": {
       "filePath": "playlists.lazy.tsx"
+    },
+    "/artist/application-status": {
+      "filePath": "artist/application-status.tsx"
     },
     "/artist/dashboard": {
       "filePath": "artist/dashboard.tsx"

@@ -280,13 +280,43 @@ export function DeploymentStep({ onDeploy, isDeploying }: DeploymentStepProps) {
                         {error}
                       </p>
                     </div>
-                    <Button
-                      onClick={handleDeploy}
-                      variant="outline"
-                      className="px-6"
-                    >
-                      Try Again
-                    </Button>
+                    
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={handleDeploy}
+                        variant="outline"
+                        className="px-6"
+                      >
+                        Try Again
+                      </Button>
+                      
+                      <Button
+                        onClick={async () => {
+                          try {
+                            const { debugContractStatus } = await import('@/src/utils/contractVerification')
+                            const result = await debugContractStatus()
+                            console.log('🔍 Debug result:', result)
+                            
+                            if (!result.contract.deployed) {
+                              alert('❌ Contract not deployed at expected address!\n\nAddress: 0x2CC2287C9b72Bf2BDb194DF6Cac265d2BD3B2167\n\nYou need to deploy the MusicNFT contract first.')
+                            } else if (result.contract.tests?.some((t: any) => t.function.includes('addTrack') && !t.success)) {
+                              alert('❌ Contract missing addTrack function!\n\nThe deployed contract does not match the expected ABI.\nContract needs to be redeployed with the correct code.')
+                            } else if (!result.role.hasRole) {
+                              alert('⚠️ ARTIST_ROLE not granted!\n\nYou need to grant ARTIST_ROLE to your wallet address via the admin panel.')
+                            } else {
+                              alert('✅ Contract and role checks passed!\n\nThe issue might be elsewhere. Check console logs.')
+                            }
+                          } catch (err) {
+                            console.error('Debug failed:', err)
+                            alert('❌ Debug failed: ' + (err instanceof Error ? err.message : String(err)))
+                          }
+                        }}
+                        variant="outline"
+                        size="sm"
+                      >
+                        🔍 Debug Contract
+                      </Button>
+                    </div>
                   </div>
                 )}
 

@@ -187,20 +187,20 @@ export function CompleteStep() {
         className="space-y-4"
       >
         <div className="flex justify-center gap-4">
-          <Link to="/artist/dashboard">
+          <Link to="/artist/application-status">
             <Button
               className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 px-8 py-6 text-lg"
             >
-              <BarChart3 className="w-5 h-5 mr-2" />
-              Go to Dashboard
+              <CheckCircle className="w-5 h-5 mr-2" />
+              Check Application Status
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </Link>
           
-          <Link to="/artist/upload">
+          <Link to="/artist/dashboard">
             <Button variant="outline" className="px-8 py-6 text-lg">
-              <Music className="w-5 h-5 mr-2" />
-              Upload Another Track
+              <BarChart3 className="w-5 h-5 mr-2" />
+              Go to Dashboard
             </Button>
           </Link>
         </div>

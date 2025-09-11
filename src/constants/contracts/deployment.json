@@ -1,18 +1,18 @@
 {
   "network": "polygonAmoy",
   "chainId": 80002,
-  "deployedAt": "2025-09-09T03:16:22.636Z",
+  "deployedAt": "2025-09-10T23:41:17.155Z",
   "contracts": {
     "PAGSToken": {
-      "address": "0x6aDa86A24f405b3E751ebD00d7734b8ACFB874E2",
+      "address": "0xCCfBbca65c129381C367C67EcDC1271B880D1b05",
       "artifact": "PAGSToken"
     },
     "MusicNFT": {
-      "address": "0xa8C696FfCBf4F2845250C2b5A99351479e604ecd",
+      "address": "0x2CC2287C9b72Bf2BDb194DF6Cac265d2BD3B2167",
       "artifact": "MusicNFT"
     },
     "MusicNFTMetadata": {
-      "address": "0xF692DFee5037d3Ca937943638609a9865fa930EE",
+      "address": "0xAD77708c10CF1E1975cB29280Af2139686439bDB",
       "artifact": "MusicNFTMetadata"
     }
   }

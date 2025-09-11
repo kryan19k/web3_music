@@ -59,6 +59,16 @@ const defaultConfig = {
   appIcon: env.PUBLIC_APP_LOGO,
 } as const
 
+// Debug logging for wagmi configuration
+console.log('🔧 Wagmi Configuration Debug:', {
+  chainsCount: chains.length,
+  hasPolygonAmoy: chains.some(chain => chain.id === 80002),
+  polygonAmoyTransport: transports[80002] ? '✅ Configured' : '❌ Missing',
+  walletConnectProjectId: env.PUBLIC_WALLETCONNECT_PROJECT_ID ? '✅ Set' : '❌ Missing',
+  appName: env.PUBLIC_APP_NAME,
+  supportedChainIds: chains.map(chain => ({ id: chain.id, name: chain.name }))
+})
+
 const connectkitConfig = getDefaultConfig(defaultConfig)
 
 export const config = createConfig(connectkitConfig)

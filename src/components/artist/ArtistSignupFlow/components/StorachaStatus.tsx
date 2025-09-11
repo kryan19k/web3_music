@@ -207,3 +207,4 @@ export function StorachaStatus({ onStatusChange }: StorachaStatusProps) {
     </Card>
   )
 }
+

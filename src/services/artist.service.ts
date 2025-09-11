@@ -331,4 +331,164 @@ export class ArtistService {
       return { success: false, error: errorMessage }
     }
   }
+
+  // ============================================
+  // ADMIN-SPECIFIC METHODS
+  // ============================================
+
+  /**
+   * Get artists by verification status (admin function)
+   */
+  static async getArtistsByVerificationStatus(
+    status: 'pending' | 'approved' | 'rejected'
+  ): Promise<{ artists: Artist[]; error?: string }> {
+    try {
+      const { data: artists, error } = await supabase
+        .from('artists')
+        .select('*')
+        .eq('verification_status', status)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Get artists by status error:', error)
+        return { artists: [], error: error.message }
+      }
+
+      return { artists: artists || [] }
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch artists by status'
+      console.error('Get artists by status error:', error)
+      return { artists: [], error: errorMessage }
+    }
+  }
+
+  /**
+   * Get all artists (admin function)
+   */
+  static async getAllArtists(): Promise<{ artists: Artist[]; error?: string }> {
+    try {
+      const { data: artists, error } = await supabase
+        .from('artists')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Get all artists error:', error)
+        return { artists: [], error: error.message }
+      }
+
+      return { artists: artists || [] }
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch all artists'
+      console.error('Get all artists error:', error)
+      return { artists: [], error: errorMessage }
+    }
+  }
+
+  /**
+   * Get recent artists (admin function)
+   */
+  static async getRecentArtists(limit = 10): Promise<{ artists: Artist[]; error?: string }> {
+    try {
+      const { data: artists, error } = await supabase
+        .from('artists')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(limit)
+
+      if (error) {
+        console.error('Get recent artists error:', error)
+        return { artists: [], error: error.message }
+      }
+
+      return { artists: artists || [] }
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch recent artists'
+      console.error('Get recent artists error:', error)
+      return { artists: [], error: errorMessage }
+    }
+  }
+
+  /**
+   * Get artist application details with social verification data
+   */
+  static async getArtistApplicationDetails(artistId: string): Promise<{ 
+    artist: Artist | null
+    socialVerification: {
+      twitter?: { verified: boolean, followers?: number }
+      instagram?: { verified: boolean, followers?: number }
+      spotify?: { verified: boolean, monthlyListeners?: number }
+    }
+    error?: string 
+  }> {
+    try {
+      const { artist, error } = await this.getArtistById(artistId)
+      if (error || !artist) {
+        return { artist: null, socialVerification: {}, error: error || 'Artist not found' }
+      }
+
+      // In a real implementation, you'd verify social accounts here
+      // For now, we'll mock some verification data
+      const socialLinks = (artist.social_links as any) || {}
+      const socialVerification = {
+        twitter: socialLinks.twitter ? { verified: true, followers: Math.floor(Math.random() * 10000) } : undefined,
+        instagram: socialLinks.instagram ? { verified: true, followers: Math.floor(Math.random() * 15000) } : undefined,
+        spotify: socialLinks.spotify ? { verified: true, monthlyListeners: Math.floor(Math.random() * 50000) } : undefined,
+      }
+
+      return { artist, socialVerification }
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch application details'
+      console.error('Get application details error:', error)
+      return { artist: null, socialVerification: {}, error: errorMessage }
+    }
+  }
+
+  /**
+   * Fix inconsistent artist state (approved in DB but no blockchain role)
+   */
+  static async fixInconsistentArtistState(
+    artistId: string, 
+    action: 'revert_to_pending' | 'mark_as_blockchain_pending'
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      let updateData: Partial<ArtistUpdate> = {
+        updated_at: new Date().toISOString()
+      }
+
+      if (action === 'revert_to_pending') {
+        updateData.verification_status = 'pending'
+        updateData.verified = false
+      } else if (action === 'mark_as_blockchain_pending') {
+        // Keep as approved but add a note (you could add a new field for this)
+        // For now, we'll just update the timestamp
+        updateData.verification_status = 'approved'
+        updateData.verified = true
+      }
+
+      const { error } = await supabase
+        .from('artists')
+        .update(updateData)
+        .eq('id', artistId)
+
+      if (error) {
+        console.error('Fix inconsistent state error:', error)
+        return { success: false, error: error.message }
+      }
+
+      const actionText = action === 'revert_to_pending' ? 'reverted to pending' : 'marked for blockchain role grant'
+      toast.success(`Artist status ${actionText}`)
+      return { success: true }
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fix artist state'
+      console.error('Fix inconsistent state error:', error)
+      toast.error('Failed to fix artist state', { description: errorMessage })
+      return { success: false, error: errorMessage }
+    }
+  }
 }

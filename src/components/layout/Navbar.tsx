@@ -10,6 +10,7 @@ import {
   NavigationMenuTrigger,
 } from '@/src/components/ui/navigation-menu'
 import { ConnectWalletButton } from '@/src/components/web3/ConnectWalletButton'
+import { NetworkSwitcher } from '@/src/components/web3/NetworkSwitcher'
 import { ThemeToggle } from '@/src/components/ui/ThemeToggle'
 import { useTheme } from '@/src/contexts/ThemeContext'
 import { cn } from '@/src/lib/utils'
@@ -58,31 +59,52 @@ export function Navbar() {
         {/* Logo */}
         <Link
           to="/"
-          className="flex items-center gap-2 group"
+          className="flex items-center gap-0 group-hover:gap-3"
         >
           <motion.div
             className="relative"
             whileHover={{ scale: 1.05 }}
             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
           >
-            <div className="  flex items-center justify-center">
-              <img
-                src="/logo.png"
-                alt="Pags Music"
-                width={80}
-                height={80}
-              />
+            <div className="flex items-center gap-00">
+              {/* Round Logo */}
+              <div className="relative">
+                <img
+                  src="/logogray.png"
+                  alt="Pags Music Logo"
+                  width={80}
+                  height={80}
+                  className="dark:hidden dim:hidden"
+                />
+                <img
+                  src="/logowhite.png"
+                  alt="Pags Music Logo"
+                  width={80}
+                  height={80}
+                  className="hidden dark:block dim:block"
+                />
+                
+              </div>
+              
+              {/* Text Logo */}
+              <div>
+                <img
+                  src="/textdark.png"
+                  alt="Pags Music"
+                  width={150}
+                  height={80}
+                  className="dark:hidden dim:hidden"
+                />
+                <img
+                  src="/logotext.png"
+                  alt="Pags Music"
+                  width={150}
+                  height={80}
+                  className="hidden dark:block dim:block"
+                />
+              </div>
             </div>
-            <motion.div
-              className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 opacity-0 group-hover:opacity-20"
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
-            />
           </motion.div>
-          <div className="flex flex-col">
-            <span className="font-bold text-lg gradient-text">Pags</span>
-            <span className="text-xs text-muted-foreground -mt-1">Music</span>
-          </div>
         </Link>
 
         {/* Desktop Navigation */}
@@ -244,6 +266,11 @@ export function Navbar() {
             <Search className="w-4 h-4" />
           </Button>
 
+          {/* Network Switcher */}
+          <div className="hidden md:block">
+            <NetworkSwitcher variant="compact" />
+          </div>
+
           {/* Theme Toggle */}
           <ThemeToggle variant="dropdown" className="hidden md:flex" />
 
@@ -373,6 +400,14 @@ export function Navbar() {
                   </span>
                 </div>
                 <ThemeToggle variant="dropdown" showTooltip={false} />
+              </div>
+
+              {/* Mobile Network Switcher */}
+              <div className="px-3 py-2">
+                <div className="flex flex-col gap-2">
+                  <span className="text-sm text-muted-foreground">Network</span>
+                  <NetworkSwitcher variant="default" />
+                </div>
               </div>
 
               {/* Mobile Connect Wallet */}

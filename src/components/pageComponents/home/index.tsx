@@ -3,7 +3,7 @@ import { Badge } from '@/src/components/ui/badge'
 import { Button } from '@/src/components/ui/button'
 import { Card, CardContent } from '@/src/components/ui/card'
 import { FeaturedArtistsHero } from '@/src/components/ui/FeaturedArtistsHero'
-import Spline from '@splinetool/react-spline'
+// Removed heavy Spline React component - using native viewer instead
 import { Link } from '@tanstack/react-router'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -24,25 +24,113 @@ import {
   Wallet,
   Flame,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 
 export const Home = () => {
   const [openFaq, setOpenFaq] = useState<string | null>(null)
+  const [loadSpline, setLoadSpline] = useState(false)
+  const [splineLoaded, setSplineLoaded] = useState(false)
+  const heroRef = useRef<HTMLDivElement>(null)
 
-  const toggleFaq = (id: string) => {
+  const toggleFaq = useCallback((id: string) => {
     setOpenFaq(openFaq === id ? null : id)
-  }
+  }, [openFaq])
+
+  // Load Spline viewer script and initialize
+  useEffect(() => {
+    const loadSplineViewer = async () => {
+      // Load the Spline viewer script
+      if (!document.querySelector('script[src*="spline-viewer"]')) {
+        const script = document.createElement('script')
+        script.type = 'module'
+        script.src = 'https://unpkg.com/@splinetool/viewer@1.10.57/build/spline-viewer.js'
+        document.head.appendChild(script)
+        
+        script.onload = () => {
+          setTimeout(() => setLoadSpline(true), 1000) // Small delay for script initialization
+        }
+      } else {
+        setLoadSpline(true)
+      }
+    }
+
+    const timer = setTimeout(loadSplineViewer, 1500) // Load after 1.5 seconds
+    return () => clearTimeout(timer)
+  }, [])
+
+  // Intersection observer for performance
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !loadSpline) {
+            setLoadSpline(true)
+          }
+        })
+      },
+      { threshold: 0.1 }
+    )
+
+    if (heroRef.current) {
+      observer.observe(heroRef.current)
+    }
+
+    return () => observer.disconnect()
+  }, [loadSpline])
+
+  // Memoize static animation values to prevent recalculation
+  const staticParticles = useMemo(() => {
+    return Array.from({ length: 8 }, (_, i) => ({
+      id: i,
+      initialX: Math.random() * 1200,
+      initialY: 900,
+      duration: Math.random() * 20 + 15,
+      delay: Math.random() * 5,
+    }))
+  }, [])
+
+  const staticGradientParticles = useMemo(() => {
+    return Array.from({ length: 4 }, (_, i) => ({
+      id: i,
+      initialX: Math.random() * 1200,
+      initialY: 900,
+      duration: Math.random() * 25 + 20,
+      delay: Math.random() * 10,
+    }))
+  }, [])
 
   return (
     <div className="relative min-h-screen">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Spline 3D Scene Background */}
+      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Smart Spline 3D Scene Background */}
         <div className="absolute inset-0 w-full h-full">
-          <Spline
-            scene="https://prod.spline.design/xQeXGXgGqdq2Zwuv/scene.splinecode"
-            className="w-full h-full object-cover"
-          />
+          {!loadSpline ? (
+            // Lightweight placeholder while Spline loads
+            <div className="w-full h-full bg-gradient-to-br from-purple-900/60 via-background/80 to-pink-900/60">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-500/20 via-transparent to-transparent animate-pulse" />
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-sm text-muted-foreground"
+                >
+                  Loading 3D Experience...
+                </motion.div>
+              </div>
+            </div>
+          ) : (
+            // Native Spline viewer - much more memory efficient
+            <spline-viewer 
+              url="https://prod.spline.design/xQeXGXgGqdq2Zwuv/scene.splinecode"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover'
+              }}
+              onLoad={() => setSplineLoaded(true)}
+            />
+          )}
         </div>
 
         {/* Gradient Overlay for better text readability */}
@@ -52,58 +140,52 @@ export const Home = () => {
         {/* Watermark Cover - Full Bottom */}
         <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-background via-background/95 to-transparent z-30" />
 
-        {/* Floating Music Notes Animation */}
+        {/* Optimized Floating Animation - Reduced particle count */}
         <div className="absolute inset-0 pointer-events-none">
-          {Array.from({ length: 15 }, (_, i) => {
-            const uniqueId = Math.random().toString(36).substr(2, 9)
-            return (
-              <motion.div
-                key={`floating-note-${i}-${uniqueId}`}
-                className="absolute w-2 h-2 bg-purple-400/40 rounded-full shadow-lg shadow-purple-500/20"
-                initial={{
-                  x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1200),
-                  y: typeof window !== 'undefined' ? window.innerHeight + 100 : 900,
-                }}
-                animate={{
-                  y: -100,
-                  x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1200),
-                }}
-                transition={{
-                  duration: Math.random() * 20 + 15,
-                  repeat: Number.POSITIVE_INFINITY,
-                  ease: 'linear',
-                  delay: Math.random() * 5,
-                }}
-              />
-            )
-          })}
+          {staticParticles.map((particle) => (
+            <motion.div
+              key={`floating-note-${particle.id}`}
+              className="absolute w-2 h-2 bg-purple-400/30 rounded-full shadow-lg shadow-purple-500/20"
+              initial={{
+                x: particle.initialX,
+                y: particle.initialY,
+              }}
+              animate={{
+                y: -100,
+                x: particle.initialX + 100,
+              }}
+              transition={{
+                duration: particle.duration,
+                repeat: Number.POSITIVE_INFINITY,
+                ease: 'linear',
+                delay: particle.delay,
+              }}
+            />
+          ))}
 
-          {/* Additional gradient particles for depth */}
-          {Array.from({ length: 8 }, (_, i) => {
-            const uniqueId = Math.random().toString(36).substr(2, 9)
-            return (
-              <motion.div
-                key={`gradient-particle-${i}-${uniqueId}`}
-                className="absolute w-3 h-3 bg-gradient-to-br from-pink-400/30 to-purple-400/30 rounded-full blur-sm"
-                initial={{
-                  x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1200),
-                  y: typeof window !== 'undefined' ? window.innerHeight + 100 : 900,
-                  scale: 0.5,
-                }}
-                animate={{
-                  y: -200,
-                  x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1200),
-                  scale: [0.5, 1.5, 0.5],
-                }}
-                transition={{
-                  duration: Math.random() * 25 + 20,
-                  repeat: Number.POSITIVE_INFINITY,
-                  ease: 'easeInOut',
-                  delay: Math.random() * 10,
-                }}
-              />
-            )
-          })}
+          {/* Reduced gradient particles */}
+          {staticGradientParticles.map((particle) => (
+            <motion.div
+              key={`gradient-particle-${particle.id}`}
+              className="absolute w-3 h-3 bg-gradient-to-br from-pink-400/20 to-purple-400/20 rounded-full blur-sm"
+              initial={{
+                x: particle.initialX,
+                y: particle.initialY,
+                scale: 0.5,
+              }}
+              animate={{
+                y: -200,
+                x: particle.initialX + 150,
+                scale: [0.5, 1.2, 0.5],
+              }}
+              transition={{
+                duration: particle.duration,
+                repeat: Number.POSITIVE_INFINITY,
+                ease: 'easeInOut',
+                delay: particle.delay,
+              }}
+            />
+          ))}
         </div>
 
         {/* Content */}
@@ -163,6 +245,18 @@ export const Home = () => {
                       <ArrowRight className="ml-2 w-5 h-5" />
                     </Button>
                   </Link>
+                  
+                  <Link to="/artist/signup">
+                    <Button
+                      size="lg"
+                      variant="default"
+                      className="relative bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-2xl shadow-emerald-500/30 hover:shadow-emerald-500/50 transform hover:scale-105 transition-all duration-300 px-10 sm:px-12 py-5 sm:py-6 text-xl sm:text-2xl w-full sm:w-auto overflow-hidden group"
+                    >
+                      <Music className="mr-2 w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
+                      Join as Artist
+                    </Button>
+                  </Link>
+                  
                   <Button
                     size="lg"
                     variant="outline"
@@ -263,29 +357,27 @@ export const Home = () => {
       </section>
 
       {/* How It Works - Enhanced Modern Design */}
-      <section className="relative py-24 overflow-hidden">
+      <section className="relative py-24 overflow-hidden bg-background">
         {/* Enhanced Animated Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 via-background to-pink-900/10" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(139,92,246,0.15),transparent)] opacity-60" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(236,72,153,0.15),transparent)] opacity-60" />
+        <div className="absolute inset-0 bg-background" />
         
-        {/* Floating Elements like Hero */}
+        {/* Minimal floating elements - reduced count */}
         <div className="absolute inset-0 pointer-events-none">
-          {Array.from({ length: 12 }, (_, i) => (
+          {Array.from({ length: 4 }, (_, i) => (
             <motion.div
               key={`floating-${i}`}
-              className="absolute w-2 h-2 bg-primary/30 rounded-full"
+              className="absolute w-2 h-2 bg-primary/20 rounded-full"
               initial={{
-                x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1200),
-                y: Math.random() * 800,
+                x: 200 + (i * 300),
+                y: 400,
               }}
               animate={{
-                y: [0, -150, 0],
-                opacity: [0.2, 0.8, 0.2],
-                scale: [0.5, 1.2, 0.5],
+                y: [400, 250, 400],
+                opacity: [0.2, 0.6, 0.2],
+                scale: [0.5, 1, 0.5],
               }}
               transition={{
-                duration: Math.random() * 15 + 15,
+                duration: 20 + (i * 5),
                 repeat: Infinity,
                 ease: 'easeInOut',
               }}
@@ -338,14 +430,14 @@ export const Home = () => {
               transition={{ duration: 2, ease: 'easeInOut', delay: 0.5 }}
             />
             
-            {/* Flowing particles along the line */}
+            {/* Simplified flowing particle */}
             <motion.div
               className="absolute top-1/2 left-0 w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full transform -translate-y-1/2 hidden lg:block shadow-lg"
               animate={{
-                x: [0, window?.innerWidth ? window.innerWidth - 400 : 800, 0],
+                x: [0, 800, 0],
               }}
               transition={{
-                duration: 8,
+                duration: 12,
                 repeat: Infinity,
                 ease: 'linear',
               }}
@@ -425,26 +517,8 @@ export const Home = () => {
                     {/* Animated gradient overlay */}
                     <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
                     
-                    {/* Floating particles on hover */}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-                      {Array.from({ length: 6 }, (_, i) => (
-                        <motion.div
-                          key={i}
-                          className={`absolute w-1 h-1 bg-gradient-to-r ${item.color} rounded-full`}
-                          initial={{ opacity: 0 }}
-                          animate={{
-                            x: [Math.random() * 300, Math.random() * 300],
-                            y: [Math.random() * 400, Math.random() * 400],
-                            opacity: [0, 1, 0],
-                          }}
-                          transition={{
-                            duration: 3,
-                            repeat: Infinity,
-                            delay: i * 0.2,
-                          }}
-                        />
-                      ))}
-                    </div>
+                    {/* Simplified hover effect */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-5 transition-opacity duration-500 pointer-events-none`} />
 
                     <CardContent className="p-0 text-center h-full flex flex-col relative z-10">
                       {/* Enhanced Icon Section */}
@@ -610,14 +684,245 @@ export const Home = () => {
         </div>
       </section>
 
+      {/* Artist Signup Section */}
+      <section className="relative py-32 bg-background overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0 bg-background" />
+        
+        {/* Minimal floating elements for artist section */}
+        <div className="absolute inset-0 pointer-events-none">
+          {Array.from({ length: 3 }, (_, i) => (
+            <motion.div
+              key={`artist-float-${i}`}
+              className="absolute w-3 h-3 bg-emerald-400/30 rounded-full shadow-lg shadow-emerald-500/20"
+              initial={{
+                x: 300 + (i * 400),
+                y: 300,
+              }}
+              animate={{
+                y: [300, 200, 300],
+                opacity: [0.3, 0.6, 0.3],
+                scale: [0.5, 1, 0.5],
+              }}
+              transition={{
+                duration: 15 + (i * 3),
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            />
+          ))}
+        </div>
+
+        <div className="relative z-10 container mx-auto px-4">
+          {/* Section Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-20"
+          >
+            <div className="flex items-center justify-center gap-3 mb-8">
+              <Badge className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30 px-6 py-2">
+                <Music className="w-4 h-4 mr-2" />
+                FOR ARTISTS
+              </Badge>
+              <Badge className="bg-gradient-to-r from-orange-500/20 to-red-500/20 text-orange-400 border-orange-500/30 px-6 py-2">
+                <Sparkles className="w-4 h-4 mr-2" />
+                EARN MORE
+              </Badge>
+            </div>
+            
+            <h2 className="text-5xl md:text-7xl font-bold mb-8 leading-tight">
+              Turn Your Music Into{' '}
+              <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
+                Revenue Streams
+              </span>
+            </h2>
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
+              Join PAGS and let your fans invest in your success. 
+              <span className="text-emerald-400 font-semibold"> Create NFTs, earn royalties, and build a sustainable music career. </span>
+            </p>
+          </motion.div>
+
+          {/* Artist Benefits Grid */}
+          <div className="grid lg:grid-cols-3 gap-8 mb-16">
+            {[
+              {
+                icon: DollarSign,
+                title: 'Multiple Revenue Streams',
+                description: 'Earn from NFT sales, streaming royalties, licensing deals, and fan investments. Your music works for you 24/7.',
+                features: ['NFT Primary Sales', 'Streaming Royalties', 'Sync & Licensing', 'Secondary Market Fees'],
+                color: 'from-emerald-400 to-teal-500',
+                bgGlow: 'shadow-emerald-500/20'
+              },
+              {
+                icon: Users,
+                title: 'Direct Fan Connection',
+                description: 'Build a community of invested fans who share in your success. Give them exclusive perks and experiences.',
+                features: ['Fan Investment', 'Exclusive Access', 'Community Building', 'Voting Rights'],
+                color: 'from-teal-400 to-cyan-500',
+                bgGlow: 'shadow-teal-500/20'
+              },
+              {
+                icon: TrendingUp,
+                title: 'Platform Growth',
+                description: 'Grow your career with our tools, analytics, and promotional support. We succeed when you succeed.',
+                features: ['Analytics Dashboard', 'Promotional Support', 'Career Tools', 'Industry Connections'],
+                color: 'from-cyan-400 to-blue-500',
+                bgGlow: 'shadow-cyan-500/20'
+              }
+            ].map((benefit, index) => (
+              <motion.div
+                key={benefit.title}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.2, duration: 0.8 }}
+                whileHover={{ y: -10, scale: 1.02 }}
+                className="group"
+              >
+                <Card className={`p-8 bg-gradient-to-br from-card/90 to-card/50 backdrop-blur-2xl border-2 border-emerald-500/20 hover:border-emerald-500/40 transition-all duration-500 group-hover:shadow-2xl ${benefit.bgGlow} min-h-[400px]`}>
+                  <CardContent className="p-0 text-center">
+                    {/* Icon */}
+                    <motion.div
+                      whileHover={{ rotate: 360, scale: 1.1 }}
+                      transition={{ duration: 0.6 }}
+                      className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${benefit.color} flex items-center justify-center mx-auto mb-6 shadow-xl ring-4 ring-white/10 group-hover:ring-white/20 transition-all duration-500`}
+                    >
+                      <benefit.icon className="w-10 h-10 text-white" />
+                    </motion.div>
+
+                    {/* Content */}
+                    <h3 className="text-2xl font-bold mb-4 group-hover:text-emerald-400 transition-colors">
+                      {benefit.title}
+                    </h3>
+                    
+                    <p className="text-muted-foreground leading-relaxed mb-6">
+                      {benefit.description}
+                    </p>
+
+                    {/* Features */}
+                    <div className="space-y-3">
+                      {benefit.features.map((feature, i) => (
+                        <motion.div
+                          key={feature}
+                          initial={{ opacity: 0, x: -20 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.1 * (i + 1) }}
+                          viewport={{ once: true }}
+                          className="flex items-center justify-center gap-3"
+                        >
+                          <div className={`w-6 h-6 rounded-full bg-gradient-to-r ${benefit.color} flex items-center justify-center flex-shrink-0`}>
+                            <CheckCircle className="w-3 h-3 text-white" />
+                          </div>
+                          <span className="text-sm text-foreground group-hover:text-emerald-300 transition-colors font-medium">
+                            {feature}
+                          </span>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Artist CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.8 }}
+            className="text-center"
+          >
+            <div className="max-w-4xl mx-auto">
+              <motion.div
+                initial={{ scale: 0.9 }}
+                whileInView={{ scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 1, duration: 0.6 }}
+              >
+                <Card className="p-12 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border-2 border-emerald-500/20 backdrop-blur-xl">
+                  <CardContent className="p-0">
+                    <h3 className="text-4xl md:text-5xl font-bold mb-6">
+                      Ready to{' '}
+                      <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                        Monetize
+                      </span>{' '}
+                      Your Talent?
+                    </h3>
+                    <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+                      Join hundreds of artists who are already earning sustainable income from their music on PAGS
+                    </p>
+
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+                      <Link to="/artist/signup">
+                        <motion.div
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <Button
+                            size="lg"
+                            className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-2xl shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all duration-300 px-12 py-6 text-xl rounded-full group"
+                          >
+                            <Music className="mr-3 w-6 h-6 group-hover:rotate-12 transition-transform duration-500" />
+                            Start Your Artist Journey
+                            <ArrowRight className="ml-3 w-6 h-6 group-hover:translate-x-1 transition-transform duration-300" />
+                          </Button>
+                        </motion.div>
+                      </Link>
+                      
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          className="border-2 border-emerald-400/30 text-emerald-400 hover:bg-emerald-400/10 backdrop-blur-xl px-12 py-6 text-xl rounded-full group"
+                        >
+                          <Play className="mr-3 w-6 h-6 group-hover:scale-110 transition-transform duration-300" />
+                          See Artist Success Stories
+                        </Button>
+                      </motion.div>
+                    </div>
+
+                    {/* Artist Stats */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 1.2 }}
+                      className="flex flex-col sm:flex-row items-center justify-center gap-8 text-sm text-muted-foreground"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Music className="w-5 h-5 text-emerald-500" />
+                        <span>350+ Artists Earning</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="w-5 h-5 text-teal-500" />
+                        <span>$480K+ Distributed</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5 text-cyan-500" />
+                        <span>15% Avg Monthly Growth</span>
+                      </div>
+                    </motion.div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Featured NFTs */}
       <FeaturedNFTs />
 
       {/* FAQ Section */}
-      <section className="relative py-32 bg-gradient-to-b from-background to-purple-950/20 overflow-hidden">
+      <section className="relative py-32 bg-background overflow-hidden">
         {/* Background Effects */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(139,92,246,0.1),transparent)] opacity-60" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(236,72,153,0.1),transparent)] opacity-60" />
+        <div className="absolute inset-0 bg-background" />
 
         <div className="relative z-10 container mx-auto px-4">
           {/* Section Header */}
@@ -912,7 +1217,7 @@ export const Home = () => {
       </section>
 
       {/* Call to Action */}
-      <section className="py-20 bg-gradient-to-r from-purple-500/10 to-pink-500/10">
+      <section className="py-20 bg-background">
         <div className="container mx-auto px-4 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

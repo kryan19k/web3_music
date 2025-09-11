@@ -151,6 +151,27 @@ export function useAdminRoleInfo(address?: Address) {
     query: { enabled: !!address && !!managerRole.data }
   })
 
+  // Debug admin hasRole calls for comparison
+  const { chain } = useAccount()
+  if (address && (hasAdminRole.data !== undefined || hasAdminRole.error)) {
+    console.log('🔍 COMPREHENSIVE DEBUG (ADMIN PANEL):', {
+      contractAddress: MUSIC_NFT_ADDRESS,
+      chainId: chain?.id,
+      chainName: chain?.name,
+      adminRole: defaultAdminRole.data,
+      managerRole: managerRole.data,
+      artistRole: artistRole.data,
+      address,
+      abiLength: MUSIC_NFT_ABI.length,
+      abiName: 'MUSIC_NFT_ABI',
+      hasAdminResult: hasAdminRole.data,
+      hasManagerResult: hasManagerRole.data,
+      adminError: hasAdminRole.error?.message,
+      managerError: hasManagerRole.error?.message,
+      source: 'ADMIN_PANEL'
+    })
+  }
+
   return {
     roles: {
       admin: defaultAdminRole.data,
@@ -462,20 +483,32 @@ export function useAdminGrantRole() {
 
   const grantRole = useMutation({
     mutationFn: async ({ role, account }: { role: string, account: Address }) => {
-      return writeContract({
-        address: MUSIC_NFT_ADDRESS,
-        abi: MUSIC_NFT_ABI,
-        functionName: 'grantRole',
-        args: [role as `0x${string}`, account],
-        // biome-ignore lint/suspicious/noExplicitAny: Wagmi type system requires any for complex contract interactions
-      } as any)
+      console.log('🔵 Grant role called with:', { role, account, contractAddress: MUSIC_NFT_ADDRESS })
+      
+      try {
+        const result = await writeContract({
+          address: MUSIC_NFT_ADDRESS,
+          abi: MUSIC_NFT_ABI,
+          functionName: 'grantRole',
+          args: [role as `0x${string}`, account],
+          // biome-ignore lint/suspicious/noExplicitAny: Wagmi type system requires any for complex contract interactions
+        } as any)
+        
+        console.log('🟢 Grant role writeContract result:', result)
+        return result
+      } catch (error) {
+        console.error('🔴 Grant role writeContract error:', error)
+        throw error
+      }
     },
-    onSuccess: () => {
-      toast.success('Role granted successfully!')
+    onSuccess: (data) => {
+      console.log('🎉 Grant role onSuccess:', data)
+      const hashStr = data != null ? String(data) : 'pending'
+      toast.success(`Role granted successfully! Transaction hash: ${hashStr}`)
     },
     onError: (error) => {
-      toast.error('Failed to grant role')
-      console.error('Grant role error:', error)
+      console.error('💥 Grant role onError:', error)
+      toast.error('Failed to grant role: ' + (error instanceof Error ? error.message : 'Unknown error'))
     },
   })
 

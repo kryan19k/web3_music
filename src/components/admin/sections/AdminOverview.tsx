@@ -64,18 +64,21 @@ export function AdminOverview() {
     const tierData = tiers[tier as Tier]
     if (!tierData) return null
     
-    const mintedPercent = tierData.maxSupply > 0 
-      ? (tierData.currentSupply / tierData.maxSupply) * 100 
+    // Contract returns tuple: [name, price, currentSupply, maxSupply, saleActive, remaining]
+    const [name, price, currentSupply, maxSupply, saleActive] = tierData
+    
+    const mintedPercent = Number(maxSupply) > 0 
+      ? (Number(currentSupply) / Number(maxSupply)) * 100 
       : 0
 
     return {
       tier: tier as Tier,
-      name: tierData.name,
-      minted: tierData.currentSupply || 0,
-      total: tierData.maxSupply || 0,
+      name: name,
+      minted: Number(currentSupply) || 0,
+      total: Number(maxSupply) || 0,
       percent: mintedPercent,
-      active: tierData.saleActive || false,
-      price: formatEther(tierData.price || 0n),
+      active: saleActive || false,
+      price: formatEther(price || 0n),
     }
   }).filter(Boolean)
 
@@ -100,10 +103,10 @@ export function AdminOverview() {
                   <CheckCircle className="h-6 w-6 text-green-500" />
                 )}
                 <div>
-                  <h3 className="font-medium">
+                  <h3 className="font-medium text-gray-800 dark:text-gray-200">
                     Platform Status: {platformStats.isPaused ? 'PAUSED' : 'ACTIVE'}
                   </h3>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-gray-800 dark:text-gray-200">
                     {platformStats.isPaused 
                       ? 'All platform functions are currently paused'
                       : 'Platform is operating normally'

@@ -1,5 +1,5 @@
 // Auto-generated ABI for MusicNFT contract
-// Generated on: 2025-09-10T00:07:23.416Z
+// Generated on: 2025-09-10T23:41:17.155Z
 // Contract: contracts/trackcontract.sol:MusicNFT
 
 export const MUSIC_NFT_ABI = [

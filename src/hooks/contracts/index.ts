@@ -78,6 +78,18 @@ export {
   useAdminContractData,
 } from './useAdminContract'
 
+// Export admin artist management hooks
+export {
+  useAdminPendingArtists,
+  useAdminRecentArtists,
+  useAdminArtistStats,
+  useAdminArtistById,
+  useAdminApproveArtist,
+  useAdminRejectArtist,
+  useAdminUpdateArtistStats,
+  useAdminArtistManagement,
+} from './useAdminArtistManagement'
+
 // Re-export contract constants
 export {
   CONTRACT_ADDRESSES,

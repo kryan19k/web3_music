@@ -23,7 +23,8 @@ import {
   Check,
   AlertCircle,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  Sparkles
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
@@ -231,13 +232,105 @@ export function FirstTrackStep() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="text-center py-12"
+            className="py-8"
           >
-            <Check className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold mb-2">Track Created Successfully!</h3>
-            <p className="text-muted-foreground">
-              Your music NFT is now live and ready for fans to discover.
-            </p>
+            {/* Success Header */}
+            <div className="text-center mb-8">
+              <Check className="w-16 h-16 text-green-500 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold mb-2">Track Created Successfully!</h3>
+              <p className="text-muted-foreground mb-6">
+                Your music NFT is now live on the Polygon blockchain and ready for fans to discover.
+              </p>
+            </div>
+
+            {/* Track Details */}
+            <div className="max-w-2xl mx-auto space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Music className="w-5 h-5" />
+                    Track Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Title</label>
+                      <p className="font-medium">{trackData.title || 'Untitled Track'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Genre</label>
+                      <p className="font-medium">{trackData.genre || 'Electronic'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Duration</label>
+                      <p className="font-medium">{trackData.duration || 180}s</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">BPM</label>
+                      <p className="font-medium">{trackData.bpm || 120}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Next Steps */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5" />
+                    What's Next?
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center mt-0.5">
+                      <span className="text-blue-600 text-sm font-medium">1</span>
+                    </div>
+                    <div>
+                      <p className="font-medium">Your NFT is being minted</p>
+                      <p className="text-sm text-muted-foreground">The blockchain is processing your transaction</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center mt-0.5">
+                      <span className="text-blue-600 text-sm font-medium">2</span>
+                    </div>
+                    <div>
+                      <p className="font-medium">Set up your marketplace listing</p>
+                      <p className="text-sm text-muted-foreground">Configure pricing and availability for your fans</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center mt-0.5">
+                      <span className="text-blue-600 text-sm font-medium">3</span>
+                    </div>
+                    <div>
+                      <p className="font-medium">Share and promote your music</p>
+                      <p className="text-sm text-muted-foreground">Start building your fanbase and earning from your art</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Complete Onboarding Button */}
+              <div className="text-center pt-4">
+                <Button 
+                  onClick={() => {
+                    // Complete the main onboarding flow
+                    completeOnboarding()
+                    toast.success('🎉 Welcome to PAGS!', {
+                      description: 'Your artist profile is complete. Start earning from your music!'
+                    })
+                  }}
+                  size="lg"
+                  className="w-full sm:w-auto"
+                >
+                  Complete Setup & Go to Dashboard
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            </div>
           </motion.div>
         )
       default:
