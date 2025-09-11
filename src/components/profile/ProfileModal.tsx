@@ -76,7 +76,7 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
               <div className="flex items-center gap-3 mb-2">
                 <h2 className="text-2xl font-bold">{mockProfile.name}</h2>
                 {mockProfile.verified && (
-                  <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20">
+                  <Badge className="bg-accent/10 text-accent border-accent/20">
                     <Award className="w-3 h-3 mr-1" />
                     Verified
                   </Badge>
@@ -96,7 +96,7 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-4 text-center">
-                <Music className="w-6 h-6 mx-auto mb-2 text-blue-500" />
+                <Music className="w-6 h-6 mx-auto mb-2 text-accent" />
                 <div className="font-bold text-xl">{mockProfile.stats.nftsOwned}</div>
                 <div className="text-sm text-muted-foreground">NFTs Owned</div>
               </CardContent>
@@ -104,7 +104,7 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
             <Card>
               <CardContent className="p-4 text-center">
-                <DollarSign className="w-6 h-6 mx-auto mb-2 text-green-500" />
+                <DollarSign className="w-6 h-6 mx-auto mb-2 text-primary" />
                 <div className="font-bold text-xl">
                   ${mockProfile.stats.totalSpent.toLocaleString()}
                 </div>
@@ -114,7 +114,7 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
             <Card>
               <CardContent className="p-4 text-center">
-                <Star className="w-6 h-6 mx-auto mb-2 text-yellow-500" />
+                <Star className="w-6 h-6 mx-auto mb-2 text-accent" />
                 <div className="font-bold text-xl">
                   {mockProfile.stats.blokEarned.toLocaleString()}
                 </div>
@@ -124,7 +124,7 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
             <Card>
               <CardContent className="p-4 text-center">
-                <Headphones className="w-6 h-6 mx-auto mb-2 text-purple-500" />
+                <Headphones className="w-6 h-6 mx-auto mb-2 text-primary" />
                 <div className="font-bold text-xl">
                   {mockProfile.stats.totalPlays.toLocaleString()}
                 </div>
@@ -163,7 +163,7 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                       </div>
                       <div className="flex justify-between">
                         <span>Collection value:</span>
-                        <span className="text-green-500">
+                        <span className="text-primary">
                           ${mockProfile.stats.totalSpent.toLocaleString()}
                         </span>
                       </div>
@@ -240,7 +240,7 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                         className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50"
                       >
                         <div className="flex items-center gap-3">
-                          <TrendingUp className="w-4 h-4 text-blue-500" />
+                          <TrendingUp className="w-4 h-4 text-accent" />
                           <div>
                             <span className="font-medium">{activity.action}</span>
                             <span className="text-muted-foreground"> {activity.item}</span>

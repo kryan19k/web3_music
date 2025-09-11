@@ -330,7 +330,7 @@ export function UserProfile() {
   return (
     <div className="min-h-screen bg-background">
       {/* Cover/Header Section */}
-      <div className="relative h-48 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-blue-500/20 overflow-hidden">
+      <div className="relative h-48 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 overflow-hidden">
         <div className="absolute inset-0 bg-black/20" />
         <div className="absolute bottom-0 left-0 right-0 p-6">
           <div className="container mx-auto">
@@ -347,7 +347,7 @@ export function UserProfile() {
                   <AvatarFallback className="text-2xl">{user.displayName[0]}</AvatarFallback>
                 </Avatar>
                 {user.verified && (
-                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-background">
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-accent rounded-full flex items-center justify-center border-2 border-background">
                     <Award className="w-3 h-3 text-white" />
                   </div>
                 )}
@@ -363,7 +363,7 @@ export function UserProfile() {
                   <div className="flex items-center gap-3 mb-2">
                     <h1 className="text-3xl font-bold text-white">{user.displayName}</h1>
                     {user.verified && (
-                      <Badge className="bg-blue-500/20 text-blue-100 border-blue-500/30">
+                      <Badge className="bg-accent/20 text-accent-foreground border-accent/30">
                         {user.isArtist ? 'Verified Artist' : 'Verified'}
                       </Badge>
                     )}
@@ -490,12 +490,12 @@ export function UserProfile() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">PAGS Earned</span>
-                    <span className="font-semibold text-yellow-500">{userStats.blokEarned}</span>
+                    <span className="font-semibold text-accent">{userStats.blokEarned}</span>
                   </div>
                   {user.isArtist && (
                     <div className="flex items-center justify-between col-span-2">
                       <span className="text-muted-foreground">Total Earned</span>
-                      <span className="font-semibold text-green-500">
+                      <span className="font-semibold text-primary">
                         ${userStats.totalEarned.toLocaleString()}
                       </span>
                     </div>
@@ -516,7 +516,7 @@ export function UserProfile() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-yellow-500" />
+                  <Trophy className="w-5 h-5 text-accent" />
                   Achievements
                 </CardTitle>
               </CardHeader>
@@ -529,11 +529,11 @@ export function UserProfile() {
                         p-3 rounded-lg border text-center
                         ${
                           achievement.rarity === 'legendary'
-                            ? 'bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/30'
+                            ? 'bg-gradient-to-br from-accent/10 to-primary/10 border-accent/30'
                             : achievement.rarity === 'epic'
-                              ? 'bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/30'
+                              ? 'bg-gradient-to-br from-primary/10 to-accent/10 border-primary/30'
                               : achievement.rarity === 'rare'
-                                ? 'bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/30'
+                                ? 'bg-gradient-to-br from-accent/10 to-primary/10 border-accent/30'
                                 : 'bg-muted/50 border-border'
                         }
                       `}

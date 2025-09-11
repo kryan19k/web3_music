@@ -76,11 +76,11 @@ export function ProfileCircle() {
           >
             <Button
               size="icon"
-              className="w-16 h-16 rounded-full shadow-2xl bg-gradient-to-br from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border-2 border-white/20"
+              className="w-16 h-16 rounded-full shadow-2xl btn-primary border-2 border-white/20"
             >
               <Avatar className="w-12 h-12">
                 <AvatarImage src={avatar} />
-                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold">
+                <AvatarFallback className="bg-primary text-primary-foreground font-bold">
                   {displayName[0]?.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -91,11 +91,11 @@ export function ProfileCircle() {
               {isLoading ? (
                 <div className="w-3 h-3 animate-spin rounded-full border border-white border-t-transparent" />
               ) : isArtist ? (
-                <div className="w-full h-full bg-blue-500 rounded-full flex items-center justify-center">
+                <div className="w-full h-full bg-accent rounded-full flex items-center justify-center">
                   <Crown className="w-2.5 h-2.5 text-white" />
                 </div>
               ) : ownedTokens.length > 0 ? (
-                <div className="w-full h-full bg-green-500 rounded-full flex items-center justify-center">
+                <div className="w-full h-full bg-primary rounded-full flex items-center justify-center">
                   <Music className="w-2.5 h-2.5 text-white" />
                 </div>
               ) : (
@@ -123,7 +123,7 @@ export function ProfileCircle() {
                   <div className="flex items-center gap-3 mb-4">
                     <Avatar className="w-12 h-12">
                       <AvatarImage src={avatar} />
-                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                      <AvatarFallback className="bg-primary text-primary-foreground">
                         {displayName[0]?.toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
@@ -131,7 +131,7 @@ export function ProfileCircle() {
                       <div className="flex items-center gap-2">
                         <h3 className="font-bold text-lg truncate">{displayName}</h3>
                         {isArtist && (
-                          <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                          <Badge className="bg-accent/20 text-accent border-accent/30">
                             <Crown className="w-3 h-3 mr-1" />
                             Artist
                           </Badge>
@@ -161,25 +161,25 @@ export function ProfileCircle() {
                           </h4>
                           <div className="grid grid-cols-2 gap-3">
                             <div className="bg-muted/50 rounded-lg p-3 text-center">
-                              <p className="text-lg font-bold text-blue-500">
+                              <p className="text-lg font-bold text-accent">
                                 {artistStats.totalTracks}
                               </p>
                               <p className="text-xs text-muted-foreground">Tracks</p>
                             </div>
                             <div className="bg-muted/50 rounded-lg p-3 text-center">
-                              <p className="text-lg font-bold text-green-500">
+                              <p className="text-lg font-bold text-primary">
                                 ${artistStats.totalEarnings.toFixed(2)}
                               </p>
                               <p className="text-xs text-muted-foreground">Earned</p>
                             </div>
                             <div className="bg-muted/50 rounded-lg p-3 text-center">
-                              <p className="text-lg font-bold text-purple-500">
+                              <p className="text-lg font-bold text-accent">
                                 {artistStats.totalPlays.toLocaleString()}
                               </p>
                               <p className="text-xs text-muted-foreground">Plays</p>
                             </div>
                             <div className="bg-muted/50 rounded-lg p-3 text-center">
-                              <p className="text-lg font-bold text-orange-500">
+                              <p className="text-lg font-bold text-primary">
                                 {artistStats.blokBalance.toFixed(0)}
                               </p>
                               <p className="text-xs text-muted-foreground">PAGS</p>
@@ -196,13 +196,13 @@ export function ProfileCircle() {
                         </h4>
                         <div className="grid grid-cols-2 gap-3">
                           <div className="bg-muted/50 rounded-lg p-3 text-center">
-                            <p className="text-lg font-bold text-cyan-500">
+                            <p className="text-lg font-bold text-accent">
                               {ownedTokens.length}
                             </p>
                             <p className="text-xs text-muted-foreground">NFTs Owned</p>
                           </div>
                           <div className="bg-muted/50 rounded-lg p-3 text-center">
-                            <p className="text-lg font-bold text-yellow-500">
+                            <p className="text-lg font-bold text-primary">
                               ${parseFloat(collaboratorRoyalties).toFixed(2)}
                             </p>
                             <p className="text-xs text-muted-foreground">Royalties</p>

@@ -156,7 +156,7 @@ export const Home = () => {
         </div>
 
         {/* Content */}
-        <div className="relative z-20 flex items-start justify-center w-full h-full px-6 sm:px-8 lg:px-12 xl:px-16 gap-12 pt-16 sm:pt-20 lg:pt-24">
+        <div className="relative z-20 flex items-start justify-center w-full h-full px-6 sm:px-8 lg:px-12 xl:px-16 gap-12 pt-8 sm:pt-12 lg:pt-16">
           {/* Main content - Left side */}
           <div className="flex-1 max-w-3xl text-center lg:text-left lg:mr-8">
             <motion.div
@@ -271,7 +271,7 @@ export const Home = () => {
               initial={{ opacity: 0, x: 50, scale: 0.9 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               transition={{ duration: 1, ease: 'easeOut', delay: 0.5 }}
-              className="sticky top-4"
+              className="sticky top-4 -mt-16"
             >
               <FeaturedArtistsHero />
             </motion.div>

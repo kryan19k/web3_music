@@ -170,7 +170,7 @@ export function ProfileSettings() {
       <div className="border-b border-border/50 bg-background/95 backdrop-blur-xl">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center gap-4">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-r from-accent to-primary rounded-lg flex items-center justify-center">
               <Settings className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -874,7 +874,7 @@ export function ProfileSettings() {
                       <div className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
                           <div className="flex items-center gap-2 mb-1">
-                            <Badge className="bg-green-500/10 text-green-500 border-green-500/20">
+                            <Badge className="bg-primary/10 text-primary border-primary/20">
                               Connected
                             </Badge>
                             <span className="font-medium">MetaMask</span>
@@ -942,15 +942,15 @@ export function ProfileSettings() {
                   </Card>
 
                   {/* Danger Zone */}
-                  <Card className="border-red-500/20">
+                  <Card className="border-destructive/20">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-red-500">
+                      <CardTitle className="flex items-center gap-2 text-destructive">
                         <AlertTriangle className="w-5 h-5" />
                         Danger Zone
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="flex items-center justify-between p-4 border border-red-500/20 rounded-lg">
+                      <div className="flex items-center justify-between p-4 border border-destructive/20 rounded-lg">
                         <div>
                           <p className="font-medium">Delete Account</p>
                           <p className="text-sm text-muted-foreground">
@@ -974,7 +974,7 @@ export function ProfileSettings() {
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                    variant="default"
                   >
                     {isLoading ? (
                       <>
