@@ -1,7 +1,7 @@
-# PAGS Music Platform - Frontend Architecture Plan 🎵
+# PAGS Music Platform - Collection-Based Architecture Plan 🎵
 
 ## Design Philosophy
-**Dark, Immersive, Premium** - Spotify's elegance meets OpenSea's Web3 power with SoundCloud's social DNA. Built with shadcn/ui for ultimate customization and modern aesthetics.
+**Dark, Immersive, Premium** - Spotify's elegance meets OpenSea's Web3 power with Apple Music's album-first approach. Collections (albums) containing tracks create deeper fan engagement through completion mechanics and exclusive benefits. Built with shadcn/ui for ultimate customization and modern aesthetics.
 
 ## Core Tech Stack
 
@@ -50,26 +50,34 @@ src/
 │   │   ├── __root.tsx               # Root layout with player
 │   │   ├── index.tsx                # Landing page
 │   │   ├── marketplace/
-│   │   │   ├── index.tsx            # Browse all music NFTs
-│   │   │   ├── $songId.tsx          # Individual song page
+│   │   │   ├── index.tsx            # Browse all collections (albums)
+│   │   │   ├── $collectionId.tsx    # Individual album page
+│   │   │   ├── $collectionId.$trackId.tsx  # Individual track page
 │   │   │   └── _components/
 │   │   │       ├── FilterSidebar.tsx
-│   │   │       └── SongGrid.tsx
+│   │   │       ├── AlbumGrid.tsx
+│   │   │       ├── TrackList.tsx
+│   │   │       └── CollectionProgress.tsx
 │   │   ├── portfolio/
-│   │   │   ├── index.tsx            # User's collection
+│   │   │   ├── index.tsx            # User's collection & progress
+│   │   │   ├── collections.tsx      # Owned albums view
 │   │   │   ├── analytics.tsx        # Earnings dashboard
 │   │   │   └── _components/
 │   │   │       ├── CollectionGrid.tsx
+│   │   │       ├── ProgressTracker.tsx
+│   │   │       ├── CompletionRewards.tsx
 │   │   │       └── EarningsChart.tsx
 │   │   ├── pags/
 │   │   │   ├── index.tsx            # Token dashboard
 │   │   │   ├── swap.tsx             # DEX interface
-│   │   │   └── stake.tsx            # Staking portal
+│   │   │   └── stake.tsx            # Collection-based staking
 │   │   ├── artist/
 │   │   │   ├── dashboard.tsx        # Artist control panel
-│   │   │   └── upload.tsx           # New song minting
+│   │   │   ├── collections.tsx      # Manage albums
+│   │   │   ├── upload.tsx           # New album/track creation
+│   │   │   └── analytics.tsx        # Collection performance
 │   │   └── profile/
-│   │       └── $address.tsx         # Public profiles
+│   │       └── $address.tsx         # Public profiles with discography
 │   │
 ├── components/
 │   ├── ui/                          # shadcn/ui components
@@ -78,25 +86,46 @@ src/
 │   │   ├── dialog.tsx
 │   │   └── ... (all shadcn components)
 │   │
+│   ├── collections/
+│   │   ├── CollectionCard/
+│   │   │   ├── index.tsx            # Album cover with progress
+│   │   │   ├── AlbumCover.tsx       # Interactive album art
+│   │   │   ├── ProgressRing.tsx     # Completion percentage
+│   │   │   └── TrackPreview.tsx     # Mini track list
+│   │   ├── CollectionView/
+│   │   │   ├── index.tsx            # Full album page
+│   │   │   ├── TrackList.tsx        # All songs in album
+│   │   │   ├── BenefitsPanel.tsx    # Collection rewards
+│   │   │   └── MintOptions.tsx      # Individual vs full album
+│   │   ├── ProgressTracker.tsx      # User's collection completion
+│   │   ├── CompletionBadge.tsx      # Achievement display
+│   │   └── AlbumPlayer.tsx          # Play entire album
+│   │
 │   ├── music/
 │   │   ├── MusicPlayer/
 │   │   │   ├── index.tsx            # Main player component
 │   │   │   ├── Controls.tsx         # Play/pause/skip
 │   │   │   ├── ProgressBar.tsx      # Seek functionality
 │   │   │   ├── VolumeControl.tsx    # Volume slider
+│   │   │   ├── AlbumQueue.tsx       # Album-based queue
 │   │   │   └── Visualizer.tsx       # Audio visualization
-│   │   ├── TrackCard.tsx            # Song NFT cards
+│   │   ├── TrackCard.tsx            # Individual song NFT cards
 │   │   ├── Waveform.tsx             # WaveSurfer integration
-│   │   ├── PlaylistDrawer.tsx       # Queue management
+│   │   ├── PlaylistDrawer.tsx       # Collection-based playlists
 │   │   └── MiniPlayer.tsx           # Persistent bottom bar
 │   │
 │   ├── nft/
-│   │   ├── NFTCard/
-│   │   │   ├── index.tsx            # 3D flip card
-│   │   │   ├── FrontFace.tsx        # Album art side
-│   │   │   └── BackFace.tsx         # Stats/info side
+│   │   ├── TrackNFTCard/
+│   │   │   ├── index.tsx            # 3D flip card for tracks
+│   │   │   ├── FrontFace.tsx        # Track art side
+│   │   │   └── BackFace.tsx         # Stats/collection info
+│   │   ├── AlbumNFTCard/
+│   │   │   ├── index.tsx            # Album-level NFT display
+│   │   │   ├── CompletionView.tsx   # Progress visualization
+│   │   │   └── BenefitsView.tsx     # Unlocked rewards
 │   │   ├── TierBadge.tsx            # Bronze/Silver/Gold/Platinum
-│   │   ├── MintDialog.tsx           # Purchase flow modal
+│   │   ├── MintDialog.tsx           # Track or album purchase flow
+│   │   ├── CollectionMint.tsx       # Full album minting
 │   │   ├── RarityIndicator.tsx      # Visual rarity display
 │   │   └── QuickActions.tsx         # Buy/Sell/Transfer buttons
 │   │

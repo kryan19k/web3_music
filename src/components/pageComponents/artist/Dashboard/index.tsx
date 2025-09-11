@@ -12,9 +12,13 @@ import {
   SelectValue,
 } from '@/src/components/ui/select'
 import { type Track, useAudioPlayer } from '@/src/hooks/useAudioPlayer'
+import { useArtistData, useArtistNFTs, useArtistAnalytics } from '@/src/hooks/contracts/useArtistData'
+import { useArtistProfile } from '@/src/hooks/useArtistProfile'
+import { TrackUploadModal } from '@/src/components/artist/TrackUpload/TrackUploadModal'
 import type { MusicNFT } from '@/src/types/music-nft'
 import { Link } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
+import { toast } from 'sonner'
 import {
   Award,
   BarChart3,
@@ -158,6 +162,29 @@ export function ArtistDashboard() {
   const [timeRange, setTimeRange] = useState('30d')
   const { play, pause, currentTrack, isPlaying } = useAudioPlayer()
 
+  // Fetch real artist data from contracts and database
+  const { artistStats, isLoading: artistLoading, isArtist, trackInfo } = useArtistData()
+  const { nfts: artistTracks, isLoading: nftsLoading, refetch: refetchTracks } = useArtistNFTs()
+  const { monthlyData } = useArtistAnalytics()
+  
+  // Get enhanced profile with database data
+  const { 
+    profile: enhancedProfile, 
+    isLoading: profileLoading,
+    dbProfile,
+    dbTracks 
+  } = useArtistProfile()
+
+  console.log('🎨 Artist Dashboard Data:', { 
+    artistStats, 
+    artistTracks, 
+    trackInfo, 
+    isArtist,
+    enhancedProfile,
+    dbProfile,
+    dbTracks 
+  })
+
   const handlePlay = (audioUrl: string) => {
     const nft = artistTracks.find((n) => n.metadata.audioUrl === audioUrl)
     if (nft) {
@@ -168,7 +195,7 @@ export function ArtistDashboard() {
         artwork: nft.metadata.image || '/api/placeholder/300/300',
         audioUrl: nft.metadata.audioUrl,
         duration: nft.metadata.duration,
-        pagsPerStream: nft.metadata.pagsAmount / 1000,
+        pagsPerStream: nft.metadata.pagsAmount ? nft.metadata.pagsAmount / 1000 : undefined,
       }
       play(track)
     }
@@ -180,6 +207,61 @@ export function ArtistDashboard() {
 
   const handleTrackAction = (tokenId: string) => {
     console.log('Track action:', tokenId)
+  }
+
+  // Show loading state
+  if (artistLoading || nftsLoading || profileLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-lg">Loading artist dashboard...</p>
+          <p className="text-sm text-muted-foreground">Fetching contract and profile data</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show non-artist message
+  if (!isArtist) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <Music className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+          <h2 className="text-2xl font-bold mb-2">Artist Dashboard</h2>
+          <p className="text-muted-foreground mb-4">
+            You need artist permissions to access this dashboard. Please complete artist verification first.
+          </p>
+          <Link to="/artist/signup">
+            <Button>Start Artist Application</Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  // Use enhanced profile data when available, fallback to contract data
+  const artistData = {
+    name: enhancedProfile?.displayName || artistStats?.name || 'Artist',
+    avatar: enhancedProfile?.avatar || artistStats?.avatar,
+    verified: enhancedProfile?.isVerified || artistStats?.verified || false,
+    followers: artistStats?.followers || 0,
+    totalPlays: enhancedProfile?.totalStreams || artistStats?.totalPlays || 0,
+    monthlyListeners: artistStats?.monthlyListeners || 0,
+    totalEarnings: enhancedProfile?.totalEarnings || artistStats?.totalEarnings || 0,
+    pendingPayouts: artistStats?.pendingPayouts || 0,
+    averageRating: artistStats?.averageRating || 0,
+    totalTracks: enhancedProfile?.totalTracks || artistStats?.totalTracks || 0,
+    nftsCreated: artistStats?.nftsCreated || 0,
+    nftsSold: artistStats?.nftsSold || 0,
+    pagsBalance: artistStats?.pagsBalance || 0,
+    pagsEarned: artistStats?.totalEarnings || 0, // Fix: Add pagsEarned property
+    
+    // Additional database fields
+    bio: dbProfile?.bio,
+    location: dbProfile?.location,
+    website: dbProfile?.website,
+    socialLinks: dbProfile?.social_links,
   }
 
   return (
@@ -239,12 +321,14 @@ export function ArtistDashboard() {
                 <Edit3 className="w-4 h-4 mr-2" />
                 Edit Profile
               </Button>
-              <Link to="/artist/upload">
-                <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
-                  <Upload className="w-4 h-4 mr-2" />
-                  Upload Track
-                </Button>
-              </Link>
+              <TrackUploadModal 
+                buttonText="Upload Track"
+                buttonVariant="gradient"
+                onTrackCreated={() => {
+                  refetchTracks()
+                  toast.success('Track added to your collection!')
+                }} 
+              />
             </div>
           </div>
         </div>
@@ -472,15 +556,14 @@ export function ArtistDashboard() {
                       <CardTitle>Quick Actions</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      <Link to="/artist/upload">
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start"
-                        >
-                          <Upload className="w-4 h-4 mr-2" />
-                          Upload New Track
-                        </Button>
-                      </Link>
+                      <TrackUploadModal 
+                        buttonVariant="outline"
+                        fullWidth={true}
+                        onTrackCreated={() => {
+                          refetchTracks()
+                          toast.success('Track added to your collection!')
+                        }} 
+                      />
                       <Button
                         variant="outline"
                         className="w-full justify-start"
@@ -510,12 +593,13 @@ export function ArtistDashboard() {
                   <h2 className="text-2xl font-semibold">Your Tracks</h2>
                   <p className="text-muted-foreground">{artistTracks.length} tracks created</p>
                 </div>
-                <Link to="/artist/upload">
-                  <Button>
-                    <Upload className="w-4 h-4 mr-2" />
-                    Upload New Track
-                  </Button>
-                </Link>
+                <TrackUploadModal 
+                  onTrackCreated={() => {
+                    // Refresh tracks data after successful upload
+                    refetchTracks()
+                    toast.success('Track added to your collection!')
+                  }} 
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

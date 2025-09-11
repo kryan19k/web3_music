@@ -18,6 +18,7 @@ import { Route as PortfolioIndexImport } from './routes/portfolio/index'
 import { Route as PagsIndexImport } from './routes/pags/index'
 import { Route as MarketplaceIndexImport } from './routes/marketplace/index'
 import { Route as FeedIndexImport } from './routes/feed/index'
+import { Route as ProfileSetupImport } from './routes/profile/setup'
 import { Route as ProfileSettingsImport } from './routes/profile/settings'
 import { Route as ProfileUserIdImport } from './routes/profile/$userId'
 import { Route as MarketplaceNftIdImport } from './routes/marketplace/$nftId'
@@ -84,6 +85,12 @@ const PlaylistPlaylistIdLazyRoute = PlaylistPlaylistIdLazyImport.update({
 } as any).lazy(() =>
   import('./routes/playlist/$playlistId.lazy').then((d) => d.Route),
 )
+
+const ProfileSetupRoute = ProfileSetupImport.update({
+  id: '/profile/setup',
+  path: '/profile/setup',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const ProfileSettingsRoute = ProfileSettingsImport.update({
   id: '/profile/settings',
@@ -200,6 +207,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileSettingsImport
       parentRoute: typeof rootRoute
     }
+    '/profile/setup': {
+      id: '/profile/setup'
+      path: '/profile/setup'
+      fullPath: '/profile/setup'
+      preLoaderRoute: typeof ProfileSetupImport
+      parentRoute: typeof rootRoute
+    }
     '/playlist/$playlistId': {
       id: '/playlist/$playlistId'
       path: '/playlist/$playlistId'
@@ -264,6 +278,7 @@ export interface FileRoutesByFullPath {
   '/marketplace/$nftId': typeof MarketplaceNftIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/profile/settings': typeof ProfileSettingsRoute
+  '/profile/setup': typeof ProfileSetupRoute
   '/playlist/$playlistId': typeof PlaylistPlaylistIdLazyRoute
   '/feed': typeof FeedIndexRoute
   '/marketplace': typeof MarketplaceIndexRoute
@@ -283,6 +298,7 @@ export interface FileRoutesByTo {
   '/marketplace/$nftId': typeof MarketplaceNftIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/profile/settings': typeof ProfileSettingsRoute
+  '/profile/setup': typeof ProfileSetupRoute
   '/playlist/$playlistId': typeof PlaylistPlaylistIdLazyRoute
   '/feed': typeof FeedIndexRoute
   '/marketplace': typeof MarketplaceIndexRoute
@@ -303,6 +319,7 @@ export interface FileRoutesById {
   '/marketplace/$nftId': typeof MarketplaceNftIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/profile/settings': typeof ProfileSettingsRoute
+  '/profile/setup': typeof ProfileSetupRoute
   '/playlist/$playlistId': typeof PlaylistPlaylistIdLazyRoute
   '/feed/': typeof FeedIndexRoute
   '/marketplace/': typeof MarketplaceIndexRoute
@@ -324,6 +341,7 @@ export interface FileRouteTypes {
     | '/marketplace/$nftId'
     | '/profile/$userId'
     | '/profile/settings'
+    | '/profile/setup'
     | '/playlist/$playlistId'
     | '/feed'
     | '/marketplace'
@@ -342,6 +360,7 @@ export interface FileRouteTypes {
     | '/marketplace/$nftId'
     | '/profile/$userId'
     | '/profile/settings'
+    | '/profile/setup'
     | '/playlist/$playlistId'
     | '/feed'
     | '/marketplace'
@@ -360,6 +379,7 @@ export interface FileRouteTypes {
     | '/marketplace/$nftId'
     | '/profile/$userId'
     | '/profile/settings'
+    | '/profile/setup'
     | '/playlist/$playlistId'
     | '/feed/'
     | '/marketplace/'
@@ -380,6 +400,7 @@ export interface RootRouteChildren {
   MarketplaceNftIdRoute: typeof MarketplaceNftIdRoute
   ProfileUserIdRoute: typeof ProfileUserIdRoute
   ProfileSettingsRoute: typeof ProfileSettingsRoute
+  ProfileSetupRoute: typeof ProfileSetupRoute
   PlaylistPlaylistIdLazyRoute: typeof PlaylistPlaylistIdLazyRoute
   FeedIndexRoute: typeof FeedIndexRoute
   MarketplaceIndexRoute: typeof MarketplaceIndexRoute
@@ -399,6 +420,7 @@ const rootRouteChildren: RootRouteChildren = {
   MarketplaceNftIdRoute: MarketplaceNftIdRoute,
   ProfileUserIdRoute: ProfileUserIdRoute,
   ProfileSettingsRoute: ProfileSettingsRoute,
+  ProfileSetupRoute: ProfileSetupRoute,
   PlaylistPlaylistIdLazyRoute: PlaylistPlaylistIdLazyRoute,
   FeedIndexRoute: FeedIndexRoute,
   MarketplaceIndexRoute: MarketplaceIndexRoute,
@@ -427,6 +449,7 @@ export const routeTree = rootRoute
         "/marketplace/$nftId",
         "/profile/$userId",
         "/profile/settings",
+        "/profile/setup",
         "/playlist/$playlistId",
         "/feed/",
         "/marketplace/",
@@ -462,6 +485,9 @@ export const routeTree = rootRoute
     },
     "/profile/settings": {
       "filePath": "profile/settings.tsx"
+    },
+    "/profile/setup": {
+      "filePath": "profile/setup.tsx"
     },
     "/playlist/$playlistId": {
       "filePath": "playlist/$playlistId.lazy.tsx"

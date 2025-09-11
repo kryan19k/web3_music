@@ -1,5 +1,6 @@
 import { Navbar } from '@/src/components/layout/Navbar'
 import { MiniPlayer } from '@/src/components/music/MiniPlayer'
+import { ProfileCircle } from '@/src/components/navigation/ProfileCircle'
 import { TanStackReactQueryDevtools } from '@/src/components/sharedComponents/dev/TanStackReactQueryDevtools'
 import { TanStackRouterDevtools } from '@/src/components/sharedComponents/dev/TanStackRouterDevtools'
 import { Provider } from '@/src/components/ui/provider'
@@ -27,6 +28,7 @@ function Root() {
                   <Outlet />
                 </main>
                 <MiniPlayer />
+                <ProfileCircle />
                 <TanStackReactQueryDevtools />
                 <TanStackRouterDevtools />
               </div>

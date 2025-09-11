@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/src/components/ui/select'
 import { type Track, useAudioPlayer } from '@/src/hooks/useAudioPlayer'
+import { useEnhancedMarketplaceNFTs, hasValidAudio } from '@/src/hooks/contracts/useMarketplaceNFTs'
 import type { MusicNFT } from '@/src/types/music-nft'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -423,8 +424,14 @@ export function MarketplacePage() {
   const [activeSection, setActiveSection] = useState('featured')
   const { play, pause, currentTrack, isPlaying } = useAudioPlayer()
 
-  // Filter and sort NFTs
+  // Fetch real NFTs from contracts
+  const { nfts: marketplaceNFTs, isLoading: nftsLoading, error: nftsError, trackInfo } = useEnhancedMarketplaceNFTs()
+
+  console.log('🎵 Real marketplace data:', { marketplaceNFTs, trackInfo, nftsLoading, nftsError })
+
+  // Filter and sort NFTs - only show NFTs with valid audio
   const filteredNFTs = marketplaceNFTs
+    .filter((nft) => hasValidAudio(nft)) // Only show NFTs with audio
     .filter((nft) => {
       const matchesSearch =
         nft.metadata.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -436,17 +443,17 @@ export function MarketplacePage() {
     .sort((a, b) => {
       switch (sortBy) {
         case 'price-low':
-          return a.priceUSD - b.priceUSD
+          return (a.priceUSD || 0) - (b.priceUSD || 0)
         case 'price-high':
-          return b.priceUSD - a.priceUSD
+          return (b.priceUSD || 0) - (a.priceUSD || 0)
         case 'apy':
-          return b.earnings.apy - a.earnings.apy
+          return (b.earnings?.apy || 0) - (a.earnings?.apy || 0)
         case 'newest':
           return (
             new Date(b.metadata.releaseDate).getTime() - new Date(a.metadata.releaseDate).getTime()
           )
         default:
-          return b.streamingStats.totalPlays - a.streamingStats.totalPlays // trending
+          return (b.streamingStats?.totalPlays || 0) - (a.streamingStats?.totalPlays || 0) // trending
       }
     })
 
@@ -869,11 +876,46 @@ export function MarketplacePage() {
       {/* NFT Grid */}
       <section className="py-8">
         <div className="container mx-auto px-4">
-          {filteredNFTs.length === 0 ? (
+          {nftsLoading ? (
+            <div className="text-center py-20">
+              <div className="inline-flex items-center gap-2 text-lg">
+                <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
+                Loading NFTs from blockchain...
+              </div>
+              <p className="text-muted-foreground mt-2">Fetching live contract data</p>
+            </div>
+          ) : nftsError ? (
+            <div className="text-center py-20">
+              <Music className="w-16 h-16 mx-auto mb-4 text-red-500" />
+              <h3 className="text-xl font-semibold mb-2 text-red-500">Failed to Load NFTs</h3>
+              <p className="text-muted-foreground">{nftsError.message || 'Unable to fetch NFT data from contracts'}</p>
+              <Button 
+                className="mt-4" 
+                onClick={() => window.location.reload()}
+                variant="outline"
+              >
+                Retry
+              </Button>
+            </div>
+          ) : filteredNFTs.length === 0 && marketplaceNFTs.length === 0 ? (
             <div className="text-center py-20">
               <Music className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-semibold mb-2">No NFTs Found</h3>
+              <h3 className="text-xl font-semibold mb-2">No NFTs Available</h3>
+              <p className="text-muted-foreground mb-4">No music NFTs have been minted yet or no tracks with audio are available</p>
+              {trackInfo && (
+                <div className="bg-muted/50 rounded-lg p-4 max-w-md mx-auto">
+                  <p className="text-sm text-muted-foreground">Debug info:</p>
+                  <p className="text-sm">Track found: {trackInfo.title || 'No title'}</p>
+                  <p className="text-sm">Audio hash: {trackInfo.ipfsAudioHash || 'No audio hash'}</p>
+                </div>
+              )}
+            </div>
+          ) : filteredNFTs.length === 0 ? (
+            <div className="text-center py-20">
+              <Music className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-xl font-semibold mb-2">No NFTs Match Your Filters</h3>
               <p className="text-muted-foreground">Try adjusting your filters or search query</p>
+              <p className="text-sm text-muted-foreground mt-2">Found {marketplaceNFTs.length} total NFTs</p>
             </div>
           ) : (
             <div

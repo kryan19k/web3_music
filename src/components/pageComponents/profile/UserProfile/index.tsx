@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/ca
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/custom-tabs'
 import { Separator } from '@/src/components/ui/separator'
 import { type Track, useAudioPlayer } from '@/src/hooks/useAudioPlayer'
+import { useUserProfile, useUserActivity } from '@/src/hooks/contracts/useUserProfile'
+import { useEnhancedUserProfile } from '@/src/hooks/useUserProfile'
 import type { MusicNFT } from '@/src/types/music-nft'
 import type {
   Achievement,
@@ -225,12 +227,81 @@ export function UserProfile() {
   const [activeTab, setActiveTab] = useState('nfts')
   const { play, pause, currentTrack, isPlaying } = useAudioPlayer()
 
-  // Mock data
-  const user = getUserData(userId)
-  const userStats = getUserStats(userId)
-  const userNFTs = getUserNFTs(userId)
-  const userActivity = getUserActivity(userId)
-  const userAchievements = getUserAchievements(userId)
+  // Get enhanced user profile (database + contract data)
+  const {
+    profile: enhancedProfile,
+    isLoading: enhancedLoading,
+    dbProfile,
+    hasContractData
+  } = useEnhancedUserProfile(userId)
+
+  // Get legacy contract data for compatibility  
+  const { 
+    userProfile: contractProfile, 
+    isLoading: contractLoading, 
+    benefits, 
+    collaboratorRoyalties, 
+    ownedTokens 
+  } = useUserProfile(userId)
+  
+  const { activities } = useUserActivity(userId)
+
+  console.log('👤 User Profile Data:', { 
+    enhancedProfile, 
+    contractProfile, 
+    dbProfile, 
+    benefits, 
+    ownedTokens, 
+    userId,
+    hasContractData 
+  })
+
+  // Show loading state
+  if (enhancedLoading || contractLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-lg">Loading profile...</p>
+          <p className="text-sm text-muted-foreground">Fetching database and contract data</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state if no profile found
+  if (!enhancedProfile && !contractProfile) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+          <h2 className="text-2xl font-bold mb-2">Profile Not Found</h2>
+          <p className="text-muted-foreground mb-4">
+            The user profile you're looking for doesn't exist or hasn't been set up yet.
+          </p>
+          <Link to="/marketplace">
+            <Button>Explore Marketplace</Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  // Use enhanced profile when available, fallback to contract data, then mock data
+  const user = enhancedProfile || contractProfile || getUserData(userId)
+  const userStats = enhancedProfile?.contractStats ? {
+    totalSpent: enhancedProfile.contractStats.totalSpent,
+    totalEarned: enhancedProfile.contractStats.collaboratorRoyalties,
+    nftsOwned: enhancedProfile.contractStats.totalNFTs,
+    nftsCreated: enhancedProfile.isArtist ? (enhancedProfile.totalTracks || 0) : 0,
+    totalPlays: 0, // TODO: Get from contract
+    pagsEarned: enhancedProfile.contractStats.pagsBalance,
+    achievementCount: 0, // TODO: Implement achievements
+  } : (contractProfile?.stats || getUserStats(userId))
+  
+  const userNFTs = enhancedProfile?.ownedNFTs || contractProfile?.ownedNFTs || getUserNFTs(userId)
+  const userActivity = activities || []
+  const userAchievements = enhancedProfile ? [] : getUserAchievements(userId) // TODO: Implement real achievements
 
   const handlePlay = (audioUrl: string) => {
     const nft = userNFTs.find((n) => n.metadata.audioUrl === audioUrl)

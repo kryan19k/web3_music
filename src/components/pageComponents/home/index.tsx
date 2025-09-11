@@ -3,7 +3,6 @@ import { Badge } from '@/src/components/ui/badge'
 import { Button } from '@/src/components/ui/button'
 import { Card, CardContent } from '@/src/components/ui/card'
 import { FeaturedArtistsHero } from '@/src/components/ui/FeaturedArtistsHero'
-// Removed heavy Spline React component - using native viewer instead
 import { Link } from '@tanstack/react-router'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -24,59 +23,16 @@ import {
   Wallet,
   Flame,
 } from 'lucide-react'
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
+import { useState, useMemo, useCallback, useRef } from 'react'
 
 export const Home = () => {
   const [openFaq, setOpenFaq] = useState<string | null>(null)
-  const [loadSpline, setLoadSpline] = useState(false)
-  const [splineLoaded, setSplineLoaded] = useState(false)
   const heroRef = useRef<HTMLDivElement>(null)
 
   const toggleFaq = useCallback((id: string) => {
     setOpenFaq(openFaq === id ? null : id)
   }, [openFaq])
 
-  // Load Spline viewer script and initialize
-  useEffect(() => {
-    const loadSplineViewer = async () => {
-      // Load the Spline viewer script
-      if (!document.querySelector('script[src*="spline-viewer"]')) {
-        const script = document.createElement('script')
-        script.type = 'module'
-        script.src = 'https://unpkg.com/@splinetool/viewer@1.10.57/build/spline-viewer.js'
-        document.head.appendChild(script)
-        
-        script.onload = () => {
-          setTimeout(() => setLoadSpline(true), 1000) // Small delay for script initialization
-        }
-      } else {
-        setLoadSpline(true)
-      }
-    }
-
-    const timer = setTimeout(loadSplineViewer, 1500) // Load after 1.5 seconds
-    return () => clearTimeout(timer)
-  }, [])
-
-  // Intersection observer for performance
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !loadSpline) {
-            setLoadSpline(true)
-          }
-        })
-      },
-      { threshold: 0.1 }
-    )
-
-    if (heroRef.current) {
-      observer.observe(heroRef.current)
-    }
-
-    return () => observer.disconnect()
-  }, [loadSpline])
 
   // Memoize static animation values to prevent recalculation
   const staticParticles = useMemo(() => {
@@ -103,34 +59,9 @@ export const Home = () => {
     <div className="relative min-h-screen">
       {/* Hero Section */}
       <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Smart Spline 3D Scene Background */}
-        <div className="absolute inset-0 w-full h-full">
-          {!loadSpline ? (
-            // Lightweight placeholder while Spline loads
-            <div className="w-full h-full bg-gradient-to-br from-purple-900/60 via-background/80 to-pink-900/60">
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-500/20 via-transparent to-transparent animate-pulse" />
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-sm text-muted-foreground"
-                >
-                  Loading 3D Experience...
-                </motion.div>
-              </div>
-            </div>
-          ) : (
-            // Native Spline viewer - much more memory efficient
-            <spline-viewer 
-              url="https://prod.spline.design/xQeXGXgGqdq2Zwuv/scene.splinecode"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover'
-              }}
-              onLoad={() => setSplineLoaded(true)}
-            />
-          )}
+        {/* Background Gradient */}
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-purple-900/60 via-background/80 to-pink-900/60">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-500/20 via-transparent to-transparent" />
         </div>
 
         {/* Gradient Overlay for better text readability */}
