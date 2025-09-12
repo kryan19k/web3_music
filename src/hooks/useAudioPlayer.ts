@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { getIPFSUrls, getWorkingIPFSUrl } from '@/src/utils/ipfs'
 
 export interface Track {
   id: string
@@ -65,8 +66,38 @@ export function useAudioPlayer() {
         next()
       }
 
-      const handleError = () => {
-        toast.error('Failed to load track')
+      const handleError = async () => {
+        console.log('🚫 [AUDIO_PLAYER] Audio error occurred for:', audioRef.current?.src)
+        
+        // Try IPFS fallbacks if this was an IPFS URL
+        const currentSrc = audioRef.current?.src
+        if (currentSrc?.includes('ipfs') && state.currentTrack) {
+          console.log('🔄 [AUDIO_PLAYER] Trying IPFS fallbacks after error...')
+          
+          const ipfsHashMatch = currentSrc.match(/ipfs\/([a-zA-Z0-9]+)/)
+          if (ipfsHashMatch) {
+            const hash = ipfsHashMatch[1]
+            const fallbackUrls = getIPFSUrls(hash)
+            
+            // Find the next fallback URL (skip the current one)
+            const currentIndex = fallbackUrls.findIndex(url => url === currentSrc)
+            const nextUrls = fallbackUrls.slice(currentIndex + 1)
+            
+            for (const fallbackUrl of nextUrls) {
+              try {
+                console.log('🔄 [AUDIO_PLAYER] Trying error fallback:', fallbackUrl)
+                audioRef.current!.src = fallbackUrl
+                // Don't auto-play, just set the source for next play attempt
+                return
+              } catch (error) {
+                console.log('❌ [AUDIO_PLAYER] Error fallback failed:', fallbackUrl, error)
+                continue
+              }
+            }
+          }
+        }
+        
+        toast.error('Failed to load track - media not accessible')
         setState((prev) => ({ ...prev, isLoading: false, isPlaying: false }))
       }
 
@@ -104,17 +135,66 @@ export function useAudioPlayer() {
   }, [state.volume])
 
   const play = useCallback(
-    (track?: Track) => {
+    async (track?: Track) => {
+      console.log('▶️ [AUDIO_PLAYER] Play requested:', track)
       if (!audioRef.current) return
 
       if (track && track.id !== state.currentTrack?.id) {
-        // New track
-        audioRef.current.src = track.audioUrl
+        console.log('🔍 [AUDIO_PLAYER] New track loading:', track.title, track.audioUrl)
+        
+        // Validate audio URL
+        if (!track.audioUrl) {
+          console.error('🚫 [AUDIO_PLAYER] No audio URL provided')
+          toast.error('No audio file available')
+          return
+        }
+
+        // New track - try to load it with IPFS fallbacks
         setState((prev) => ({
           ...prev,
           currentTrack: track,
           isLoading: true,
         }))
+
+        let audioUrl = track.audioUrl
+        
+        // If it's an IPFS URL that might fail, try to find a working gateway
+        if (audioUrl.includes('ipfs')) {
+          console.log('🎵 [AUDIO_PLAYER] Trying IPFS URL:', audioUrl)
+          
+          // Extract the hash from any IPFS URL format
+          const ipfsHashMatch = audioUrl.match(/ipfs\/([a-zA-Z0-9]+)/)
+          if (ipfsHashMatch) {
+            const hash = ipfsHashMatch[1]
+            console.log('🔍 [AUDIO_PLAYER] Testing IPFS gateways for hash:', hash)
+            
+            // Try to find a working gateway
+            const workingUrl = await getWorkingIPFSUrl(hash)
+            if (workingUrl) {
+              console.log('✅ [AUDIO_PLAYER] Found working gateway:', workingUrl)
+              audioUrl = workingUrl
+            } else {
+              console.log('❌ [AUDIO_PLAYER] No working gateways found, using original URL')
+            }
+          }
+        }
+
+        console.log('🔗 [AUDIO_PLAYER] Final audio URL:', audioUrl)
+        
+        // Test if the URL is accessible and is actually an audio file
+        try {
+          const response = await fetch(audioUrl, { method: 'HEAD' })
+          const contentType = response.headers.get('content-type')
+          console.log('🔍 [AUDIO_PLAYER] Content-Type:', contentType)
+          
+          if (!contentType?.startsWith('audio/') && !contentType?.includes('octet-stream')) {
+            console.warn('⚠️ [AUDIO_PLAYER] Invalid content type - might not be audio:', contentType)
+          }
+        } catch (error) {
+          console.error('🚫 [AUDIO_PLAYER] URL accessibility test failed:', error)
+        }
+
+        audioRef.current.src = audioUrl
       }
 
       audioRef.current
@@ -125,8 +205,40 @@ export function useAudioPlayer() {
             toast.success(`Now playing: ${track.title}`)
           }
         })
-        .catch(() => {
-          toast.error('Failed to play track')
+        .catch(async (error) => {
+          console.error('🚫 [AUDIO_PLAYER] Play failed:', error)
+          console.error('🚫 [AUDIO_PLAYER] Failed URL:', track?.audioUrl)
+          console.error('🚫 [AUDIO_PLAYER] Track data:', track)
+          
+          // If this was an IPFS track, try alternative gateways
+          if (track?.audioUrl.includes('ipfs')) {
+            console.log('🔄 [AUDIO_PLAYER] Trying IPFS fallback gateways...')
+            
+            const ipfsHashMatch = track.audioUrl.match(/ipfs\/([a-zA-Z0-9]+)/)
+            if (ipfsHashMatch) {
+              const hash = ipfsHashMatch[1]
+              const fallbackUrls = getIPFSUrls(hash).slice(1) // Skip the first one we already tried
+              
+              for (const fallbackUrl of fallbackUrls) {
+                try {
+                  console.log('🔄 [AUDIO_PLAYER] Trying fallback:', fallbackUrl)
+                  audioRef.current!.src = fallbackUrl
+                  await audioRef.current!.play()
+                  
+                  console.log('✅ [AUDIO_PLAYER] Fallback successful:', fallbackUrl)
+                  setState((prev) => ({ ...prev, isPlaying: true }))
+                  toast.success(`Now playing: ${track.title}`)
+                  return
+                } catch (fallbackError) {
+                  console.log('❌ [AUDIO_PLAYER] Fallback failed:', fallbackUrl, fallbackError)
+                  continue
+                }
+              }
+            }
+          }
+          
+          // All attempts failed
+          toast.error('Failed to play track - media not accessible')
           setState((prev) => ({ ...prev, isPlaying: false, isLoading: false }))
         })
     },

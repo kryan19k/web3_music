@@ -1,3 +1,5 @@
+import * as React from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Waveform } from '@/src/components/music/Waveform'
 import { Avatar, AvatarFallback, AvatarImage } from '@/src/components/ui/avatar'
 import { Badge } from '@/src/components/ui/badge'
@@ -14,6 +16,7 @@ import {
 } from '@/src/components/ui/dialog'
 import { type Track, useAudioPlayer } from '@/src/hooks/useAudioPlayer'
 import { useMusicNFTMint, useMusicNFTMarketplaceData, Tier } from '@/src/hooks/contracts/useMusicNFT'
+import { useArtistCollections } from '@/src/hooks/contracts/useArtistCollections'
 import { useWeb3Status } from '@/src/hooks/useWeb3Status'
 import type { MusicNFT } from '@/src/types/music-nft'
 import { Link, useParams } from '@tanstack/react-router'
@@ -55,8 +58,6 @@ import {
   LineChart,
   PieChart,
 } from 'lucide-react'
-import * as React from 'react'
-import { useState, useMemo, useEffect } from 'react'
 import { toast } from 'sonner'
 
 // Enhanced mock data with more detailed information
@@ -109,7 +110,7 @@ const mockNFTData: Record<string, MusicNFT & {
       description: 'An ethereal journey through ambient soundscapes that captures the essence of late-night introspection. Featuring layered synthesizers, atmospheric strings, and subtle field recordings that transport listeners to a world between dreams and reality. This platinum edition includes exclusive stems, remix rights, and access to the original studio session.',
       genre: 'Ambient Electronic',
       releaseDate: '2024-01-15',
-      pagsAmount: 2500,
+      blokAmount: 2500,
       dailyStreams: 15420,
       attributes: [
         { trait_type: 'Mood', value: 'Ethereal' },
@@ -288,8 +289,32 @@ export function NFTPurchasePage() {
   const { mint, isLoading: isMinting } = useMusicNFTMint()
   const { tiers, isLoading: isLoadingTiers } = useMusicNFTMarketplaceData()
 
-  // Get NFT data
-  const nft = mockNFTData[nftId]
+  // Get real NFT data from contracts
+  const { collections: allNFTs, isLoading: nftsLoading } = useArtistCollections()
+  
+  // Find the specific NFT by tokenId
+  const nft = React.useMemo(() => {
+    console.log('🔍 [NFT_PURCHASE] Looking for NFT:', { nftId, allNFTsLength: allNFTs?.length })
+    if (!allNFTs || !nftId) return null
+    
+    const foundNFT = allNFTs.find(nft => nft.tokenId === nftId)
+    console.log('🔍 [NFT_PURCHASE] Found NFT:', foundNFT ? 'YES' : 'NO', foundNFT?.tokenId)
+    console.log('🔍 [NFT_PURCHASE] Available tokenIds:', allNFTs.map(nft => nft.tokenId))
+    
+    // If real NFT found, enhance it with mock analytics data for demo purposes
+    if (foundNFT) {
+      return {
+        ...foundNFT,
+        marketAnalytics: mockNFTData['1']?.marketAnalytics || {},
+        earningsProjection: mockNFTData['1']?.earningsProjection || {},
+        riskAnalysis: mockNFTData['1']?.riskAnalysis || {},
+        benefits: mockNFTData['1']?.benefits || [],
+        exclusiveContent: mockNFTData['1']?.exclusiveContent || []
+      }
+    }
+    
+    return null
+  }, [allNFTs, nftId])
 
   // Memoize current track check
   const isCurrentlyPlaying = useMemo(
@@ -305,12 +330,24 @@ export function NFTPurchasePage() {
     }
   }, [isWalletConnected, address])
 
+  // Show loading state
+  if (nftsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p className="text-lg">Loading track...</p>
+        </div>
+      </div>
+    )
+  }
+
   if (!nft) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">NFT Not Found</h1>
-          <p className="text-muted-foreground">The requested NFT could not be found.</p>
+          <h1 className="text-2xl font-bold mb-2">Track Not Found</h1>
+          <p className="text-muted-foreground">The requested track could not be found or may have been removed.</p>
           <Link to="/marketplace" className="inline-block mt-4">
             <Button>Back to Marketplace</Button>
           </Link>
@@ -331,7 +368,7 @@ export function NFTPurchasePage() {
       artwork: nft.metadata.image,
       audioUrl: nft.metadata.audioUrl,
       duration: nft.metadata.duration,
-      pagsPerStream: nft.metadata.pagsAmount / 1000,
+      pagsPerStream: nft.metadata.blokAmount / 1000,
     }
     play(track)
   }
@@ -854,9 +891,9 @@ export function NFTPurchasePage() {
                     <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
                       <div className="flex items-center gap-2 mb-1">
                         <Coins className="w-4 h-4 text-yellow-500" />
-                        <span className="text-sm font-medium">PAGS Rewards</span>
+                        <span className="text-sm font-medium">BLOKs Rewards</span>
                       </div>
-                      <div className="text-lg font-bold">{nft.metadata.pagsAmount} PAGS</div>
+                      <div className="text-lg font-bold">{nft.metadata.pagsAmount} BLOK</div>
                       <div className="text-xs text-muted-foreground">Earned per purchase</div>
                     </div>
                   </div>

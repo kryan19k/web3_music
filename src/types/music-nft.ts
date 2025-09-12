@@ -37,6 +37,11 @@ export interface MusicNFT {
   owner: string
   isListed: boolean
   streamingStats: StreamingStats
+  // Collection-specific fields
+  collectionId?: number
+  collectionTitle?: string
+  finalized?: boolean
+  active?: boolean
 }
 
 export interface TierConfig {

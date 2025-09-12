@@ -194,7 +194,7 @@ const marketplaceNFTs: MusicNFT[] = [
       description: 'An ethereal journey through ambient soundscapes',
       genre: 'Ambient',
       releaseDate: '2024-01-15',
-      pagsAmount: 1000,
+      blokAmount: 1000,
       dailyStreams: 15420,
       attributes: [
         { trait_type: 'Mood', value: 'Ethereal' },
@@ -233,7 +233,7 @@ const marketplaceNFTs: MusicNFT[] = [
       description: 'High-energy synthwave with retro vibes',
       genre: 'Synthwave',
       releaseDate: '2024-02-03',
-      pagsAmount: 500,
+      blokAmount: 500,
       dailyStreams: 32100,
       attributes: [
         { trait_type: 'Mood', value: 'Energetic' },
@@ -272,7 +272,7 @@ const marketplaceNFTs: MusicNFT[] = [
       description: 'Raw hip-hop beats from the concrete streets',
       genre: 'Hip Hop',
       releaseDate: '2024-01-28',
-      pagsAmount: 250,
+      blokAmount: 250,
       dailyStreams: 45600,
       attributes: [
         { trait_type: 'Mood', value: 'Aggressive' },
@@ -311,7 +311,7 @@ const marketplaceNFTs: MusicNFT[] = [
       description: 'Relaxing acoustic melodies for peaceful moments',
       genre: 'Acoustic',
       releaseDate: '2024-02-10',
-      pagsAmount: 100,
+      blokAmount: 100,
       dailyStreams: 28340,
       attributes: [
         { trait_type: 'Mood', value: 'Relaxing' },
@@ -390,7 +390,7 @@ const marketplaceNFTs: MusicNFT[] = [
       description: 'Cyberpunk-inspired electronic beats',
       genre: 'Electronic',
       releaseDate: '2024-01-22',
-      pagsAmount: 300,
+      blokAmount: 300,
       dailyStreams: 52400,
       attributes: [
         { trait_type: 'Mood', value: 'Futuristic' },

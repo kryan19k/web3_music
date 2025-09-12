@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Progress } from '@/src/components/ui/progress'
 import { Badge } from '@/src/components/ui/badge'
-import { uploadFile, uploadAudioFile, uploadCoverArt, uploadToIPFS } from '@/src/lib/storacha'
+import { uploadAudioToPinata, uploadImageToPinata } from '@/src/services/pinata'
 import { useAudioAnalysis, formatDuration } from '@/src/hooks/useAudioAnalysis'
 import { 
   Upload, 
@@ -151,17 +151,30 @@ export function FileUploadZone({
     setUploadError(null)
 
     try {
-      const result = await uploadToIPFS(selectedFile, (progress) => {
-        setUploadProgress(progress.percentage)
-        onProgressUpdate?.(progress.percentage)
-      })
+      let cid: string
+      
+      if (type === 'audio') {
+        // Update progress as we start upload
+        setUploadProgress(50)
+        onProgressUpdate?.(50)
+        cid = await uploadAudioToPinata(selectedFile, selectedFile.name.split('.')[0])
+        setUploadProgress(100)
+        onProgressUpdate?.(100)
+      } else {
+        // Update progress as we start upload
+        setUploadProgress(50)
+        onProgressUpdate?.(50)
+        cid = await uploadImageToPinata(selectedFile, selectedFile.name.split('.')[0])
+        setUploadProgress(100)
+        onProgressUpdate?.(100)
+      }
 
       setUploadStatus('success')
       toast.success(`${type === 'audio' ? 'Audio' : 'Image'} uploaded successfully!`, {
-        description: `Stored on IPFS: ${result.cid.slice(0, 10)}...`
+        description: `Stored on IPFS: ${cid.slice(0, 10)}...`
       })
 
-      onUploadComplete(selectedFile, result.cid)
+      onUploadComplete(selectedFile, cid)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Upload failed'
       setUploadStatus('error')

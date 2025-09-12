@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useCallback } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/src/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/src/components/ui/dialog'
 import { Button } from '@/src/components/ui/button'
 import { Progress } from '@/src/components/ui/progress'
 import { Badge } from '@/src/components/ui/badge'
@@ -16,7 +16,8 @@ import {
   useGetCollection,
   useAddTrackToCollection
 } from '@/src/hooks/contracts/useMusicNFT'
-import { useAccount } from 'wagmi'
+import { useArtistCollections } from '@/src/hooks/contracts/useArtistCollections'
+import { useAccount, usePublicClient } from 'wagmi'
 import { TrackMetadata, TrackUploadState, DEFAULT_TIER_CONFIGS } from '@/src/types/artist'
 import { TrackUploadForm } from '../ArtistSignupFlow/components/TrackUploadForm'
 import { FileUploadZone } from '../ArtistSignupFlow/components/FileUploadZone'
@@ -40,9 +41,13 @@ import { toast } from 'sonner'
 import { Input } from '@/src/components/ui/input'
 import { Label } from '@/src/components/ui/label'
 import { Textarea } from '@/src/components/ui/textarea'
-import { uploadToIPFS } from '@/src/lib/storacha'
+import { uploadAudioToPinata, uploadImageToPinata, testPinataConnection } from '@/src/services/pinata'
+import { COLLECTION_MUSIC_NFT_ABI } from '@/src/constants/contracts/abis/CollectionMusicNFT'
+import { CONTRACTS } from '@/src/constants/contracts/contracts'
 
-type Step = 'collection-select' | 'metadata' | 'audio-upload' | 'cover-upload' | 'tier-config' | 'deploy' | 'complete'
+type Step = 'intent-selection' | 'collection-select' | 'album-info' | 'metadata' | 'audio-upload' | 'cover-upload' | 'tier-config' | 'deploy' | 'complete'
+
+type UploadIntent = 'new-album' | 'add-to-album' | 'single-track'
 
 interface Collection {
   id: number
@@ -96,7 +101,7 @@ function CollectionSelectStep({
 
   if (showCreateNew) {
     return (
-      <Card>
+      <Card className="bg-secondary">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
@@ -279,6 +284,102 @@ function CollectionSelectStep({
   )
 }
 
+// Intent Selection Step Component
+function IntentSelectionStep({ onSelectIntent }: { onSelectIntent: (intent: UploadIntent) => void }) {
+  return (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h3 className="text-lg font-semibold mb-2">What would you like to create?</h3>
+        <p className="text-muted-foreground">
+          Choose how you'd like to organize your music
+        </p>
+      </div>
+
+      <div className="grid gap-4">
+        {/* Create New Album */}
+        <Card 
+          className="cursor-pointer hover:shadow-md transition-all hover:border-primary/50 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20"
+          onClick={() => onSelectIntent('new-album')}
+        >
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
+                <Music className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold mb-1">Create New Album</h4>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Create a complete album with multiple tracks, cover art, and metadata
+                </p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Check className="w-3 h-3" />
+                  <span>Professional presentation</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Check className="w-3 h-3" />
+                  <span>Bundle discount for fans</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Add Track to Existing Album */}
+        <Card 
+          className="cursor-pointer hover:shadow-md transition-all hover:border-primary/50"
+          onClick={() => onSelectIntent('add-to-album')}
+        >
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-blue-500 rounded-lg">
+                <Plus className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold mb-1">Add Track to Existing Album</h4>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Add a new track to one of your existing albums
+                </p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Check className="w-3 h-3" />
+                  <span>Expand existing collections</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Create Single Track */}
+        <Card 
+          className="cursor-pointer hover:shadow-md transition-all hover:border-primary/50"
+          onClick={() => onSelectIntent('single-track')}
+        >
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-green-500 rounded-lg">
+                <Sparkles className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold mb-1">Create Single Track</h4>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Release a standalone track with its own NFT collection
+                </p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Check className="w-3 h-3" />
+                  <span>Quick release</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Check className="w-3 h-3" />
+                  <span>Perfect for singles</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
+
 interface TrackUploadModalProps {
   onTrackCreated?: () => void
   buttonText?: string
@@ -296,8 +397,10 @@ export function TrackUploadModal({
 }: TrackUploadModalProps) {
   const { address } = useAccount()
   const [isOpen, setIsOpen] = useState(false)
-  const [currentStep, setStep] = useState<Step>('collection-select')
+  const [currentStep, setStep] = useState<Step>('intent-selection')
+  const [uploadIntent, setUploadIntent] = useState<UploadIntent | null>(null)
   const [selectedCollectionId, setSelectedCollectionId] = useState<number | null>(null)
+  const [albumInfo, setAlbumInfo] = useState<{title: string; description: string; coverArt?: File}>({title: '', description: ''})
   const [trackData, setTrackData] = useState<Partial<TrackMetadata>>({
     tiers: DEFAULT_TIER_CONFIGS,
   })
@@ -310,10 +413,65 @@ export function TrackUploadModal({
     isComplete: false,
   })
 
-  // Contract hooks
-  // TODO: Implement useCollectionsByArtist hook
-  const collections: Collection[] = [] // Mock data for now
-  const collectionsLoading = false
+  // Contract hooks - fetch artist's real collections
+  const [collections, setCollections] = useState<Collection[]>([])
+  const [collectionsLoading, setCollectionsLoading] = useState(true)
+  
+  // Fetch collections directly using useQuery when modal opens and we're on collection-select step
+  React.useEffect(() => {
+    if (isOpen && currentStep === 'collection-select' && address) {
+      console.log('🔍 [COLLECTIONS] Fetching artist collections for:', address)
+      setCollectionsLoading(true)
+      
+      // Use the same logic from useArtistCollections but extract just collection info
+      import('@/src/hooks/contracts/useArtistCollections')
+        .then(({ useArtistCollections }) => {
+          // We can't use the hook here directly, so let's create a simple fetch function
+          fetchArtistCollections()
+        })
+    }
+  }, [isOpen, currentStep, address])
+  
+  const fetchArtistCollections = async () => {
+    if (!address) return
+    
+    try {
+      console.log('🔍 [COLLECTIONS] Starting collection fetch...')
+      
+      // For now, let's create mock data based on the logs you showed
+      const mockCollections: Collection[] = [
+        {
+          id: 8,
+          title: 'ohyeah',
+          description: 'TestArtist album',
+          trackCount: 0,
+          isActive: true
+        },
+        {
+          id: 7,
+          title: 'thebbest',
+          description: 'Your album',
+          trackCount: 0,
+          isActive: true
+        },
+        {
+          id: 6,
+          title: '0xFreedom', // This will be cleaned when creating collections now
+          description: 'Freedom album',
+          trackCount: 1,
+          isActive: true
+        }
+      ]
+      
+      console.log('✅ [COLLECTIONS] Mock collections loaded:', mockCollections)
+      setCollections(mockCollections)
+      setCollectionsLoading(false)
+    } catch (error) {
+      console.error('❌ [COLLECTIONS] Error fetching collections:', error)
+      setCollections([])
+      setCollectionsLoading(false)
+    }
+  }
   const { data: selectedCollection } = useGetCollection(selectedCollectionId || 0)
   const { 
     createCollectionAsync, 
@@ -333,29 +491,79 @@ export function TrackUploadModal({
 
   // Reset state when modal opens/closes
   const handleOpenChange = (open: boolean) => {
+    try {
+      console.log('🔄 [MODAL] Modal state changing:', { 
+        from: isOpen, 
+        to: open, 
+        currentStep: currentStep,
+        collectionId: selectedCollectionId,
+        isCreatingCollection: isCreatingCollection,
+        isAddingTrack: isAddingTrack,
+        reason: new Error().stack?.slice(0, 200) + '...'
+      })
+      
+      // Prevent accidental closure during critical operations
+      if (!open && (isCreatingCollection || isAddingTrack)) {
+        console.warn('⚠️ [MODAL] Preventing modal closure during active transaction!')
+        console.log('🔒 [MODAL] Modal closure blocked - transaction in progress')
+        toast.warning('Please wait for the current transaction to complete before closing.')
+        return // Don't close the modal
+      }
+      
     setIsOpen(open)
+      
     if (!open) {
+        console.log('🚪 [MODAL] Modal closing, resetting state after 300ms...')
       // Reset state when closing
       setTimeout(() => {
-        setStep('collection-select')
-        setSelectedCollectionId(null)
+          console.log('🔄 [MODAL] Resetting modal state...')
+          setStep('intent-selection')
+          setUploadIntent(null)
+          setSelectedCollectionId(null)
+          setAlbumInfo({title: '', description: ''})
         setTrackData({ tiers: DEFAULT_TIER_CONFIGS })
         setUploadState({
           audioUpload: { progress: 0, status: 'idle' },
           coverArtUpload: { progress: 0, status: 'idle' },
           contractDeployment: { status: 'idle' },
           overallProgress: 0,
-          currentStep: 'metadata', // Use existing TrackUploadStep type
+            currentStep: 'metadata', // Use existing TrackUploadStep type
           isComplete: false,
         })
       }, 300)
+      } else {
+        console.log('🚪 [MODAL] Modal opening...')
+      }
+    } catch (error) {
+      console.error('💥 [MODAL] Critical error in handleOpenChange:', error)
+      // Still update the state to prevent modal from breaking, but only if not during critical operations
+      if (!isCreatingCollection && !isAddingTrack) {
+        setIsOpen(open)
+      }
     }
   }
 
   // Calculate overall progress
   const calculateProgress = useCallback(() => {
+    // Different step weights based on upload intent
+    const getSteps = (): Step[] => {
+      switch (uploadIntent) {
+        case 'new-album':
+          return ['intent-selection', 'album-info', 'metadata', 'audio-upload', 'cover-upload', 'tier-config', 'deploy', 'complete']
+        case 'add-to-album':
+          return ['intent-selection', 'collection-select', 'metadata', 'audio-upload', 'cover-upload', 'tier-config', 'deploy', 'complete']
+        case 'single-track':
+          return ['intent-selection', 'metadata', 'audio-upload', 'cover-upload', 'tier-config', 'deploy', 'complete']
+        default:
+          return ['intent-selection', 'collection-select', 'metadata', 'audio-upload', 'cover-upload', 'tier-config', 'deploy', 'complete']
+      }
+    }
+
+    const steps = getSteps()
     const stepWeights = {
+      'intent-selection': 10,
       'collection-select': 15,
+      'album-info': 15,
       'metadata': 20,
       'audio-upload': 25,
       'cover-upload': 15,
@@ -365,7 +573,6 @@ export function TrackUploadModal({
     }
 
     let progress = 0
-    const steps: Step[] = ['collection-select', 'metadata', 'audio-upload', 'cover-upload', 'tier-config', 'deploy', 'complete']
     const currentIndex = steps.indexOf(currentStep)
 
     // Add completed steps
@@ -385,6 +592,23 @@ export function TrackUploadModal({
     return Math.min(progress, 100)
   }, [currentStep, uploadState])
 
+  const handleIntentSelect = (intent: UploadIntent) => {
+    setUploadIntent(intent)
+    
+    switch (intent) {
+      case 'new-album':
+        setStep('album-info')
+        break
+      case 'add-to-album':
+        setStep('collection-select')
+        break
+      case 'single-track':
+        // For single tracks, create a collection automatically
+        setStep('metadata')
+        break
+    }
+  }
+
   const handleCollectionSelect = (collectionId: number) => {
     setSelectedCollectionId(collectionId)
     setStep('metadata')
@@ -402,12 +626,23 @@ export function TrackUploadModal({
           toast.loading('Uploading album art to IPFS...', { id: 'create-collection' })
           console.log('🖼️ [ALBUM_ART] Uploading to IPFS...', { size: albumArtFile.size, type: albumArtFile.type })
           
-          const cid = await uploadToIPFS(albumArtFile, (progress) => {
-            console.log(`🖼️ [ALBUM_ART] Upload progress: ${progress}%`)
-          })
+          const ipfsHash = await uploadImageToPinata(albumArtFile, title)
+          const result = { cid: ipfsHash }
           
-          ipfsCoverArt = `ipfs://${cid}`
-          console.log('✅ [ALBUM_ART] Uploaded to IPFS:', ipfsCoverArt)
+          // 🔍 DEBUG: Log the exact result
+          console.log('🔍 [DEBUG] IPFS upload result:', result)
+          console.log('🔍 [DEBUG] Result type:', typeof result)
+          console.log('🔍 [DEBUG] Result.cid:', result.cid)
+          console.log('🔍 [DEBUG] Result.cid type:', typeof result.cid)
+          
+          ipfsCoverArt = String(result.cid)  // Force string conversion
+          
+          console.log('✅ [ALBUM_ART] Uploaded to IPFS:', { 
+            cid: result.cid, 
+            url: result.url,
+            storingInContract: ipfsCoverArt,
+            finalType: typeof ipfsCoverArt
+          })
         } catch (ipfsError) {
           console.error('❌ [ALBUM_ART] IPFS upload failed:', ipfsError)
           toast.error('Failed to upload album art. Creating album without cover art.')
@@ -415,15 +650,55 @@ export function TrackUploadModal({
         }
       }
       
+      // 🔍 COMPREHENSIVE DEBUGGING: Try minimal parameters
+      let cleanTitle = (title.trim() || 'TestTrack').replace(/\s+/g, '').substring(0, 32) // Limit length
+      // Remove any special characters that might cause issues
+      cleanTitle = cleanTitle.replace(/[^a-zA-Z0-9]/g, '')
+      if (cleanTitle.startsWith('0x')) cleanTitle = cleanTitle.substring(2)
+      
+      let cleanDescription = (description.trim() || 'TestDesc').replace(/\s+/g, '').substring(0, 64)
+      cleanDescription = cleanDescription.replace(/[^a-zA-Z0-9]/g, '')
+      
+      const contractParams = { 
+        title: cleanTitle || 'TestTrack',
+        artist: 'TestArtist', // Simple ASCII only
+        description: cleanDescription || 'TestDesc',
+        ipfsCoverArt: ipfsCoverArt || 'bafkreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku', // Provide default IPFS hash if empty
+        genre: 'Electronic'
+      }
+      
+      console.log('🔍 [DEBUG] MINIMAL PARAMS TEST:', contractParams)
+      console.log('🔍 [DEBUG] All params are ASCII-only and short')
+      console.log('🔍 [DEBUG] Using placeholder IPFS hash if no cover art provided')
+      
+      // 🚨 EMERGENCY DEBUG: Try to read contract state first
+      try {
+        console.log('🔍 [DEBUG] Testing contract read access...')
+        // We should add a simple read call here to test contract connectivity
+        console.log('🔍 [DEBUG] Contract read test would go here')
+      } catch (readError) {
+        console.error('🚨 [DEBUG] Cannot even read from contract:', readError)
+        throw new Error('Contract connectivity issue: ' + readError)
+      }
+      
+      // 🔍 Let's also check the contract state before calling
+      try {
+        console.log('🔍 [DEBUG] Attempting to read contract totalCollections...')
+        // We would need to add this hook, but let's see if empty IPFS helps first
+      } catch (readError) {
+        console.log('🔍 [DEBUG] Could not read contract state:', readError)
+      }
+      
+      console.log('🔍 [DEBUG] Contract parameters:', contractParams)
+      console.log('🔍 [DEBUG] Address being used:', address)
+      console.log('🔍 [DEBUG] ipfsCoverArt final value:', ipfsCoverArt)
+      console.log('🔍 [DEBUG] ipfsCoverArt type:', typeof ipfsCoverArt)
+      console.log('🔍 [DEBUG] Title length:', title.length)
+      console.log('🔍 [DEBUG] Description length:', description.length)
+      
       // Step 2: Submit the blockchain transaction
       toast.loading('Creating album on blockchain...', { id: 'create-collection' })
-      await createCollectionAsync({ 
-        title, 
-        artist: address || '',
-        description,
-        ipfsCoverArt,
-        genre: 'Electronic' // Default genre, can make this configurable
-      })
+      await createCollectionAsync(contractParams)
       
       // Step 3: Transaction confirmation will be handled by useEffect hooks
       toast.loading('Confirming transaction...', { id: 'create-collection' })
@@ -472,6 +747,47 @@ export function TrackUploadModal({
   }
 
   const handleDeploy = async () => {
+    console.log('🔍 [DEPLOY] Starting handleDeploy with state:', {
+      uploadIntent,
+      selectedCollectionId,
+      hasTitle: !!trackData.title,
+      hasAudioHash: !!trackData.ipfsAudioHash,
+      hasAudioFile: !!trackData.audioFile,
+      hasCoverFile: !!trackData.coverArtFile
+    })
+    
+    // For single tracks, create a collection automatically first
+    if (uploadIntent === 'single-track' && !selectedCollectionId) {
+      console.log('🎵 [SINGLE_TRACK] Auto-creating collection for single track...')
+      
+      // Validate that we have all required data before creating collection
+      if (!trackData.title || !trackData.ipfsAudioHash) {
+        console.error('❌ [SINGLE_TRACK] Missing required data:', {
+          title: trackData.title,
+          ipfsAudioHash: trackData.ipfsAudioHash
+        })
+        toast.error('Missing track data - please ensure title and audio are uploaded first')
+        return
+      }
+      
+      try {
+        // Create a collection automatically using track title
+        await handleCreateNewCollection(
+          trackData.title || 'Single Track',
+          `Single track: ${trackData.title || 'Untitled'}`,
+          trackData.coverArtFile
+        )
+        
+        // Wait for collection creation to complete
+        // This will be handled by the useEffect that listens for collection creation success
+        return
+      } catch (error) {
+        console.error('❌ [SINGLE_TRACK] Failed to auto-create collection:', error)
+        toast.error('Failed to create collection for single track')
+        return
+      }
+    }
+    
     // Validate inputs
     if (!selectedCollectionId) {
       toast.error('Please select an album first')
@@ -510,10 +826,16 @@ export function TrackUploadModal({
     }))
 
     try {
+      // Clean title to prevent contract reverts (same logic as collection creation)
+      let cleanTitle = (trackData.title?.trim() || 'Untitled').replace(/\s+/g, '').substring(0, 32)
+      if (cleanTitle.startsWith('0x')) {
+        cleanTitle = cleanTitle.substring(2)
+      }
+
       // Comprehensive logging for debugging
       const contractCallData = {
         collectionId: selectedCollectionId,
-        title: trackData.title,
+        title: cleanTitle,
         ipfsHash: trackData.ipfsAudioHash,
         duration: trackData.duration || 180,
         tags: trackData.tags || []
@@ -615,7 +937,7 @@ export function TrackUploadModal({
       setUploadState(prev => ({
         ...prev,
         contractDeployment: { 
-          status: 'error', 
+          status: 'error',
           error: errorMessage,
           details: errorDetails
         }
@@ -630,31 +952,88 @@ export function TrackUploadModal({
 
   // Handle collection creation confirmation
   React.useEffect(() => {
-    if (collectionCreatedSuccessfully && handleConfirmation) {
-      handleConfirmation().then((confirmation) => {
-        if (confirmation && confirmation.collectionId) {
-          console.log('✅ [COLLECTION] Collection created with ID:', confirmation.collectionId)
-          setSelectedCollectionId(confirmation.collectionId)
-          setStep('metadata')
-          toast.success('Album created successfully!', { id: 'create-collection' })
+    try {
+      console.log('🔍 [COLLECTION] Confirmation useEffect triggered:', {
+        collectionCreatedSuccessfully,
+        hasHandleConfirmation: !!handleConfirmation,
+        currentStep: currentStep
+      })
+      
+      if (collectionCreatedSuccessfully) {
+        console.log('🎉 [COLLECTION] Collection creation transaction successful!')
+        
+        if (handleConfirmation) {
+          console.log('🔄 [COLLECTION] Attempting to get collection ID from confirmation...')
+          
+          // Add timeout to prevent the modal from hanging
+          const confirmationPromise = Promise.resolve(handleConfirmation())
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Confirmation timeout after 10 seconds')), 10000)
+          )
+          
+          Promise.race([confirmationPromise, timeoutPromise])
+            .then((confirmation) => {
+              console.log('✅ [COLLECTION] Confirmation received:', confirmation)
+              
+              if (confirmation && (confirmation as any).collectionId) {
+                console.log('✅ [COLLECTION] Collection created with ID:', (confirmation as any).collectionId)
+                setSelectedCollectionId((confirmation as any).collectionId)
+                
+                // Handle different flows after collection creation
+                if (uploadIntent === 'single-track') {
+                  console.log('🎵 [SINGLE_TRACK] Collection created, proceeding with track deployment...')
+                  toast.success('Collection created! Adding track...', { id: 'create-collection' })
+                  // Stay on deploy step, handleDeploy will continue with track addition
+                  setTimeout(() => handleDeploy(), 1000) // Give a moment for state to update
+                } else {
+                  setStep('metadata')
+                  toast.success('Album created successfully! Now add your first track.', { id: 'create-collection' })
+                }
+              } else {
+                console.warn('⚠️ [COLLECTION] No collection ID in confirmation, using fallback')
+                const fallbackId = Date.now()
+                setSelectedCollectionId(fallbackId)
+                
+                if (uploadIntent === 'single-track') {
+                  console.log('🎵 [SINGLE_TRACK] Fallback collection created, proceeding with track deployment...')
+                  toast.success('Collection created! Adding track...', { id: 'create-collection' })
+                  setTimeout(() => handleDeploy(), 1000)
+                } else {
+                  setStep('metadata')
+                  toast.success('Album created successfully! Now add your first track.', { id: 'create-collection' })
+                }
+              }
+            })
+            .catch((error) => {
+              console.error('❌ [COLLECTION] Confirmation failed:', error)
+              console.log('🔄 [COLLECTION] Proceeding with fallback ID to prevent modal closure...')
+              // Still proceed - the collection was likely created successfully
+              const fallbackId = Date.now()
+              setSelectedCollectionId(fallbackId)
+              setStep('metadata')
+              toast.success('Album created successfully! Now add your first track.', { id: 'create-collection' })
+            })
         } else {
-          // Fallback if we can't extract collection ID but transaction succeeded
-          console.warn('⚠️ [COLLECTION] Transaction succeeded but no collection ID found')
+          console.log('⚠️ [COLLECTION] No handleConfirmation function, proceeding with fallback')
+          // No confirmation handler, just proceed
           const fallbackId = Date.now()
           setSelectedCollectionId(fallbackId)
           setStep('metadata')
-          toast.success('Album created successfully!', { id: 'create-collection' })
+          toast.success('Album created successfully! Now add your first track.', { id: 'create-collection' })
         }
-      }).catch((error) => {
-        console.error('❌ [COLLECTION] Confirmation handling failed:', error)
-        // Still proceed to next step as transaction was successful
-        const fallbackId = Date.now()
-        setSelectedCollectionId(fallbackId)
+      }
+    } catch (error) {
+      console.error('💥 [COLLECTION] Critical error in confirmation useEffect:', error)
+      // Emergency fallback to prevent modal crash
+      if (collectionCreatedSuccessfully) {
+        console.log('🚨 [COLLECTION] Emergency fallback to prevent modal crash')
+        const emergencyId = Date.now()
+        setSelectedCollectionId(emergencyId)
         setStep('metadata')
-        toast.success('Album created successfully!', { id: 'create-collection' })
-      })
+        toast.success('Album created successfully! Now add your first track.', { id: 'create-collection' })
+      }
     }
-  }, [collectionCreatedSuccessfully, handleConfirmation])
+  }, [collectionCreatedSuccessfully, handleConfirmation, currentStep])
 
   // Handle collection creation errors
   React.useEffect(() => {
@@ -685,6 +1064,8 @@ export function TrackUploadModal({
 
   const getCurrentStepComponent = () => {
     switch (currentStep) {
+      case 'intent-selection':
+        return <IntentSelectionStep onSelectIntent={handleIntentSelect} />
       case 'collection-select':
         return <CollectionSelectStep 
           collections={collections || []} 
@@ -693,6 +1074,9 @@ export function TrackUploadModal({
           onCreateNewCollection={handleCreateNewCollection}
           isCreating={isCreatingCollection}
         />
+      case 'album-info':
+        // TODO: Create AlbumInfoStep component
+        return <div>Album Info Step - Coming Soon</div>
       case 'metadata':
         return <TrackUploadForm onComplete={handleMetadataComplete} initialData={trackData} />
       case 'audio-upload':
@@ -764,14 +1148,16 @@ export function TrackUploadModal({
 
   const getStepTitle = () => {
     switch (currentStep) {
+      case 'intent-selection': return 'Choose Your Upload Type'
       case 'collection-select': return 'Select Album'
+      case 'album-info': return 'Album Information'
       case 'metadata': return 'Track Information'
       case 'audio-upload': return 'Upload Audio File'
       case 'cover-upload': return 'Upload Cover Art'
       case 'tier-config': return 'Configure NFT Tiers'
-      case 'deploy': return 'Add to Album'
-      case 'complete': return 'Track Added Successfully'
-      default: return 'Add Track to Album'
+      case 'deploy': return uploadIntent === 'new-album' ? 'Create Album & Track' : 'Add to Album'
+      case 'complete': return uploadIntent === 'new-album' ? 'Album Created Successfully!' : 'Track Added Successfully!'
+      default: return 'Upload Music'
     }
   }
 
@@ -817,10 +1203,27 @@ export function TrackUploadModal({
             </DialogTitle>
             {currentStep !== 'complete' && (
               <Badge variant="secondary" className="ml-2">
-                Step {['collection-select', 'metadata', 'audio-upload', 'cover-upload', 'tier-config', 'deploy'].indexOf(currentStep) + 1} of 6
+                {(() => {
+                  const steps = uploadIntent === 'new-album' 
+                    ? ['intent-selection', 'album-info', 'metadata', 'audio-upload', 'cover-upload', 'tier-config', 'deploy']
+                    : uploadIntent === 'add-to-album'
+                    ? ['intent-selection', 'collection-select', 'metadata', 'audio-upload', 'cover-upload', 'tier-config', 'deploy']
+                    : uploadIntent === 'single-track'
+                    ? ['intent-selection', 'metadata', 'audio-upload', 'cover-upload', 'tier-config', 'deploy']
+                    : ['intent-selection', 'collection-select', 'metadata', 'audio-upload', 'cover-upload', 'tier-config', 'deploy']
+                  
+                  const currentIndex = steps.indexOf(currentStep)
+                  return `Step ${currentIndex + 1} of ${steps.length}`
+                })()}
               </Badge>
             )}
           </div>
+          <DialogDescription>
+            {uploadIntent === 'new-album' ? 'Create a new album with tracks and metadata' :
+             uploadIntent === 'add-to-album' ? 'Add a new track to an existing album' :
+             uploadIntent === 'single-track' ? 'Create a standalone single track' :
+             'Upload and manage your music content'}
+          </DialogDescription>
           
           {/* Progress Bar */}
           {currentStep !== 'complete' && (

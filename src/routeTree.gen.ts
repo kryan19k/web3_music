@@ -25,6 +25,7 @@ import { Route as MarketplaceNftIdImport } from './routes/marketplace/$nftId'
 import { Route as ArtistUploadImport } from './routes/artist/upload'
 import { Route as ArtistDashboardImport } from './routes/artist/dashboard'
 import { Route as ArtistApplicationStatusImport } from './routes/artist/application-status'
+import { Route as AlbumAlbumIdImport } from './routes/album/$albumId'
 import { Route as ArtistSignupIndexImport } from './routes/artist/signup/index'
 import { Route as MarketplacePurchaseNftIdImport } from './routes/marketplace/purchase/$nftId'
 
@@ -128,6 +129,12 @@ const ArtistApplicationStatusRoute = ArtistApplicationStatusImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const AlbumAlbumIdRoute = AlbumAlbumIdImport.update({
+  id: '/album/$albumId',
+  path: '/album/$albumId',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const ArtistSignupIndexRoute = ArtistSignupIndexImport.update({
   id: '/artist/signup/',
   path: '/artist/signup/',
@@ -163,6 +170,13 @@ declare module '@tanstack/react-router' {
       path: '/playlists'
       fullPath: '/playlists'
       preLoaderRoute: typeof PlaylistsLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/album/$albumId': {
+      id: '/album/$albumId'
+      path: '/album/$albumId'
+      fullPath: '/album/$albumId'
+      preLoaderRoute: typeof AlbumAlbumIdImport
       parentRoute: typeof rootRoute
     }
     '/artist/application-status': {
@@ -272,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminLazyRoute
   '/playlists': typeof PlaylistsLazyRoute
+  '/album/$albumId': typeof AlbumAlbumIdRoute
   '/artist/application-status': typeof ArtistApplicationStatusRoute
   '/artist/dashboard': typeof ArtistDashboardRoute
   '/artist/upload': typeof ArtistUploadRoute
@@ -292,6 +307,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminLazyRoute
   '/playlists': typeof PlaylistsLazyRoute
+  '/album/$albumId': typeof AlbumAlbumIdRoute
   '/artist/application-status': typeof ArtistApplicationStatusRoute
   '/artist/dashboard': typeof ArtistDashboardRoute
   '/artist/upload': typeof ArtistUploadRoute
@@ -313,6 +329,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminLazyRoute
   '/playlists': typeof PlaylistsLazyRoute
+  '/album/$albumId': typeof AlbumAlbumIdRoute
   '/artist/application-status': typeof ArtistApplicationStatusRoute
   '/artist/dashboard': typeof ArtistDashboardRoute
   '/artist/upload': typeof ArtistUploadRoute
@@ -335,6 +352,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/playlists'
+    | '/album/$albumId'
     | '/artist/application-status'
     | '/artist/dashboard'
     | '/artist/upload'
@@ -354,6 +372,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/playlists'
+    | '/album/$albumId'
     | '/artist/application-status'
     | '/artist/dashboard'
     | '/artist/upload'
@@ -373,6 +392,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/playlists'
+    | '/album/$albumId'
     | '/artist/application-status'
     | '/artist/dashboard'
     | '/artist/upload'
@@ -394,6 +414,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminLazyRoute: typeof AdminLazyRoute
   PlaylistsLazyRoute: typeof PlaylistsLazyRoute
+  AlbumAlbumIdRoute: typeof AlbumAlbumIdRoute
   ArtistApplicationStatusRoute: typeof ArtistApplicationStatusRoute
   ArtistDashboardRoute: typeof ArtistDashboardRoute
   ArtistUploadRoute: typeof ArtistUploadRoute
@@ -414,6 +435,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminLazyRoute: AdminLazyRoute,
   PlaylistsLazyRoute: PlaylistsLazyRoute,
+  AlbumAlbumIdRoute: AlbumAlbumIdRoute,
   ArtistApplicationStatusRoute: ArtistApplicationStatusRoute,
   ArtistDashboardRoute: ArtistDashboardRoute,
   ArtistUploadRoute: ArtistUploadRoute,
@@ -443,6 +465,7 @@ export const routeTree = rootRoute
         "/",
         "/admin",
         "/playlists",
+        "/album/$albumId",
         "/artist/application-status",
         "/artist/dashboard",
         "/artist/upload",
@@ -467,6 +490,9 @@ export const routeTree = rootRoute
     },
     "/playlists": {
       "filePath": "playlists.lazy.tsx"
+    },
+    "/album/$albumId": {
+      "filePath": "album/$albumId.tsx"
     },
     "/artist/application-status": {
       "filePath": "artist/application-status.tsx"

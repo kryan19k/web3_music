@@ -784,7 +784,30 @@ export function useCreateCollection() {
       ipfsCoverArt: string
       genre: string
     }) => {
-      // Step 1: Submit transaction
+      // Step 1: Pre-flight checks and debugging
+      console.log('🔍 [CREATE_COLLECTION] Pre-flight check - contract address:', contractAddress)
+      console.log('🔍 [CREATE_COLLECTION] Pre-flight check - args:', [title, artist, description, ipfsCoverArt, genre])
+      
+      // Verify contract address is valid
+      if (!contractAddress || contractAddress === '0x0000000000000000000000000000000000000000') {
+        throw new Error('Invalid contract address')
+      }
+      
+      // Verify all string parameters are valid
+      if (!title || !artist || !description || !ipfsCoverArt || !genre) {
+        console.error('🚨 [CREATE_COLLECTION] Missing required parameters:', {
+          title: !!title,
+          artist: !!artist, 
+          description: !!description,
+          ipfsCoverArt: !!ipfsCoverArt,
+          genre: !!genre
+        })
+        throw new Error('Missing required parameters')
+      }
+      
+      console.log('✅ [CREATE_COLLECTION] Pre-flight checks passed')
+      
+      // Submit transaction (reverted to standard approach)
       const txHash = await writeContract({
         address: contractAddress as Address,
         abi: COLLECTION_MUSIC_NFT_ABI,
@@ -797,6 +820,7 @@ export function useCreateCollection() {
     onSuccess: () => {
       // We'll handle success in the component after confirmation
       queryClient.invalidateQueries({ queryKey: ['collections'] })
+      queryClient.invalidateQueries({ queryKey: ['artist-nfts'] })
     },
     onError: (error) => {
       toast.error('Failed to create collection')
@@ -902,7 +926,7 @@ export function useAddTrackToCollection() {
 
       console.log('✅ [ADD_TRACK] Input validation passed, submitting transaction...')
 
-      // Step 1: Submit transaction
+      // Step 1: Submit transaction (reverted to standard approach)
       const txHash = await writeContract({
         address: contractAddress as Address,
         abi: COLLECTION_MUSIC_NFT_ABI,
@@ -917,6 +941,8 @@ export function useAddTrackToCollection() {
       console.log('✅ [ADD_TRACK] Mutation onSuccess triggered')
       queryClient.invalidateQueries({ queryKey: ['collections'] })
       queryClient.invalidateQueries({ queryKey: ['tracks'] })
+      queryClient.invalidateQueries({ queryKey: ['artist-nfts'] })
+      queryClient.invalidateQueries({ queryKey: ['music-nft-tracks'] })
     },
     onError: (error) => {
       console.error('❌ [ADD_TRACK] Mutation onError triggered:', error)
@@ -955,6 +981,8 @@ export function useAddTrackToCollection() {
       console.log('✅ [ADD_TRACK] Track added successfully to collection!')
       queryClient.invalidateQueries({ queryKey: ['collections'] })
       queryClient.invalidateQueries({ queryKey: ['tracks'] })
+      queryClient.invalidateQueries({ queryKey: ['artist-nfts'] })
+      queryClient.invalidateQueries({ queryKey: ['music-nft-tracks'] })
     }
   }, [isSuccess, receipt, queryClient])
 

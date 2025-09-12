@@ -96,10 +96,10 @@ export function CollectionList({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: index * 0.1 }}
         >
-          <Card 
-            className="group cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/20"
-            onClick={() => onCollectionSelect?.(collection)}
-          >
+          <Link to={`/album/${collection.id}`} className="block">
+            <Card 
+              className="group cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/20"
+            >
             <CardHeader className="pb-4">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -174,17 +174,28 @@ export function CollectionList({
 
               {/* Action Buttons */}
               <div className="flex gap-2 pt-4 border-t">
-                <Button variant="outline" size="sm" className="flex-1">
-                  <Eye className="w-4 h-4 mr-2" />
-                  View
+                <Button asChild variant="outline" size="sm" className="flex-1">
+                  <Link to={`/album/${collection.id}`}>
+                    <Eye className="w-4 h-4 mr-2" />
+                    View Album
+                  </Link>
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onCollectionSelect?.(collection)
+                  }}
+                >
                   <Play className="w-4 h-4 mr-2" />
                   Preview
                 </Button>
               </div>
             </CardContent>
-          </Card>
+            </Card>
+          </Link>
         </motion.div>
       ))}
 

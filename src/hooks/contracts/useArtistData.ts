@@ -112,7 +112,7 @@ export function useArtistNFTs(artistAddress?: string) {
   const { tiers, isLoading: tiersLoading } = useMusicNFTAllTiers()
   const { data: trackInfo } = useMusicNFTTrackInfo(0)
 
-  const { data: artistNFTs, isLoading: nftsLoading } = useQuery({
+  const { data: artistNFTs, isLoading: nftsLoading, refetch } = useQuery({
     queryKey: createQueryKey('artist-nfts', targetAddress, tiers, trackInfo),
     queryFn: async (): Promise<MusicNFT[]> => {
       const nfts: MusicNFT[] = []
@@ -188,6 +188,7 @@ export function useArtistNFTs(artistAddress?: string) {
   return {
     nfts: artistNFTs || [],
     isLoading: tiersLoading || nftsLoading,
+    refetch,
   }
 }
 

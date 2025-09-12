@@ -10,6 +10,7 @@ import { Separator } from '@/src/components/ui/separator'
 import { type Track, useAudioPlayer } from '@/src/hooks/useAudioPlayer'
 import type { MusicNFT } from '@/src/types/music-nft'
 import { Link, useParams } from '@tanstack/react-router'
+import { useArtistCollections } from '@/src/hooks/contracts/useArtistCollections'
 import { motion } from 'framer-motion'
 import {
   ArrowLeft,
@@ -35,7 +36,7 @@ import {
 import * as React from 'react'
 import { useMemo, useState } from 'react'
 
-// Mock data - in real app this would come from API/blockchain
+// Legacy mock data - component now uses real blockchain data via useArtistCollections
 const mockNFTData: Record<string, MusicNFT> = {
   '1': {
     tokenId: '1',
@@ -167,8 +168,31 @@ export function NFTDetailPage() {
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false)
   const { play, pause, currentTrack, isPlaying } = useAudioPlayer()
 
-  // Get NFT data
-  const nft = mockNFTData[nftId]
+  // Get real NFT data from contracts
+  const { collections: allNFTs, isLoading: nftsLoading } = useArtistCollections()
+  
+  // Find the specific NFT by tokenId
+  const nft = React.useMemo(() => {
+    console.log('🔍 [NFT_DETAIL] Looking for NFT:', { nftId, allNFTsLength: allNFTs?.length })
+    if (!allNFTs || !nftId) return null
+    
+    const foundNFT = allNFTs.find(nft => nft.tokenId === nftId)
+    console.log('🔍 [NFT_DETAIL] Found NFT:', foundNFT ? 'YES' : 'NO', foundNFT?.tokenId)
+    console.log('🔍 [NFT_DETAIL] Available tokenIds:', allNFTs.map(nft => nft.tokenId))
+    
+    return foundNFT
+  }, [allNFTs, nftId])
+  
+  // Get related NFTs from the same collection
+  const relatedNFTs = React.useMemo(() => {
+    if (!allNFTs || !nft) return []
+    return allNFTs
+      .filter(relatedNFT => 
+        relatedNFT.collectionId === nft.collectionId && 
+        relatedNFT.tokenId !== nft.tokenId
+      )
+      .slice(0, 4) // Limit to 4 related NFTs
+  }, [allNFTs, nft])
 
   // Memoize current track check
   const isCurrentlyPlaying = useMemo(
@@ -176,18 +200,33 @@ export function NFTDetailPage() {
     [currentTrack?.id, nftId, isPlaying],
   )
 
+  // Show loading state
+  if (nftsLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-lg">Loading track...</p>
+        </div>
+      </div>
+    )
+  }
+
   if (!nft) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">NFT Not Found</h1>
-          <p className="text-muted-foreground">The requested NFT could not be found.</p>
-          <Link
-            to="/marketplace"
-            className="inline-block mt-4"
-          >
-            <Button>Back to Marketplace</Button>
-          </Link>
+        <div className="text-center max-w-md">
+          <Music className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+          <h1 className="text-2xl font-bold mb-2">Track Not Found</h1>
+          <p className="text-muted-foreground mb-4">The requested track could not be found or may have been removed.</p>
+          <div className="flex gap-2 justify-center">
+            <Button asChild variant="outline">
+              <Link to="/marketplace">Browse Marketplace</Link>
+            </Button>
+            <Button asChild>
+              <Link to="/artist/dashboard">Back to Dashboard</Link>
+            </Button>
+          </div>
         </div>
       </div>
     )
@@ -230,14 +269,15 @@ export function NFTDetailPage() {
       <div className="border-b border-border/50 bg-background/95 backdrop-blur-xl sticky top-16 z-40">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Link to="/marketplace">
+            {/* Smart back navigation - go to album if track is part of one, otherwise marketplace */}
+            <Link to={nft.collectionId ? `/album/${nft.collectionId}` : '/marketplace'}>
               <Button
                 variant="ghost"
                 size="sm"
                 className="gap-2"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Back
+                {nft.collectionId ? `Back to Album` : 'Back to Marketplace'}
               </Button>
             </Link>
             <div className="flex-1 min-w-0">
@@ -336,6 +376,7 @@ export function NFTDetailPage() {
                     height={120}
                     waveColor="#4a5568"
                     progressColor="#8b5cf6"
+                    visualOnly={true}
                   />
                 </CardContent>
               </Card>

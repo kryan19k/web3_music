@@ -82,6 +82,7 @@
     "react-dom": "19.1.0",
     "react-dropzone": "^14.3.8",
     "react-error-boundary": "^6.0.0",
+    "react-h5-audio-player": "^3.10.1",
     "react-hook-form": "^7.62.0",
     "react-jazzicon": "^1.0.4",
     "react-number-format": "^5.4.4",

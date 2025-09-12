@@ -15,6 +15,7 @@ interface WaveformProps {
   onPause?: () => void
   isPlaying?: boolean
   onLoadError?: (error: Error) => void
+  visualOnly?: boolean // When true, only shows waveform without audio playback
 }
 
 export function Waveform({
@@ -27,6 +28,7 @@ export function Waveform({
   onPause,
   isPlaying = false,
   onLoadError,
+  visualOnly = false,
 }: WaveformProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const wavesurfer = useRef<WaveSurfer | null>(null)
@@ -95,24 +97,34 @@ export function Waveform({
     }
   }, [audioUrl, height, waveColor, progressColor, onPlay, onPause, onLoadError])
 
-  // Sync external play state
+  // Sync external play state - only if not in visualOnly mode
   useEffect(() => {
-    if (!wavesurfer.current || !isReady) return
+    if (!wavesurfer.current || !isReady || visualOnly) return
 
     if (isPlaying && !wavesurfer.current.isPlaying()) {
       wavesurfer.current.play()
     } else if (!isPlaying && wavesurfer.current.isPlaying()) {
       wavesurfer.current.pause()
     }
-  }, [isPlaying, isReady])
+  }, [isPlaying, isReady, visualOnly])
 
   const handlePlayPause = () => {
     if (!wavesurfer.current || !isReady) return
 
-    if (wavesurfer.current.isPlaying()) {
-      wavesurfer.current.pause()
+    if (visualOnly) {
+      // In visual-only mode, use external callbacks instead of controlling audio directly
+      if (isPlaying) {
+        onPause?.()
+      } else {
+        onPlay?.()
+      }
     } else {
-      wavesurfer.current.play()
+      // In normal mode, control the wavesurfer audio directly
+      if (wavesurfer.current.isPlaying()) {
+        wavesurfer.current.pause()
+      } else {
+        wavesurfer.current.play()
+      }
     }
   }
 

@@ -13,6 +13,7 @@ import {
 } from '@/src/components/ui/select'
 import { type Track, useAudioPlayer } from '@/src/hooks/useAudioPlayer'
 import { useArtistData, useArtistNFTs, useArtistAnalytics } from '@/src/hooks/contracts/useArtistData'
+import { useArtistCollections } from '@/src/hooks/contracts/useArtistCollections'
 import { useArtistProfile } from '@/src/hooks/useArtistProfile'
 import { TrackUploadModal } from '@/src/components/artist/TrackUpload/TrackUploadModal'
 import { CollectionList } from '@/src/components/pageComponents/collections/CollectionList'
@@ -20,6 +21,8 @@ import type { MusicNFT } from '@/src/types/music-nft'
 import { Link } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
+import React from 'react'
+import { ContractDebugPanel } from '@/src/components/debug/ContractDebugPanel'
 import {
   Award,
   BarChart3,
@@ -59,51 +62,8 @@ const artistData = {
   blokEarned: 24851,
 }
 
-// Mock collections data
-const mockCollections = [
-  {
-    id: 1,
-    title: "Neon Dreams",
-    artist: "Luna Vista",
-    description: "A synthwave journey through digital landscapes and retro-futuristic soundscapes",
-    coverArt: "/api/placeholder/300/300",
-    trackCount: 8,
-    totalMinted: 156,
-    totalSupply: 500,
-    revenue: 4250,
-    createdAt: "2024-01-15T10:00:00Z",
-    isActive: true,
-    completionProgress: 85
-  },
-  {
-    id: 2,
-    title: "Ocean Depths",
-    artist: "Luna Vista", 
-    description: "Ambient exploration of underwater worlds and marine mysteries",
-    coverArt: "/api/placeholder/300/300",
-    trackCount: 6,
-    totalMinted: 89,
-    totalSupply: 300,
-    revenue: 2100,
-    createdAt: "2024-02-01T14:30:00Z",
-    isActive: true,
-    completionProgress: 100
-  },
-  {
-    id: 3,
-    title: "Urban Pulse",
-    artist: "Luna Vista",
-    description: "Electronic beats capturing the rhythm and energy of city life",
-    coverArt: "/api/placeholder/300/300", 
-    trackCount: 12,
-    totalMinted: 0,
-    totalSupply: 1000,
-    revenue: 0,
-    createdAt: "2024-03-10T09:15:00Z",
-    isActive: false,
-    completionProgress: 45
-  }
-]
+// Mock collections data - REPLACED WITH REAL CONTRACT DATA
+// Now using useArtistCollections hook with transformation in component
 
 // Mock track data for artist
 const artistTracks: MusicNFT[] = [
@@ -211,7 +171,8 @@ export function ArtistDashboard() {
 
   // Fetch real artist data from contracts and database
   const { artistStats, isLoading: artistLoading, isArtist, trackInfo } = useArtistData()
-  const { nfts: artistTracks, isLoading: nftsLoading } = useArtistNFTs()
+  const { nfts: artistTracks, isLoading: nftsLoading, refetch: refetchArtistTracks } = useArtistNFTs()
+  const { collections: rawCollections, isLoading: collectionsLoading, refetch: refetchCollections } = useArtistCollections()
   const { monthlyData } = useArtistAnalytics()
   
   // Get enhanced profile with database data
@@ -222,6 +183,51 @@ export function ArtistDashboard() {
     dbTracks 
   } = useArtistProfile()
 
+  // Transform raw collections data for CollectionList component
+  const transformedCollections = React.useMemo(() => {
+    if (!rawCollections || rawCollections.length === 0) return []
+    
+    // Group NFTs by collection ID to create collection objects
+    const collectionsMap = new Map()
+    
+    rawCollections.forEach(nft => {
+      const collectionId = nft.collectionId
+      if (!collectionId) return
+      
+      if (!collectionsMap.has(collectionId)) {
+        collectionsMap.set(collectionId, {
+          id: collectionId,
+          title: nft.collectionTitle || 'Untitled Collection',
+          artist: nft.metadata.artist || 'Unknown Artist',
+          description: nft.metadata.description || 'No description available',
+          coverArt: nft.metadata.image || '/song_cover/placeholder.png',
+          trackCount: 0,
+          totalMinted: 0,
+          totalSupply: nft.metadata.maxSupply || 1000,
+          revenue: 0,
+          createdAt: nft.metadata.releaseDate || new Date().toISOString(),
+          isActive: nft.active || false,
+          completionProgress: 0,
+          tracks: []
+        })
+      }
+      
+      const collection = collectionsMap.get(collectionId)
+      // Only count real tracks (not placeholders)
+      if (!nft.tokenId.includes('placeholder')) {
+        collection.trackCount++
+        collection.tracks.push(nft)
+        // Calculate approximate revenue (could enhance with real data)
+        collection.revenue += parseFloat(nft.priceUSD.toString()) || 0
+      }
+      
+      // Update completion progress based on finalization status
+      collection.completionProgress = nft.finalized ? 100 : Math.min(80, collection.trackCount * 20)
+    })
+    
+    return Array.from(collectionsMap.values()).sort((a, b) => b.id - a.id) // Sort by newest first
+  }, [rawCollections])
+
   console.log('🎨 Artist Dashboard Data:', { 
     artistStats, 
     artistTracks, 
@@ -229,7 +235,9 @@ export function ArtistDashboard() {
     isArtist,
     enhancedProfile,
     dbProfile,
-    dbTracks 
+    dbTracks,
+    rawCollections: rawCollections?.length,
+    transformedCollections: transformedCollections?.length
   })
 
   const handlePlay = (audioUrl: string) => {
@@ -372,6 +380,9 @@ export function ArtistDashboard() {
                 buttonText="Upload Track"
                 buttonVariant="default"
                 onTrackCreated={() => {
+                  console.log('🎵 [DASHBOARD] Track created, refreshing data...')
+                  refetchArtistTracks()
+                  refetchCollections()
                   toast.success('Track added to your collection!')
                 }} 
               />
@@ -416,6 +427,9 @@ export function ArtistDashboard() {
           {/* Overview Tab */}
           <TabsContent value="overview">
             <div className="space-y-6">
+              {/* Debug Panel - Remove after fixing role issues 
+              <ContractDebugPanel />*/}
+
               {/* Key Metrics */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <motion.div
@@ -606,9 +620,12 @@ export function ArtistDashboard() {
                       <TrackUploadModal 
                         buttonVariant="outline"
                         fullWidth={true}
-                onTrackCreated={() => {
-                  toast.success('Track added to your collection!')
-                }}
+                        onTrackCreated={() => {
+                          console.log('🎵 [DASHBOARD] Track created, refreshing data...')
+                          refetchArtistTracks()
+                          refetchCollections()
+                          toast.success('Track added to your collection!')
+                        }}
                       />
                       <Button
                         variant="outline"
@@ -639,7 +656,7 @@ export function ArtistDashboard() {
                   <h2 className="text-2xl font-semibold">Your Albums</h2>
                   <p className="text-muted-foreground">Manage your music collections and track progress</p>
                 </div>
-                <Button asChild className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+                <Button asChild className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90">
                   <Link to="/artist/upload">
                     <Music className="w-4 h-4 mr-2" />
                     Create New Album
@@ -648,12 +665,13 @@ export function ArtistDashboard() {
               </div>
 
               <CollectionList
-                collections={mockCollections}
-                isLoading={false}
+                collections={transformedCollections}
+                isLoading={collectionsLoading}
                 showCreateButton={true}
                 onCollectionSelect={(collection) => {
                   // Navigate to collection detail or open modal
-                  toast.info(`Viewing ${collection.title}`)
+                  toast.info(`Viewing ${collection.title} with ${collection.trackCount} tracks`)
+                  // Could enhance: navigate to a detailed collection view
                 }}
               />
             </div>
@@ -669,30 +687,61 @@ export function ArtistDashboard() {
                 </div>
                 <TrackUploadModal 
                   onTrackCreated={() => {
-                    // Track added successfully
+                    // Track added successfully - refresh the data
+                    console.log('🎵 [DASHBOARD] Track created, refreshing data...')
+                    refetchArtistTracks()
+                    refetchCollections()
                     toast.success('Track added to your collection!')
                   }} 
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {artistTracks.map((track, index) => (
-                  <motion.div
-                    key={track.tokenId}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <MusicNFTCard
-                      nft={track}
-                      isPlaying={currentTrack?.id === track.tokenId && isPlaying}
-                      onPlay={handlePlay}
-                      onPause={handlePause}
-                      onPurchase={handleTrackAction}
+              {nftsLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center">
+                    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-muted-foreground">Loading your tracks...</p>
+                  </div>
+                </div>
+              ) : artistTracks.length === 0 ? (
+                <div className="col-span-full text-center py-12">
+                  <div className="text-center">
+                    <Music className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
+                    <h3 className="text-lg font-medium mb-2">No tracks yet</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Start your musical journey by uploading your first track
+                    </p>
+                    <TrackUploadModal 
+                      buttonText="Upload Your First Track"
+                      onTrackCreated={() => {
+                        console.log('🎵 [DASHBOARD] First track created, refreshing data...')
+                        refetchArtistTracks()
+                        refetchCollections()
+                        toast.success('Track added to your collection!')
+                      }}
                     />
-                  </motion.div>
-                ))}
-              </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {artistTracks.map((track, index) => (
+                    <motion.div
+                      key={track.tokenId}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <MusicNFTCard
+                        nft={track}
+                        isPlaying={currentTrack?.id === track.tokenId && isPlaying}
+                        onPlay={handlePlay}
+                        onPause={handlePause}
+                        onPurchase={handleTrackAction}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </div>
           </TabsContent>
 
