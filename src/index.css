@@ -34,21 +34,21 @@
   .dim {
     --background: 20 8% 22%;                  /* Dark greyish background with rust undertone */
     --foreground: 20 12% 85%;                 /* Light warm grey text */
-    --card: 20 10% 28%;                       /* Slightly lighter card background */
+    --card: 20 10% 32%;                       /* More distinct card background with better contrast */
     --card-foreground: 20 12% 85%;            /* Light text on cards */
-    --popover: 20 10% 26%;                    /* Dark popover */
+    --popover: 20 10% 28%;                    /* Dark popover with better contrast */
     --popover-foreground: 20 12% 85%;         /* Light text */
     --primary: 15 65% 55%;                    /* Rust/copper primary color */
     --primary-foreground: 20 15% 15%;         /* Dark text on rust */
-    --secondary: 20 8% 35%;                   /* Medium grey secondary */
+    --secondary: 20 8% 38%;                   /* Medium grey secondary with better contrast */
     --secondary-foreground: 20 12% 85%;       /* Light text */
-    --muted: 20 8% 32%;                       /* Muted grey background */
+    --muted: 20 8% 30%;                       /* Muted grey background with better contrast */
     --muted-foreground: 20 8% 65%;            /* Medium grey muted text */
     --accent: 25 45% 45%;                     /* Darker rust accent */
     --accent-foreground: 20 12% 85%;          /* Light text on accent */
     --destructive: 0 62.8% 45%;               /* Red for errors */
     --destructive-foreground: 0 0% 98%;       /* Light text */
-    --border: 20 8% 40%;                      /* Medium grey border */
+    --border: 20 8% 45%;                      /* Medium grey border with better visibility */
     --input: 20 8% 30%;                       /* Dark input background */
     --ring: 15 65% 55%;                       /* Rust focus ring */
     --chart-1: 15 65% 55%;                    /* Rust for charts */
@@ -59,24 +59,24 @@
   }
 
   .dark {
-    --background: 0 0% 0%;                    /* Pure black (#000000) */
+    --background: 210 8% 30%;                    /* Pure black (#000000) */
     --foreground: 0 0% 100%;                  /* Pure white (#FFFFFF) */
-    --card: 0 0% 5%;                          /* Very dark gray for cards */
+    --card: 220 15% 8%;                       /* Dark blue-gray for cards - more distinct from background */
     --card-foreground: 0 0% 100%;             /* Pure white text on cards */
-    --popover: 0 0% 3%;                       /* Slightly lighter than background */
+    --popover: 220 15% 6%;                    /* Slightly lighter than background with blue tint */
     --popover-foreground: 0 0% 100%;          /* Pure white text */
     --primary: 60 95% 69%;                    /* Yellow accent (#FAFB63) */
     --primary-foreground: 0 0% 0%;            /* Black text on yellow */
-    --secondary: 0 0% 10%;                    /* Dark gray */
+    --secondary: 220 15% 12%;                 /* Dark blue-gray secondary */
     --secondary-foreground: 0 0% 100%;        /* White text */
-    --muted: 0 0% 8%;                         /* Muted dark background */
+    --muted: 220 15% 6%;                      /* Muted dark background with blue tint */
     --muted-foreground: 0 0% 70%;             /* Light gray text */
     --accent: 180 100% 70%;                   /* Cyan accent (#6BFFF7) */
     --accent-foreground: 0 0% 0%;             /* Black text on cyan */
     --destructive: 0 84.2% 60.2%;             /* Keep red for errors */
     --destructive-foreground: 0 0% 100%;      /* White text */
-    --border: 0 0% 15%;                       /* Dark border */
-    --input: 0 0% 8%;                         /* Dark input background */
+    --border: 220 15% 20%;                    /* Dark blue-gray border */
+    --input: 220 15% 6%;                      /* Dark input background with blue tint */
     --ring: 180 100% 70%;                     /* Cyan focus ring */
     --chart-1: 60 95% 69%;                    /* Yellow for charts */
     --chart-2: 180 100% 70%;                  /* Cyan for charts */
@@ -157,17 +157,47 @@
     @apply text-muted-foreground hover:text-primary transition-all duration-200 hover:scale-110;
   }
   
-  /* Card styles that work with all themes */
+  /* Enhanced card styles that work with all themes */
   .card-gradient {
-    @apply bg-gradient-to-br from-card to-card/80 border border-border/20 shadow-sm hover:shadow-md transition-shadow duration-200;
+    @apply bg-gradient-to-br from-card via-card/95 to-card/90 border border-border/30 shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-sm;
   }
   
   .card-accent-border {
-    @apply border-2 border-accent/20 hover:border-accent/40 transition-colors duration-200;
+    @apply border-2 border-accent/30 hover:border-accent/50 transition-all duration-300 shadow-lg hover:shadow-accent/10;
   }
   
   .card-interactive {
-    @apply bg-card border border-border hover:border-accent/30 transition-all duration-200 hover:shadow-lg hover:scale-[1.01];
+    @apply bg-card border border-border/40 hover:border-accent/40 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] backdrop-blur-sm;
+  }
+  
+  /* New enhanced card styles for better visual hierarchy */
+  .card-elevated {
+    @apply bg-card border border-border/50 shadow-xl hover:shadow-2xl transition-all duration-300 backdrop-blur-sm;
+  }
+  
+  .card-glass {
+    @apply bg-card/80 backdrop-blur-md border border-border/30 shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+  
+  .card-subtle-glow {
+    @apply bg-card border border-border/40 shadow-lg hover:shadow-primary/5 transition-all duration-300;
+  }
+  
+  /* Additional card styling utilities for better visual hierarchy */
+  .card-stats {
+    @apply bg-card border border-border/30 shadow-md hover:shadow-lg transition-all duration-300 backdrop-blur-sm;
+  }
+  
+  .card-activity {
+    @apply bg-card/90 border border-border/25 shadow-sm hover:shadow-md transition-all duration-300 backdrop-blur-sm;
+  }
+  
+  .card-sidebar {
+    @apply bg-card/95 border border-border/20 shadow-lg backdrop-blur-sm;
+  }
+  
+  .card-highlight {
+    @apply bg-card border-2 border-primary/20 shadow-lg hover:shadow-primary/10 transition-all duration-300 backdrop-blur-sm;
   }
   
   /* Hover effects that work with all themes */
@@ -225,5 +255,85 @@
   
   .status-error {
     @apply text-destructive;
+  }
+  
+  /* Enhanced UI Components */
+  .range-slider {
+    @apply appearance-none bg-gradient-to-r from-gray-200 to-purple-200 dark:from-gray-700 dark:to-purple-700 h-3 rounded-lg cursor-pointer;
+  }
+  
+  .range-slider::-webkit-slider-thumb {
+    @apply appearance-none w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full cursor-pointer shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110;
+  }
+  
+  .range-slider::-moz-range-thumb {
+    @apply w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full cursor-pointer shadow-lg hover:shadow-xl transition-all duration-200 border-none;
+  }
+  
+  .range-slider::-moz-range-track {
+    @apply bg-gradient-to-r from-gray-200 to-purple-200 dark:from-gray-700 dark:to-purple-700 h-3 rounded-lg;
+  }
+  
+  /* File upload zones */
+  .upload-zone {
+    @apply border-2 border-dashed border-purple-200 dark:border-purple-700 rounded-xl bg-gradient-to-br from-purple-50/50 to-pink-50/50 dark:from-purple-950/20 dark:to-pink-950/20 transition-all duration-200 hover:border-purple-300 dark:hover:border-purple-600;
+  }
+  
+  .upload-zone-active {
+    @apply border-purple-400 dark:border-purple-500 bg-purple-100/50 dark:bg-purple-900/30 scale-105;
+  }
+  
+  /* Fee preview cards */
+  .fee-card {
+    @apply p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg border border-gray-200/50 dark:border-gray-700/50 transition-all duration-200 hover:bg-white/80 dark:hover:bg-gray-800/80;
+  }
+  
+  .fee-total-card {
+    @apply p-4 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg border border-purple-200 dark:border-purple-800;
+  }
+  
+  /* Enhanced animations */
+  .fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Pulse animation for loading states */
+  .pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+  
+  @keyframes pulseGlow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(147, 51, 234, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(147, 51, 234, 0.6);
+    }
+  }
+  
+  /* Line clamp utilities */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }

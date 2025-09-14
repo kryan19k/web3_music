@@ -361,7 +361,7 @@ export function useBLOKProposals() {
   })
 
   return useQuery({
-    queryKey: ['blok-proposals'],
+    queryKey: ['blok-proposals', proposalCount ? proposalCount.toString() : '0'],
     queryFn: async () => {
       if (!proposalCount) return []
       
@@ -372,7 +372,7 @@ export function useBLOKProposals() {
       }
       return proposals
     },
-    enabled: !!proposalCount,
+    enabled: !!proposalCount && Number(proposalCount) > 0,
   })
 }
 

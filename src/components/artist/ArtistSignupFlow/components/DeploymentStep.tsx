@@ -105,56 +105,56 @@ export function DeploymentStep({ onDeploy, isDeploying }: DeploymentStepProps) {
           title: 'Ready to Deploy',
           description: 'Your track and metadata are ready to be published on the blockchain',
           icon: Rocket,
-          color: 'text-blue-600',
-          bgColor: 'bg-blue-100 dark:bg-blue-900/20'
+          color: 'text-primary',
+          bgColor: 'bg-primary/10'
         }
       case 'preparing':
         return {
           title: 'Preparing Deployment',
           description: 'Validating metadata and preparing smart contract call',
           icon: Zap,
-          color: 'text-yellow-600',
-          bgColor: 'bg-yellow-100 dark:bg-yellow-900/20'
+          color: 'text-accent',
+          bgColor: 'bg-accent/10'
         }
       case 'uploading':
         return {
           title: 'Uploading Metadata',
           description: 'Storing track metadata on IPFS',
           icon: Zap,
-          color: 'text-blue-600',
-          bgColor: 'bg-blue-100 dark:bg-blue-900/20'
+          color: 'text-primary',
+          bgColor: 'bg-primary/10'
         }
       case 'deploying':
         return {
           title: 'Deploying to Blockchain',
           description: 'Creating your music NFT smart contract',
           icon: Zap,
-          color: 'text-purple-600',
-          bgColor: 'bg-purple-100 dark:bg-purple-900/20'
+          color: 'text-secondary',
+          bgColor: 'bg-secondary/10'
         }
       case 'confirming':
         return {
           title: 'Confirming Transaction',
           description: 'Waiting for blockchain confirmation',
           icon: Clock,
-          color: 'text-orange-600',
-          bgColor: 'bg-orange-100 dark:bg-orange-900/20'
+          color: 'text-accent',
+          bgColor: 'bg-accent/10'
         }
       case 'success':
         return {
           title: 'Deployment Complete!',
           description: 'Your music NFT is now live on the blockchain',
           icon: Check,
-          color: 'text-green-600',
-          bgColor: 'bg-green-100 dark:bg-green-900/20'
+          color: 'text-primary',
+          bgColor: 'bg-primary/10'
         }
       case 'error':
         return {
           title: 'Deployment Failed',
           description: error || 'Something went wrong during deployment',
           icon: AlertCircle,
-          color: 'text-red-600',
-          bgColor: 'bg-red-100 dark:bg-red-900/20'
+          color: 'text-destructive',
+          bgColor: 'bg-destructive/10'
         }
       default:
         return {
@@ -177,15 +177,15 @@ export function DeploymentStep({ onDeploy, isDeploying }: DeploymentStepProps) {
         layout
         className="mb-8"
       >
-        <Card className={`relative overflow-hidden ${
-          deploymentStep === 'success' ? 'border-green-200 dark:border-green-800' : 
-          deploymentStep === 'error' ? 'border-red-200 dark:border-red-800' : ''
+        <Card className={`relative overflow-hidden border-border ${
+          deploymentStep === 'success' ? 'border-primary/50' : 
+          deploymentStep === 'error' ? 'border-destructive/50' : ''
         }`}>
           {/* Progress Bar */}
           {deploymentStep !== 'ready' && deploymentStep !== 'error' && (
             <div className="absolute top-0 left-0 right-0 h-1 bg-muted">
               <motion.div
-                className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
+                className="h-full bg-gradient-to-r from-primary to-accent"
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
                 transition={{ duration: 0.5 }}
@@ -266,7 +266,7 @@ export function DeploymentStep({ onDeploy, isDeploying }: DeploymentStepProps) {
                 {deploymentStep === 'ready' && (
                   <Button
                     onClick={handleDeploy}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 px-8 py-6 text-lg"
+                    className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground border-0 px-8 py-6 text-lg"
                   >
                     <Rocket className="w-5 h-5 mr-2" />
                     Deploy to Blockchain

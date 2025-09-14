@@ -37,105 +37,68 @@ export function useArtistCollections(artistAddress?: string) {
         // Iterate through all collection IDs to find artist's collections
         for (let collectionId = 1; collectionId <= totalCollections; collectionId++) {
           try {
-            // Get collection data using the proper getter function
+            // Get collection data using the collections mapping
             const collectionData = await publicClient.readContract({
-              address: CONTRACTS.CollectionMusicNFT.address as `0x${string}`,
-              abi: COLLECTION_MUSIC_NFT_ABI,
-              functionName: 'getCollection',
-              args: [BigInt(collectionId)],
-            }) as readonly [
-              bigint, // id
-              string, // title
-              string, // artist  
-              string, // description
-              bigint, // totalTracks (or trackCount)
-              boolean, // finalized
-              boolean, // active
-              bigint, // albumPrice
-            ]
-
-            // Get additional collection info for cover art and metadata
-            const collectionFullData = await publicClient.readContract({
               address: CONTRACTS.CollectionMusicNFT.address as `0x${string}`,
               abi: COLLECTION_MUSIC_NFT_ABI,
               functionName: 'collections',
               args: [BigInt(collectionId)],
-            }) as any // Use any to avoid type issues with the complex struct
+            }) as readonly [
+              string, // title
+              string, // artistName
+              string, // description
+              string, // coverIpfs
+              string, // genre
+              `0x${string}`, // artistOwner
+              boolean, // finalized
+              boolean, // active
+              number, // albumDiscountBps
+            ]
 
-            // Debug the structure we're getting back (can be removed after verification)
-            console.log('🔍 [ARTIST_COLLECTIONS] Collection full data structure:', {
-              type: typeof collectionFullData,
-              isArray: Array.isArray(collectionFullData),
-              keys: Object.keys(collectionFullData || {}),
-              ipfsCoverArt: collectionFullData?.ipfsCoverArt,
-              index4: collectionFullData?.[4],
-              raw: collectionFullData
+            // Extract from collections response
+            const collectionTitle = collectionData[0] // title
+            const artistName = collectionData[1] // artistName
+            const description = collectionData[2] // description 
+            let ipfsCoverArt = collectionData[3] // coverIpfs
+            let genre = collectionData[4] || 'Electronic' // genre
+            const artistOwner = collectionData[5] // artistOwner
+            const finalized = collectionData[6] // finalized
+            const active = collectionData[7] // active
+            const albumDiscountBps = collectionData[8] // albumDiscountBps
+
+            console.log('🔍 [ARTIST_COLLECTIONS] Collection data:', {
+              collectionId,
+              collectionTitle,
+              artistName,
+              description,
+              ipfsCoverArt,
+              genre,
+              finalized,
+              active,
+              albumDiscountBps
             })
-
-            // Extract what we can safely from the complex struct
-            const collectionArtistAddr = collectionFullData[9]?.toLowerCase() || collectionFullData.artistAddress?.toLowerCase()
             
             // Skip if this collection doesn't belong to our artist
-            if (collectionArtistAddr !== targetAddress.toLowerCase()) {
+            if (artistOwner.toLowerCase() !== targetAddress.toLowerCase()) {
               continue
             }
 
-            // Extract from getCollection response
-            const collectionTitle = collectionData[1] // title
-            const artistName = collectionData[2] // artist
-            const description = collectionData[3] // description 
-            const totalTracks = Number(collectionData[4]) // totalTracks
-            const finalized = collectionData[5] // finalized
-            const active = collectionData[6] // active
-            const albumPrice = collectionData[7] // albumPrice
-
-            // Try to extract IPFS and other fields from the complex struct safely
-            let ipfsCoverArt = ''
-            let genre = 'Electronic'
             let releaseDate = new Date()
 
-            try {
-              // Try different ways to access the fields
-              if (collectionFullData && typeof collectionFullData === 'object') {
-                // Try direct property access first
-                if (collectionFullData.ipfsCoverArt) {
-                  ipfsCoverArt = String(collectionFullData.ipfsCoverArt).trim()
-                }
-                if (collectionFullData.genre && typeof collectionFullData.genre === 'string') {
-                  genre = collectionFullData.genre
-                }
-                if (collectionFullData.releaseDate) {
-                  releaseDate = new Date(Number(collectionFullData.releaseDate) * 1000)
-                }
-
-                // Try array index access as fallback
-                if (!ipfsCoverArt && collectionFullData[4]) {
-                  ipfsCoverArt = String(collectionFullData[4]).trim()
-                }
-                if (!genre && collectionFullData[7] && typeof collectionFullData[7] === 'string') {
-                  genre = collectionFullData[7]
-                }
-                if (!releaseDate || releaseDate.getTime() === new Date().getTime()) {
-                  if (collectionFullData[6]) {
-                    releaseDate = new Date(Number(collectionFullData[6]) * 1000)
-                  }
-                }
-
-                // Clean up invalid IPFS hashes
-                if (ipfsCoverArt === '[object Object]' || ipfsCoverArt.includes('[object Object]')) {
-                  console.warn('⚠️ [ARTIST_COLLECTIONS] Invalid IPFS hash object detected, setting to empty:', collectionFullData.ipfsCoverArt || collectionFullData[4])
-                  ipfsCoverArt = ''
-                }
-              }
-            } catch (error) {
-              console.warn('⚠️ [ARTIST_COLLECTIONS] Error extracting additional fields:', error)
+            // Clean up invalid IPFS hashes
+            if (ipfsCoverArt === '[object Object]' || ipfsCoverArt.includes('[object Object]')) {
+              console.warn('⚠️ [ARTIST_COLLECTIONS] Invalid IPFS hash object detected, setting to empty:', ipfsCoverArt)
+              ipfsCoverArt = ''
             }
+            
+            // Clean up string values
+            ipfsCoverArt = String(ipfsCoverArt || '').trim()
+            genre = String(genre || 'Electronic').trim()
 
             console.log('✅ [ARTIST_COLLECTIONS] Found artist collection:', {
               id: collectionId,
               title: collectionTitle,
               artist: artistName,
-              totalTracks: totalTracks,
               finalized,
               active,
               ipfsCoverArt: ipfsCoverArt ? ipfsCoverArt.slice(0, 20) + '...' : 'none',
@@ -143,45 +106,65 @@ export function useArtistCollections(artistAddress?: string) {
               releaseDate: releaseDate.toISOString().split('T')[0]
             })
 
-            // Get track IDs for this collection
-            const trackIds = await publicClient.readContract({
+            // Get tracks for this collection by iterating through all tracks
+            // In V2 contract, we need to check each track's collectionId to find matches
+            const nextTrackId = await publicClient.readContract({
               address: CONTRACTS.CollectionMusicNFT.address as `0x${string}`,
               abi: COLLECTION_MUSIC_NFT_ABI,
-              functionName: 'getCollectionTracks',
-              args: [BigInt(collectionId)],
-            }) as readonly bigint[]
+              functionName: 'nextTrackId',
+            }) as bigint
 
-            console.log('🎵 [ARTIST_COLLECTIONS] Collection tracks:', trackIds.map(Number))
+            const collectionTracks: Array<{id: number, data: readonly [bigint, string, string, boolean, string]}> = []
+            const totalTracks = Number(nextTrackId) - 1
 
-            // Create NFTs for each track in this collection
-            for (const trackIdBigInt of trackIds) {
-              const trackId = Number(trackIdBigInt)
-              
+            // Iterate through all tracks to find ones belonging to this collection
+            for (let trackId = 1; trackId <= totalTracks; trackId++) {
               try {
-                // Get track data using the getter function
                 const trackData = await publicClient.readContract({
                   address: CONTRACTS.CollectionMusicNFT.address as `0x${string}`,
                   abi: COLLECTION_MUSIC_NFT_ABI,
-                  functionName: 'getTrack',
+                  functionName: 'tracks',
                   args: [BigInt(trackId)],
                 }) as readonly [
-                  bigint, // id
                   bigint, // collectionId
                   string, // title
                   string, // ipfsHash
-                  bigint, // duration
                   boolean, // active
+                  string, // artist (address)
                 ]
 
+                const trackCollectionId = Number(trackData[0])
+                if (trackCollectionId === collectionId) {
+                  collectionTracks.push({ id: trackId, data: trackData })
+                }
+              } catch (error) {
+                // Track doesn't exist, stop checking
+                break
+              }
+            }
+
+            console.log('🎵 [ARTIST_COLLECTIONS] Collection tracks found:', collectionTracks.map(t => t.id))
+
+            // Create NFTs for each track in this collection
+            for (const track of collectionTracks) {
+              const trackId = track.id
+              const trackData = track.data
+              
+              try {
+                // Extract V2 track data structure
+                const trackCollectionId = Number(trackData[0]) // collectionId
+                const trackTitle = trackData[1] // title
+                const ipfsHash = trackData[2] // ipfsHash
+                const trackActive = trackData[3] // active
+                const trackArtist = trackData[4] // artist (address)
+
                 // Skip inactive tracks
-                if (!trackData[5]) {
+                if (!trackActive) {
                   console.log('⏭️ [ARTIST_COLLECTIONS] Skipping inactive track:', trackId)
                   continue
                 }
 
-                const trackTitle = trackData[2]
-                const ipfsHash = trackData[3]
-                const duration = Number(trackData[4])
+                const duration = 180 // Default duration since V2 doesn't store duration in track
 
                 console.log('🎶 [ARTIST_COLLECTIONS] Processing track:', {
                   id: trackId,
@@ -261,7 +244,7 @@ export function useArtistCollections(artistAddress?: string) {
             }
 
             // If collection has no tracks yet, create a placeholder
-            if (trackIds.length === 0) {
+            if (collectionTracks.length === 0) {
               const placeholderNFT: MusicNFT = {
                 tokenId: `collection-${collectionId}-placeholder`,
                 tier: 'bronze',
@@ -334,8 +317,8 @@ export function useArtistCollections(artistAddress?: string) {
       }
     },
     enabled: !!(targetAddress && publicClient),
-    staleTime: 30000, // Cache for 30 seconds
-    refetchInterval: 60000, // Refetch every minute
+    staleTime: 5000, // Cache for 5 seconds (more responsive)
+    refetchInterval: 30000, // Refetch every 30 seconds
   })
 
   return {

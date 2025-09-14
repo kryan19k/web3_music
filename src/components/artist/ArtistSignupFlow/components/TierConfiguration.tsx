@@ -12,6 +12,7 @@ import { Badge } from '@/src/components/ui/badge'
 import { Switch } from '@/src/components/ui/switch'
 import { Slider } from '@/src/components/ui/slider'
 import { TrackTierConfig, DEFAULT_TIER_CONFIGS } from '@/src/types/artist'
+import { useTierConfiguration } from '@/src/hooks/contracts/useTierConfiguration'
 import { 
   Crown,
   Star, 
@@ -24,7 +25,13 @@ import {
   Settings,
   Check,
   Info,
-  ArrowRight
+  ArrowRight,
+  Zap,
+  AlertTriangle,
+  RefreshCw,
+  Target,
+  Shield,
+  TrendingUp
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
@@ -67,6 +74,15 @@ const TIER_COLORS = {
 export function TierConfiguration({ onComplete, initialTiers = DEFAULT_TIER_CONFIGS }: TierConfigurationProps) {
   const [tiers, setTiers] = useState<TrackTierConfig[]>(initialTiers)
   const [selectedTier, setSelectedTier] = useState<string | null>(null)
+  const [isDeployingToContract, setIsDeployingToContract] = useState(false)
+  
+  const {
+    configureAllTiers,
+    isConfiguring,
+    isConfirming,
+    isSuccess,
+    error: tierConfigError
+  } = useTierConfiguration()
 
   const updateTier = (tierName: string, updates: Partial<TrackTierConfig>) => {
     setTiers(prev => prev.map(tier => 
@@ -74,7 +90,7 @@ export function TierConfiguration({ onComplete, initialTiers = DEFAULT_TIER_CONF
     ))
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const enabledTiers = tiers.filter(tier => tier.enabled)
     
     if (enabledTiers.length === 0) {
@@ -89,10 +105,32 @@ export function TierConfiguration({ onComplete, initialTiers = DEFAULT_TIER_CONF
         toast.error(`Invalid price for ${tier.tier} tier`)
         return
       }
+      
+      if (tier.maxSupply <= 0 || tier.maxSupply > 100000) {
+        toast.error(`Invalid max supply for ${tier.tier} tier (must be 1-100,000)`)
+        return
+      }
     }
 
-    toast.success('Tier configuration saved!')
-    onComplete(tiers)
+    // Option to deploy to smart contract or just save locally
+    try {
+      setIsDeployingToContract(true)
+      toast.loading('Configuring tiers on smart contract...', { id: 'tier-config' })
+      
+      await configureAllTiers(enabledTiers)
+      
+      toast.success('Tier configuration deployed to smart contract!', { id: 'tier-config' })
+      onComplete(tiers)
+      
+    } catch (error) {
+      console.error('Failed to deploy tier configuration:', error)
+      
+      // Still allow proceeding with local configuration
+      toast.warning('Smart contract deployment failed, proceeding with local configuration', { id: 'tier-config' })
+      onComplete(tiers)
+    } finally {
+      setIsDeployingToContract(false)
+    }
   }
 
   const getTotalEstimatedRevenue = () => {
@@ -161,7 +199,7 @@ export function TierConfiguration({ onComplete, initialTiers = DEFAULT_TIER_CONF
                   </div>
                   
                   <div>
-                    <Label>Max Supply</Label>
+                    <Label>Max Per Track</Label>
                     <Input
                       type="number"
                       min="1"
@@ -169,18 +207,34 @@ export function TierConfiguration({ onComplete, initialTiers = DEFAULT_TIER_CONF
                       value={tier.maxSupply}
                       onChange={(e) => updateTier(tier.tier, { maxSupply: parseInt(e.target.value) || 1 })}
                       className="mt-1"
+                      placeholder="e.g., 1000"
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Maximum NFTs that can be minted per track for this tier
+                    </p>
                   </div>
                 </div>
 
-                {/* Revenue Estimate */}
-                <div className="bg-muted/50 p-3 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Potential Revenue:</span>
-                    <Badge variant="secondary">
-                      <DollarSign className="w-3 h-3 mr-1" />
-                      {(parseFloat(tier.price) * tier.maxSupply).toFixed(3)} ETH
-                    </Badge>
+                {/* Tier Caps & Revenue */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 p-3 rounded-lg border border-green-200 dark:border-green-800">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-green-800 dark:text-green-200">Revenue Cap:</span>
+                      <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                        <DollarSign className="w-3 h-3 mr-1" />
+                        {(parseFloat(tier.price) * tier.maxSupply).toFixed(3)} ETH
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 p-3 rounded-lg border border-purple-200 dark:border-purple-800">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-purple-800 dark:text-purple-200">Supply Cap:</span>
+                      <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                        <Target className="w-3 h-3 mr-1" />
+                        {tier.maxSupply.toLocaleString()}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
 
@@ -329,37 +383,57 @@ export function TierConfiguration({ onComplete, initialTiers = DEFAULT_TIER_CONF
     <div className="max-w-6xl mx-auto">
       {/* Header */}
       <div className="text-center mb-8">
-        <h3 className="text-2xl font-bold mb-2">Configure Your NFT Tiers</h3>
+        <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          Configure Your NFT Tiers
+        </h3>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-          Create different tiers with unique pricing and benefits. Fans can choose the level of support that works for them.
+          Create different tiers with unique pricing, supply caps, and benefits. Fans can choose the level of support that works for them.
         </p>
+        
+        {/* Smart Contract Integration Notice */}
+        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg max-w-xl mx-auto">
+          <div className="flex items-center justify-center gap-2 text-sm text-blue-800 dark:text-blue-200">
+            <Shield className="w-4 h-4" />
+            <span>Tier configurations will be deployed directly to the smart contract</span>
+          </div>
+        </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid md:grid-cols-3 gap-4 mb-8">
-        <Card>
+      {/* Enhanced Stats with Caps */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
           <CardContent className="p-4 text-center">
-            <Users className="w-6 h-6 mx-auto mb-2 text-blue-600" />
-            <h4 className="font-semibold">
-              {tiers.filter(t => t.enabled).reduce((sum, t) => sum + t.maxSupply, 0)}
+            <Target className="w-6 h-6 mx-auto mb-2 text-blue-600" />
+            <h4 className="font-semibold text-blue-800 dark:text-blue-200">
+              {tiers.filter(t => t.enabled).reduce((sum, t) => sum + t.maxSupply, 0).toLocaleString()}
             </h4>
-            <p className="text-sm text-muted-foreground">Total Supply</p>
+            <p className="text-sm text-blue-600 dark:text-blue-400">Total Supply Cap</p>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
           <CardContent className="p-4 text-center">
-            <DollarSign className="w-6 h-6 mx-auto mb-2 text-green-600" />
-            <h4 className="font-semibold">{getTotalEstimatedRevenue()} ETH</h4>
-            <p className="text-sm text-muted-foreground">Potential Revenue</p>
+            <TrendingUp className="w-6 h-6 mx-auto mb-2 text-green-600" />
+            <h4 className="font-semibold text-green-800 dark:text-green-200">{getTotalEstimatedRevenue()} ETH</h4>
+            <p className="text-sm text-green-600 dark:text-green-400">Revenue Cap</p>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200 dark:border-purple-800">
           <CardContent className="p-4 text-center">
             <Settings className="w-6 h-6 mx-auto mb-2 text-purple-600" />
-            <h4 className="font-semibold">{tiers.filter(t => t.enabled).length}/4</h4>
-            <p className="text-sm text-muted-foreground">Active Tiers</p>
+            <h4 className="font-semibold text-purple-800 dark:text-purple-200">{tiers.filter(t => t.enabled).length}/4</h4>
+            <p className="text-sm text-purple-600 dark:text-purple-400">Active Tiers</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-950/20 dark:to-yellow-950/20 border-orange-200 dark:border-orange-800">
+          <CardContent className="p-4 text-center">
+            <Shield className="w-6 h-6 mx-auto mb-2 text-orange-600" />
+            <h4 className="font-semibold text-orange-800 dark:text-orange-200">
+              {tiers.filter(t => t.enabled).length > 0 ? 'Ready' : 'Setup'}
+            </h4>
+            <p className="text-sm text-orange-600 dark:text-orange-400">Smart Contract</p>
           </CardContent>
         </Card>
       </div>
@@ -389,24 +463,69 @@ export function TierConfiguration({ onComplete, initialTiers = DEFAULT_TIER_CONF
 
       {/* Action Button */}
       <div className="flex justify-center">
-        <Button
-          onClick={handleSubmit}
-          disabled={tiers.filter(t => t.enabled).length === 0}
-          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 px-8 py-6 text-lg"
-        >
-          {tiers.filter(t => t.enabled).length > 0 ? (
-            <>
-              <Check className="w-5 h-5 mr-2" />
-              Confirm Tier Configuration
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </>
-          ) : (
-            <>
-              <Settings className="w-5 h-5 mr-2" />
-              Enable at least one tier
-            </>
+        <div className="space-y-4">
+          {/* Deploy Status */}
+          {(isConfiguring || isConfirming || isDeployingToContract) && (
+            <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="flex items-center gap-3">
+                <RefreshCw className="w-5 h-5 text-blue-600 animate-spin" />
+                <div>
+                  <p className="font-medium text-blue-800 dark:text-blue-200">
+                    {isConfiguring && 'Deploying tier configuration to smart contract...'}
+                    {isConfirming && 'Waiting for blockchain confirmation...'}
+                    {isDeployingToContract && 'Processing tier configuration...'}
+                  </p>
+                  <p className="text-sm text-blue-600 dark:text-blue-400">
+                    This may take a few moments. Please don't close this window.
+                  </p>
+                </div>
+              </div>
+            </div>
           )}
-        </Button>
+          
+          {/* Error Display */}
+          {tierConfigError && (
+            <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+                <div>
+                  <p className="font-medium text-red-800 dark:text-red-200">
+                    Smart Contract Deployment Failed
+                  </p>
+                  <p className="text-sm text-red-600 dark:text-red-400">
+                    {tierConfigError.message || 'Failed to deploy tier configuration'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Action Button */}
+          <Button
+            onClick={handleSubmit}
+            disabled={tiers.filter(t => t.enabled).length === 0 || isConfiguring || isConfirming || isDeployingToContract}
+            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 px-8 py-6 text-lg w-full sm:w-auto"
+            size="lg"
+          >
+            {(isConfiguring || isConfirming || isDeployingToContract) ? (
+              <>
+                <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+                Deploying to Smart Contract...
+              </>
+            ) : tiers.filter(t => t.enabled).length > 0 ? (
+              <>
+                <Zap className="w-5 h-5 mr-2" />
+                Deploy Tier Configuration
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </>
+            ) : (
+              <>
+                <Settings className="w-5 h-5 mr-2" />
+                Enable at least one tier
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   )

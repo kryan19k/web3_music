@@ -6,19 +6,34 @@ export const BLOKTokenAbi = [
   {
     "inputs": [
       {
+        "internalType": "string",
+        "name": "name_",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "symbol_",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "maxSupply_",
+        "type": "uint256"
+      },
+      {
         "internalType": "address",
-        "name": "_artistAddress",
+        "name": "admin",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "_treasuryAddress",
+        "name": "initialReceiver",
         "type": "address"
       },
       {
-        "internalType": "address",
-        "name": "_liquidityWallet",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "initialAmount",
+        "type": "uint256"
       }
     ],
     "stateMutability": "nonpayable",
@@ -47,11 +62,6 @@ export const BLOKTokenAbi = [
   },
   {
     "inputs": [],
-    "name": "CheckpointUnorderedInsertion",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "ECDSAInvalidSignature",
     "type": "error"
   },
@@ -75,22 +85,6 @@ export const BLOKTokenAbi = [
       }
     ],
     "name": "ECDSAInvalidSignatureS",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "increasedSupply",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "cap",
-        "type": "uint256"
-      }
-    ],
-    "name": "ERC20ExceededSafeSupply",
     "type": "error"
   },
   {
@@ -207,27 +201,6 @@ export const BLOKTokenAbi = [
     "type": "error"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "timepoint",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint48",
-        "name": "clock",
-        "type": "uint48"
-      }
-    ],
-    "name": "ERC5805FutureLookup",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "ERC6372InconsistentClock",
-    "type": "error"
-  },
-  {
     "inputs": [],
     "name": "EnforcedPause",
     "type": "error"
@@ -266,17 +239,12 @@ export const BLOKTokenAbi = [
   {
     "inputs": [
       {
-        "internalType": "uint8",
-        "name": "bits",
-        "type": "uint8"
-      },
-      {
         "internalType": "uint256",
         "name": "value",
         "type": "uint256"
       }
     ],
-    "name": "SafeCastOverflowedUintDowncast",
+    "name": "SafeCastOverflowedUintToInt",
     "type": "error"
   },
   {
@@ -288,17 +256,6 @@ export const BLOKTokenAbi = [
       }
     ],
     "name": "StringTooLong",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "expiry",
-        "type": "uint256"
-      }
-    ],
-    "name": "VotesExpiredSignature",
     "type": "error"
   },
   {
@@ -332,7 +289,7 @@ export const BLOKTokenAbi = [
       {
         "indexed": true,
         "internalType": "address",
-        "name": "artist",
+        "name": "account",
         "type": "address"
       },
       {
@@ -342,7 +299,7 @@ export const BLOKTokenAbi = [
         "type": "uint256"
       }
     ],
-    "name": "ArtistAllocationClaimed",
+    "name": "DividendClaimed",
     "type": "event"
   },
   {
@@ -351,33 +308,8 @@ export const BLOKTokenAbi = [
       {
         "indexed": true,
         "internalType": "address",
-        "name": "artist",
+        "name": "sender",
         "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "ArtistAllocationSet",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "staker",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "collectionId",
-        "type": "uint256"
       },
       {
         "indexed": false,
@@ -388,99 +320,17 @@ export const BLOKTokenAbi = [
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "multiplier",
+        "name": "magnifiedPerShare",
         "type": "uint256"
       }
     ],
-    "name": "CollectionStaked",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "collectionId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "multiplier",
-        "type": "uint256"
-      }
-    ],
-    "name": "CollectionStakingMultiplierSet",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "delegator",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "fromDelegate",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "toDelegate",
-        "type": "address"
-      }
-    ],
-    "name": "DelegateChanged",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "delegate",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "previousVotes",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "newVotes",
-        "type": "uint256"
-      }
-    ],
-    "name": "DelegateVotesChanged",
+    "name": "DividendsDeposited",
     "type": "event"
   },
   {
     "anonymous": false,
     "inputs": [],
     "name": "EIP712DomainChanged",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "nftContract",
-        "type": "address"
-      }
-    ],
-    "name": "MusicNFTContractSet",
     "type": "event"
   },
   {
@@ -577,137 +427,6 @@ export const BLOKTokenAbi = [
       {
         "indexed": true,
         "internalType": "address",
-        "name": "claimant",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "periods",
-        "type": "uint256"
-      }
-    ],
-    "name": "RoyaltiesClaimed",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "period",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "perTokenAmount",
-        "type": "uint256"
-      }
-    ],
-    "name": "RoyaltiesDeposited",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "staker",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "reward",
-        "type": "uint256"
-      }
-    ],
-    "name": "StakeRewardsClaimed",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "staker",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "tier",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "apy",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "collectionId",
-        "type": "uint256"
-      }
-    ],
-    "name": "TokensStaked",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "staker",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "reward",
-        "type": "uint256"
-      }
-    ],
-    "name": "TokensUnstaked",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
         "name": "from",
         "type": "address"
       },
@@ -742,33 +461,7 @@ export const BLOKTokenAbi = [
   },
   {
     "inputs": [],
-    "name": "ARTIST_ALLOCATION",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "CLOCK_MODE",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "DEFAULT_ADMIN_ROLE",
+    "name": "ADMIN_ROLE",
     "outputs": [
       {
         "internalType": "bytes32",
@@ -781,7 +474,7 @@ export const BLOKTokenAbi = [
   },
   {
     "inputs": [],
-    "name": "DISTRIBUTOR_ROLE",
+    "name": "DEFAULT_ADMIN_ROLE",
     "outputs": [
       {
         "internalType": "bytes32",
@@ -807,32 +500,6 @@ export const BLOKTokenAbi = [
   },
   {
     "inputs": [],
-    "name": "GOVERNANCE_ROLE",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "MAX_TRANSFER_PERCENTAGE",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "MINTER_ROLE",
     "outputs": [
       {
@@ -845,73 +512,14 @@ export const BLOKTokenAbi = [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "PROPOSAL_THRESHOLD",
-    "outputs": [
+    "inputs": [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
       }
     ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "PUBLIC_ALLOCATION",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "ROYALTY_PRECISION",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "SNAPSHOT_ROLE",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "TOTAL_SUPPLY",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "VOTING_PERIOD",
+    "name": "accumulativeDividendOf",
     "outputs": [
       {
         "internalType": "uint256",
@@ -971,70 +579,6 @@ export const BLOKTokenAbi = [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "artistAddress",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "artistAllocations",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "artistClaimedAllocation",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "artistTokensLocked",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "address",
@@ -1054,259 +598,10 @@ export const BLOKTokenAbi = [
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "snapshotId",
-        "type": "uint256"
-      }
-    ],
-    "name": "balanceOfAt",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-      }
-    ],
-    "name": "burn",
+    "inputs": [],
+    "name": "claim",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "burnFee",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-      }
-    ],
-    "name": "burnFrom",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "stakeIndex",
-        "type": "uint256"
-      }
-    ],
-    "name": "calculateStakeReward",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      },
-      {
-        "internalType": "uint32",
-        "name": "pos",
-        "type": "uint32"
-      }
-    ],
-    "name": "checkpoints",
-    "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "uint48",
-            "name": "_key",
-            "type": "uint48"
-          },
-          {
-            "internalType": "uint208",
-            "name": "_value",
-            "type": "uint208"
-          }
-        ],
-        "internalType": "struct Checkpoints.Checkpoint208",
-        "name": "",
-        "type": "tuple"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "circulatingSupply",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "claimArtistAllocation",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "claimRoyalties",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "stakeIndex",
-        "type": "uint256"
-      }
-    ],
-    "name": "claimStakingRewards",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "clock",
-    "outputs": [
-      {
-        "internalType": "uint48",
-        "name": "",
-        "type": "uint48"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "collectionStakes",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "collectionStakingMultiplier",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "collectionTotalStaked",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "currentPeriod",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -1323,104 +618,10 @@ export const BLOKTokenAbi = [
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "delegatee",
-        "type": "address"
-      }
-    ],
-    "name": "delegate",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "delegatee",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "nonce",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "expiry",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint8",
-        "name": "v",
-        "type": "uint8"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "r",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "s",
-        "type": "bytes32"
-      }
-    ],
-    "name": "delegateBySig",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "delegates",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [],
-    "name": "depositRoyalties",
+    "name": "depositDividends",
     "outputs": [],
     "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "buyer",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "distributeTokens",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -1467,103 +668,6 @@ export const BLOKTokenAbi = [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "enableTrading",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "feesEnabled",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "collectionId",
-        "type": "uint256"
-      }
-    ],
-    "name": "getCollectionStakeInfo",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "stakedAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "totalRewards",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "multiplier",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "timepoint",
-        "type": "uint256"
-      }
-    ],
-    "name": "getPastTotalSupply",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "timepoint",
-        "type": "uint256"
-      }
-    ],
-    "name": "getPastVotes",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "bytes32",
@@ -1577,94 +681,6 @@ export const BLOKTokenAbi = [
         "internalType": "bytes32",
         "name": "",
         "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "getStakes",
-    "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "amount",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "startTime",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "lockPeriod",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "apy",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "lastRewardClaim",
-            "type": "uint256"
-          },
-          {
-            "internalType": "bool",
-            "name": "autoCompound",
-            "type": "bool"
-          },
-          {
-            "internalType": "uint256",
-            "name": "collectionId",
-            "type": "uint256"
-          }
-        ],
-        "internalType": "struct BLOKToken.Stake[]",
-        "name": "",
-        "type": "tuple[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "getVotes",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "globalTotalStaked",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -1713,125 +729,60 @@ export const BLOKTokenAbi = [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "magnifiedDividendsPerShare",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "maxSupply",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "minClaim",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
-        "name": "",
+        "name": "to",
         "type": "address"
-      }
-    ],
-    "name": "isBlacklisted",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "isExcludedFromLimit",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "lastClaimedPeriod",
-    "outputs": [
+      },
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "amount",
         "type": "uint256"
       }
     ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "liquidityFee",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "liquidityWallet",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "maxTransferAmount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "minRoyaltyDistribution",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "musicNFTContract",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
+    "name": "mint",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -1867,38 +818,6 @@ export const BLOKTokenAbi = [
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "numCheckpoints",
-    "outputs": [
-      {
-        "internalType": "uint32",
-        "name": "",
-        "type": "uint32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "numberOfTiers",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "pause",
     "outputs": [],
@@ -1913,25 +832,6 @@ export const BLOKTokenAbi = [
         "internalType": "bool",
         "name": "",
         "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "pendingRoyalties",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -1982,69 +882,12 @@ export const BLOKTokenAbi = [
   },
   {
     "inputs": [],
-    "name": "proposalCount",
+    "name": "premintDone",
     "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "proposals",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "description",
-        "type": "string"
-      },
-      {
-        "internalType": "uint256",
-        "name": "forVotes",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "againstVotes",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "startTime",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "endTime",
-        "type": "uint256"
-      },
       {
         "internalType": "bool",
-        "name": "executed",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "publicTokensDistributed",
-    "outputs": [
-      {
-        "internalType": "uint256",
         "name": "",
-        "type": "uint256"
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -2090,258 +933,13 @@ export const BLOKTokenAbi = [
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "weiAmount",
         "type": "uint256"
       }
     ],
-    "name": "royaltyPeriods",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "totalAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "perTokenAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "snapshotId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "distributed",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "artist",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "setArtistAllocation",
+    "name": "setMinClaim",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "collectionId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "multiplier",
-        "type": "uint256"
-      }
-    ],
-    "name": "setCollectionStakingMultiplier",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_nftContract",
-        "type": "address"
-      }
-    ],
-    "name": "setMusicNFTContract",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "snapshot",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "collectionId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "tier",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "autoCompound",
-        "type": "bool"
-      }
-    ],
-    "name": "stakeForCollection",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "tier",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "autoCompound",
-        "type": "bool"
-      }
-    ],
-    "name": "stakeTokens",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "stakes",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "startTime",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "lockPeriod",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "apy",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "lastRewardClaim",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "autoCompound",
-        "type": "bool"
-      },
-      {
-        "internalType": "uint256",
-        "name": "collectionId",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "stakingRewardsPool",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "stakingTiers",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "lockPeriod",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "baseAPY",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "bonusAPY",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "minAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "active",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -2378,7 +976,7 @@ export const BLOKTokenAbi = [
   },
   {
     "inputs": [],
-    "name": "totalBurned",
+    "name": "totalDividendsReceived",
     "outputs": [
       {
         "internalType": "uint256",
@@ -2391,52 +989,7 @@ export const BLOKTokenAbi = [
   },
   {
     "inputs": [],
-    "name": "totalRewardsDistributed",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "totalRoyaltiesDistributed",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "totalRoyaltiesReceived",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "totalStaked",
+    "name": "totalDividendsWithdrawn",
     "outputs": [
       {
         "internalType": "uint256",
@@ -2450,64 +1003,6 @@ export const BLOKTokenAbi = [
   {
     "inputs": [],
     "name": "totalSupply",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "snapshotId",
-        "type": "uint256"
-      }
-    ],
-    "name": "totalSupplyAt",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "totalVestedAmount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "tradingEnabled",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "tradingEnabledTime",
     "outputs": [
       {
         "internalType": "uint256",
@@ -2573,51 +1068,6 @@ export const BLOKTokenAbi = [
   },
   {
     "inputs": [],
-    "name": "treasuryAddress",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "treasuryFee",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "unclaimedRoyalties",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "unpause",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -2626,14 +1076,20 @@ export const BLOKTokenAbi = [
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "withdrawableDividendOf",
+    "outputs": [
+      {
         "internalType": "uint256",
-        "name": "stakeIndex",
+        "name": "",
         "type": "uint256"
       }
     ],
-    "name": "unstakeTokens",
-    "outputs": [],
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -2642,49 +1098,14 @@ export const BLOKTokenAbi = [
         "internalType": "address",
         "name": "",
         "type": "address"
-      },
+      }
+    ],
+    "name": "withdrawnDividends",
+    "outputs": [
       {
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
-      }
-    ],
-    "name": "vestingSchedules",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "totalAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "releasedAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "startTime",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "duration",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "cliffDuration",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "revocable",
-        "type": "bool"
-      },
-      {
-        "internalType": "bool",
-        "name": "revoked",
-        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -2694,7 +1115,6 @@ export const BLOKTokenAbi = [
     "stateMutability": "payable",
     "type": "receive"
   }
-] as const;
-
+] as const
 // Legacy export for backward compatibility
 export const PAGSTokenAbi = BLOKTokenAbi;

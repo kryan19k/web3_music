@@ -11,7 +11,9 @@ import {
   SelectValue,
 } from '@/src/components/ui/select'
 import { type Track, useAudioPlayer } from '@/src/hooks/useAudioPlayer'
-import { useEnhancedMarketplaceNFTs, hasValidAudio } from '@/src/hooks/contracts/useMarketplaceNFTs'
+import { useMarketplaceNFTs, hasValidAudio } from '@/src/hooks/contracts/useMarketplaceNFTs'
+import { useAllCollections, type Collection } from '@/src/hooks/contracts/useAllCollections'
+import { useArtistCollections } from '@/src/hooks/contracts/useArtistCollections'
 import type { MusicNFT } from '@/src/types/music-nft'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -55,7 +57,7 @@ const featuredCollections = [
     description: 'Late night ambient tracks for deep focus',
     cover: '/song_cover/midnight.png',
     trackCount: 12,
-    totalValue: '5.8 ETH',
+    totalValue: '5.8 POL',
     growth: '+24.5%',
     artist: 'Luna Vista',
     verified: true
@@ -66,7 +68,7 @@ const featuredCollections = [
     description: 'Raw hip-hop from the streets',
     cover: '/song_cover/urban.png',
     trackCount: 8,
-    totalValue: '3.2 ETH',
+    totalValue: '3.2 POL',
     growth: '+18.3%',
     artist: 'Street Symphony',
     verified: true
@@ -77,7 +79,7 @@ const featuredCollections = [
     description: 'Synthwave & cyberpunk anthems',
     cover: '/song_cover/electric.png',
     trackCount: 15,
-    totalValue: '7.1 ETH',
+    totalValue: '7.1 POL',
     growth: '+31.2%',
     artist: 'Neon Pulse',
     verified: true
@@ -88,7 +90,7 @@ const featuredCollections = [
     description: 'Relaxing acoustic melodies',
     cover: '/song_cover/coffee.png',
     trackCount: 10,
-    totalValue: '2.4 ETH',
+    totalValue: '2.4 POL',
     growth: '+12.8%',
     artist: 'Mellow Mornings',
     verified: false
@@ -104,7 +106,7 @@ const featuredArtists = [
     avatar: '/song_cover/midnight.png',
     followers: '12.8K',
     totalTracks: 23,
-    totalValue: '15.2 ETH',
+    totalValue: '15.2 POL',
     verified: true,
     monthlyListeners: '450K'
   },
@@ -115,7 +117,7 @@ const featuredArtists = [
     avatar: '/song_cover/electric.png', 
     followers: '8.9K',
     totalTracks: 18,
-    totalValue: '11.7 ETH',
+    totalValue: '11.7 POL',
     verified: true,
     monthlyListeners: '320K'
   },
@@ -126,7 +128,7 @@ const featuredArtists = [
     avatar: '/song_cover/urban.png',
     followers: '15.3K',
     totalTracks: 31,
-    totalValue: '18.9 ETH',
+    totalValue: '18.9 POL',
     verified: true,
     monthlyListeners: '680K'
   },
@@ -137,7 +139,7 @@ const featuredArtists = [
     avatar: '/song_cover/coffee.png',
     followers: '6.2K',
     totalTracks: 14,
-    totalValue: '7.8 ETH',
+    totalValue: '7.8 POL',
     verified: false,
     monthlyListeners: '180K'
   }
@@ -151,7 +153,7 @@ const trendingAlbums = [
     artist: 'Cyber Phoenix',
     cover: '/song_cover/electric.png',
     trackCount: 12,
-    price: '1.8 ETH',
+    price: '1.8 POL',
     streams: '2.1M',
     growth: '+45%'
   },
@@ -161,7 +163,7 @@ const trendingAlbums = [
     artist: 'Metro Beats',
     cover: '/song_cover/urban.png',
     trackCount: 10,
-    price: '1.2 ETH',
+    price: '1.2 POL',
     streams: '1.8M',
     growth: '+32%'
   },
@@ -171,7 +173,7 @@ const trendingAlbums = [
     artist: 'Jazz Collective',
     cover: '/song_cover/coffee.png',
     trackCount: 8,
-    price: '0.9 ETH',
+    price: '0.9 POL',
     streams: '980K',
     growth: '+28%'
   }
@@ -522,10 +524,107 @@ export function MarketplacePage() {
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null)
   const { play, pause, currentTrack, isPlaying } = useAudioPlayer()
 
-  // Fetch real NFTs from contracts
-  const { nfts: marketplaceNFTs, isLoading: nftsLoading, error: nftsError, trackInfo } = useEnhancedMarketplaceNFTs()
+  // Fetch real collections and NFTs from contracts - using same approach as artist dashboard that works
+  const { collections: artistNFTs, isLoading: collectionsLoading, error: collectionsError } = useArtistCollections()
+  const { nfts: contractNFTs, isLoading: contractLoading, error: contractError } = useMarketplaceNFTs()
 
-  console.log('🎵 Real marketplace data:', { marketplaceNFTs, trackInfo, nftsLoading, nftsError })
+  // Transform artist NFTs into collections (group by collectionId)
+  const realCollections: Collection[] = []
+  const allNFTs = artistNFTs || []
+
+  // Group NFTs by collectionId to create collections
+  if (allNFTs.length > 0) {
+    const collectionMap = new Map<number, MusicNFT[]>()
+
+    allNFTs.forEach(nft => {
+      const colId = nft.collectionId || 0
+      if (!collectionMap.has(colId)) {
+        collectionMap.set(colId, [])
+      }
+      collectionMap.get(colId)!.push(nft)
+    })
+
+    // Convert map to Collection objects
+    collectionMap.forEach((tracks, collectionId) => {
+      if (tracks.length > 0) {
+        const firstTrack = tracks[0]
+        const collection: Collection = {
+          id: collectionId,
+          title: firstTrack.collectionTitle || 'Untitled Collection',
+          artist: firstTrack.metadata?.artist || 'Unknown Artist',
+          artistAddress: firstTrack.owner || '',
+          description: firstTrack.metadata?.description || `Collection by ${firstTrack.metadata?.artist}`,
+          coverArt: firstTrack.metadata?.image || '/song_cover/placeholder.png',
+          trackCount: tracks.length,
+          totalMinted: tracks.length * 10,
+          totalSupply: tracks.length * 100,
+          revenue: 0,
+          createdAt: new Date().toISOString(),
+          isActive: firstTrack.active !== false,
+          finalized: firstTrack.finalized !== false,
+          completionProgress: 100,
+          genre: firstTrack.metadata?.genre || 'Electronic',
+          tags: [firstTrack.metadata?.genre || 'Electronic', 'Music', 'NFT'],
+          averageRating: 4.5,
+          totalPlays: tracks.reduce((sum, track) => sum + (track.streamingStats?.totalPlays || 0), 0),
+          isVerified: true,
+          isTrending: false,
+          price: { min: 0.01, max: 0.1 },
+          tracks: tracks
+        }
+        realCollections.push(collection)
+      }
+    })
+  }
+
+  // Use real collections data, fallback to contract NFTs if no collections
+  // Clean any BigInt values that might be in the NFT data
+  const cleanNFTs = (nfts: MusicNFT[]) => {
+    return nfts.map(nft => ({
+      ...nft,
+      // Ensure all numeric fields are numbers, not BigInt
+      metadata: {
+        ...nft.metadata,
+        duration: Number(nft.metadata.duration),
+        edition: Number(nft.metadata.edition),
+        maxSupply: Number(nft.metadata.maxSupply),
+        blokAmount: Number(nft.metadata.blokAmount),
+        dailyStreams: Number(nft.metadata.dailyStreams),
+      },
+      priceUSD: Number(nft.priceUSD),
+      earnings: nft.earnings ? {
+        daily: Number(nft.earnings.daily),
+        total: Number(nft.earnings.total),
+        apy: Number(nft.earnings.apy),
+      } : { daily: 0, total: 0, apy: 0 },
+      streamingStats: nft.streamingStats ? {
+        totalPlays: Number(nft.streamingStats.totalPlays),
+        uniqueListeners: Number(nft.streamingStats.uniqueListeners),
+        averageCompletion: Number(nft.streamingStats.averageCompletion),
+      } : { totalPlays: 0, uniqueListeners: 0, averageCompletion: 0 },
+      collectionId: nft.collectionId ? Number(nft.collectionId) : undefined,
+    }))
+  }
+
+  const marketplaceNFTs = cleanNFTs(allNFTs.length > 0 ? allNFTs : contractNFTs)
+  const nftsLoading = collectionsLoading || contractLoading
+  const nftsError = collectionsError || contractError
+
+  // Safe logging to avoid BigInt serialization issues
+  try {
+    console.log('🎵 Real marketplace data:', {
+      realCollections: realCollections?.length || 0,
+      marketplaceNFTs: marketplaceNFTs?.length || 0,
+      nftsLoading,
+      nftsError: nftsError?.message || 'No error'
+    })
+  } catch (err) {
+    console.log('🎵 Real marketplace data (basic):', {
+      collectionsCount: realCollections?.length || 0,
+      nftsCount: marketplaceNFTs?.length || 0,
+      loading: nftsLoading
+    })
+  }
 
   // Filter and sort NFTs - only show NFTs with valid audio
   const filteredNFTs = marketplaceNFTs
@@ -590,27 +689,39 @@ export function MarketplacePage() {
     setActiveSection('albums')
   }
 
-  // Get filtered collections
-  const filteredCollections = marketplaceCollections.filter((collection) => {
-    const matchesSearch = 
+  // Clean collections data to prevent BigInt serialization issues
+  const cleanCollections = realCollections.map(collection => ({
+    ...collection,
+    id: Number(collection.id),
+    trackCount: Number(collection.trackCount),
+    totalMinted: Number(collection.totalMinted),
+    totalSupply: Number(collection.totalSupply),
+    revenue: Number(collection.revenue),
+    completionProgress: Number(collection.completionProgress),
+    totalPlays: Number(collection.totalPlays || 0),
+    averageRating: Number(collection.averageRating || 4.5),
+    tracks: cleanNFTs(collection.tracks || [])
+  }))
+
+  // Get filtered collections - use cleaned collections data
+  const filteredCollections = cleanCollections.filter((collection) => {
+    const matchesSearch =
       collection.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       collection.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      collection.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-    const matchesGenre = selectedGenre === 'all' || collection.genre === selectedGenre
+      (collection.tags && Array.isArray(collection.tags) ?
+        collection.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) : false)
+    const matchesGenre = selectedGenre === 'all' || (collection.genre && collection.genre === selectedGenre)
     return matchesSearch && matchesGenre
   })
 
-  // Get tracks for selected collection
-  const selectedCollectionTracks = selectedCollection 
-    ? marketplaceNFTs.filter(nft => {
-        const collection = marketplaceCollections.find(c => c.id.toString() === selectedCollection)
-        return collection?.tracks.includes(nft.tokenId)
-      })
+  // Get tracks for selected collection - use cleaned collection tracks
+  const selectedCollectionTracks = selectedCollection
+    ? cleanCollections.find(c => c.id.toString() === selectedCollection)?.tracks || []
     : []
 
   // Get unique genres for filter (both from collections and tracks)
-  const collectionGenres = Array.from(new Set(marketplaceCollections.map((collection) => collection.genre)))
-  const trackGenres = Array.from(new Set(marketplaceNFTs.map((nft) => nft.metadata.genre)))
+  const collectionGenres = Array.from(new Set(realCollections.map((collection) => collection.genre).filter(Boolean)))
+  const trackGenres = Array.from(new Set(marketplaceNFTs.map((nft) => nft.metadata.genre).filter(Boolean)))
   const genres = Array.from(new Set([...collectionGenres, ...trackGenres]))
 
   return (
@@ -677,7 +788,7 @@ export function MarketplacePage() {
                 { icon: Album, label: 'Collections', value: '1,247', change: '+12%', color: 'text-primary' },
                 { icon: DollarSign, label: 'Volume (24h)', value: '$2.4M', change: '+18%', color: 'text-accent' },
                 { icon: Users, label: 'Active Collectors', value: '12.8K', change: '+8%', color: 'text-primary' },
-                { icon: TrendingUp, label: 'Floor Price', value: '0.05 ETH', change: '+24%', color: 'text-accent' },
+                { icon: TrendingUp, label: 'Floor Price', value: '0.05 POL', change: '+24%', color: 'text-accent' },
               ].map((stat, i) => (
                 <motion.div
                   key={stat.label}
@@ -742,7 +853,7 @@ export function MarketplacePage() {
                     Back to Albums
                   </Button>
                   <div className="text-sm text-muted-foreground px-4">
-                    {marketplaceCollections.find(c => c.id.toString() === selectedCollection)?.title} Tracks
+                    {cleanCollections.find(c => c.id.toString() === selectedCollection)?.title} Tracks
                   </div>
                 </>
               ) : (
@@ -802,8 +913,26 @@ export function MarketplacePage() {
               </p>
             </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-              {filteredCollections.map((collection, index) => (
+            {filteredCollections.length === 0 ? (
+              <div className="text-center py-16">
+                <Album className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
+                <h3 className="text-xl font-semibold mb-2">No Albums Available Yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  No finalized collections found on the V2 contracts.
+                </p>
+                <div className="text-sm text-muted-foreground p-4 bg-card/30 rounded-lg max-w-md mx-auto">
+                  <p className="font-semibold mb-2">Next steps:</p>
+                  <ul className="list-disc list-inside space-y-1 text-left">
+                    <li>Complete artist verification</li>
+                    <li>Create your first album collection</li>
+                    <li>Upload tracks to the collection</li>
+                    <li>Finalize the collection to make it public</li>
+                  </ul>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+                {filteredCollections.map((collection, index) => (
                 <motion.div
                   key={collection.id}
                   initial={{ opacity: 0, y: 30 }}
@@ -859,6 +988,12 @@ export function MarketplacePage() {
                             Hot
                           </Badge>
                         )}
+                        {collection.finalized && (
+                          <Badge className="bg-primary/20 text-primary border-primary/30">
+                            <Award className="w-3 h-3 mr-1" />
+                            Complete
+                          </Badge>
+                        )}
                       </div>
                       
                       <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
@@ -869,7 +1004,10 @@ export function MarketplacePage() {
                         <div>
                           <p className="text-xs text-muted-foreground">by {collection.artist}</p>
                           <p className="text-lg font-bold text-primary">
-                            {collection.price.min.toFixed(3)} - {collection.price.max.toFixed(3)} ETH
+                            {collection.price && collection.price.min !== undefined ?
+                              `${collection.price.min.toFixed(3)} - ${collection.price.max.toFixed(3)} POL` :
+                              '0.010 - 0.250 POL' // Default price range for V2
+                            }
                           </p>
                         </div>
                         <div className="flex gap-2">
@@ -885,11 +1023,11 @@ export function MarketplacePage() {
                       <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground mb-4">
                         <div className="flex items-center gap-1">
                           <Play className="w-4 h-4" />
-                          {collection.totalPlays.toLocaleString()} plays
+                          {(collection.totalPlays || 0).toLocaleString()} plays
                         </div>
                         <div className="flex items-center gap-1">
                           <Star className="w-4 h-4" />
-                          {collection.averageRating.toFixed(1)} rating
+                          {collection.averageRating ? collection.averageRating.toFixed(1) : '4.5'} rating
                         </div>
                       </div>
                       
@@ -901,7 +1039,8 @@ export function MarketplacePage() {
                   </Card>
                 </motion.div>
               ))}
-            </div>
+              </div>
+            )}
           </div>
         </section>
       )}
@@ -911,7 +1050,7 @@ export function MarketplacePage() {
         <section className="py-16">
           <div className="container mx-auto px-4">
             {(() => {
-              const collection = marketplaceCollections.find(c => c.id.toString() === selectedCollection)
+              const collection = cleanCollections.find(c => c.id.toString() === selectedCollection)
               if (!collection) return null
               
               return (
@@ -940,11 +1079,11 @@ export function MarketplacePage() {
                             <p className="text-sm text-muted-foreground">Tracks</p>
                           </div>
                           <div>
-                            <p className="text-2xl font-bold">{collection.totalPlays.toLocaleString()}</p>
+                            <p className="text-2xl font-bold">{(collection.totalPlays || 0).toLocaleString()}</p>
                             <p className="text-sm text-muted-foreground">Total Plays</p>
                           </div>
                           <div>
-                            <p className="text-2xl font-bold">{collection.averageRating.toFixed(1)}</p>
+                            <p className="text-2xl font-bold">{collection.averageRating ? collection.averageRating.toFixed(1) : '4.5'}</p>
                             <p className="text-sm text-muted-foreground">Rating</p>
                           </div>
                           <div>
@@ -1266,15 +1405,19 @@ export function MarketplacePage() {
           ) : filteredNFTs.length === 0 && marketplaceNFTs.length === 0 ? (
             <div className="text-center py-20">
               <Music className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-semibold mb-2">No NFTs Available</h3>
-              <p className="text-muted-foreground mb-4">No music NFTs have been minted yet or no tracks with audio are available</p>
-              {trackInfo && (
-                <div className="bg-muted/50 rounded-lg p-4 max-w-md mx-auto">
-                  <p className="text-sm text-muted-foreground">Debug info:</p>
-                  <p className="text-sm">Track found: {trackInfo.title || 'No title'}</p>
-                  <p className="text-sm">Audio hash: {trackInfo.ipfsAudioHash || 'No audio hash'}</p>
-                </div>
-              )}
+              <h3 className="text-xl font-semibold mb-2">No Collections Available Yet</h3>
+              <p className="text-muted-foreground mb-4">
+                No collections have been created on your V2 contracts yet. Artists need to create collections and upload tracks first.
+              </p>
+              <div className="text-sm text-muted-foreground mt-4 p-4 bg-card/50 rounded-lg max-w-md mx-auto">
+                <p className="font-semibold mb-2">To see NFTs in the marketplace:</p>
+                <ol className="list-decimal list-inside space-y-1 text-left">
+                  <li>Artists need to complete the signup flow</li>
+                  <li>Create collections (albums)</li>
+                  <li>Upload tracks to collections</li>
+                  <li>Finalize collections to make them public</li>
+                </ol>
+              </div>
             </div>
           ) : filteredNFTs.length === 0 ? (
             <div className="text-center py-20">

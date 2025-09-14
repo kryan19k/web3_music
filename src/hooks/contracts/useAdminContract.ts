@@ -139,16 +139,20 @@ export function useAdminRoleInfo(address?: Address) {
     address: COLLECTION_MUSIC_NFT_ADDRESS,
     abi: COLLECTION_MUSIC_NFT_ABI,
     functionName: 'hasRole',
-    args: address && defaultAdminRole.data ? [defaultAdminRole.data, address] : undefined,
-    query: { enabled: !!address && !!defaultAdminRole.data }
+    args: address && defaultAdminRole.data ? [defaultAdminRole.data as `0x${string}`, address] : undefined,
+    query: { 
+      enabled: !!address && !!defaultAdminRole.data,
+    }
   })
 
   const hasManagerRole = useReadContract({
     address: COLLECTION_MUSIC_NFT_ADDRESS,
     abi: COLLECTION_MUSIC_NFT_ABI,
     functionName: 'hasRole',
-    args: address && managerRole.data ? [managerRole.data, address] : undefined,
-    query: { enabled: !!address && !!managerRole.data }
+    args: address && managerRole.data ? [managerRole.data as `0x${string}`, address] : undefined,
+    query: { 
+      enabled: !!address && !!managerRole.data,
+    }
   })
 
   // Debug admin hasRole calls for comparison

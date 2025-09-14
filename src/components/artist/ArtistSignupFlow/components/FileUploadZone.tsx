@@ -227,8 +227,8 @@ export function FileUploadZone({
       >
         <Card className="max-w-md mx-auto">
           <CardContent className="p-6">
-            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Check className="w-8 h-8 text-green-600" />
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Check className="w-8 h-8 text-primary" />
             </div>
             <h3 className="text-xl font-semibold mb-2">Upload Complete!</h3>
             <p className="text-muted-foreground mb-4">
@@ -270,11 +270,11 @@ export function FileUploadZone({
           <CardContent className="p-12 text-center">
             <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl flex items-center justify-center ${
               type === 'audio' 
-                ? 'bg-purple-100 dark:bg-purple-900/20' 
-                : 'bg-pink-100 dark:bg-pink-900/20'
+                ? 'bg-primary/10' 
+                : 'bg-accent/10'
             }`}>
               <Icon className={`w-8 h-8 ${
-                type === 'audio' ? 'text-purple-600' : 'text-pink-600'
+                type === 'audio' ? 'text-primary' : 'text-accent'
               }`} />
             </div>
             
@@ -284,7 +284,7 @@ export function FileUploadZone({
             </p>
 
             <div className="space-y-4">
-              <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0">
+              <Button className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground border-0">
                 <Upload className="w-4 h-4 mr-2" />
                 Choose File
               </Button>

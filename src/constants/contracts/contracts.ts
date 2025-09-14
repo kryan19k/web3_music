@@ -1,19 +1,30 @@
-import { BLOKTokenAbi, PAGSTokenAbi } from './abis/BLOKToken'
-import { COLLECTION_MUSIC_NFT_ABI, CollectionMusicNFTAbi, MusicNFTAbi, MUSIC_NFT_ABI } from './abis/CollectionMusicNFT'
+// Current V2 ABIs (using consistent naming for frontend compatibility)
+import { BLOKTokenV2Abi as BLOKTokenAbi } from './abis/BLOKTokenV2'
+import { CollectionMusicNFTV2Abi as CollectionMusicNFTAbi, COLLECTION_MUSIC_NFT_V2_ABI as COLLECTION_MUSIC_NFT_ABI } from './abis/CollectionMusicNFTV2'
+import { GrowthStakingAbi } from './abis/GrowthStaking'
+
+// Legacy V1 aliases for backward compatibility
+import { PAGSTokenAbi } from './abis/BLOKToken'
+import { MusicNFTAbi, MUSIC_NFT_ABI } from './abis/CollectionMusicNFT'
 import { CollectionMusicNFTMetadataAbi, MusicNFTMetadataAbi } from './abis/CollectionMusicNFTMetadata'
 
-// Contract addresses per chain - Updated: 2025-09-11T05:30:57.040Z
+// Contract addresses per chain - Updated: 2025-09-12T${new Date().toISOString().split('T')[1]}
 export const CONTRACT_ADDRESSES = {
-  // Polygon Amoy (Testnet) - Collection-based deployment
+  // Polygon Amoy (Testnet) - V2 Collection-based deployment
   80002: {
-    // New collection-based architecture
-    BLOKToken: "0x4a918D667Fab0Ef3F9FFec0D4b1dd4a3855E5301" as const,
-    CollectionMusicNFT: "0x23E685A3EDcfc1d194075B5eaaD76Ea2Bfd195fC" as const,
-    CollectionMusicNFTMetadata: "0x65b230B91614130e6e708802026a67fA607Bf3F7" as const,
+    // Using consistent names for frontend compatibility (pointing to V2 contracts)
+    BLOKToken: "0xDdA792A288ed8560c06afadEbD665F4A5Bf61E0D" as const,
+    CollectionMusicNFT: "0x52eA56B713A7334B10C6936346618501C597C0e7" as const,
+    GrowthStaking: "0x426f6EFd6ef26da67D4EF65D1392e6284cAa4098" as const,
     
     // Legacy aliases for backward compatibility
-    PAGSToken: "0x4a918D667Fab0Ef3F9FFec0D4b1dd4a3855E5301" as const,
-    MusicNFT: "0x23E685A3EDcfc1d194075B5eaaD76Ea2Bfd195fC" as const,
+    PAGSToken: "0xDdA792A288ed8560c06afadEbD665F4A5Bf61E0D" as const,
+    MusicNFT: "0x52eA56B713A7334B10C6936346618501C597C0e7" as const,
+    
+    // V1 Legacy contracts (deprecated - old addresses kept for reference)
+    BLOKTokenV1: "0x4a918D667Fab0Ef3F9FFec0D4b1dd4a3855E5301" as const,
+    CollectionMusicNFTV1: "0x23E685A3EDcfc1d194075B5eaaD76Ea2Bfd195fC" as const,
+    CollectionMusicNFTMetadata: "0x65b230B91614130e6e708802026a67fA607Bf3F7" as const,
     MusicNFTMetadata: "0x65b230B91614130e6e708802026a67fA607Bf3F7" as const,
   },
   
@@ -42,7 +53,7 @@ export function isChainSupported(chainId: number): boolean {
   return chainId in CONTRACT_ADDRESSES
 }
 
-// Collection-based contracts
+// Current contracts (V2 behind the scenes, consistent naming for frontend)
 export const CONTRACTS = {
   BLOKToken: {
     address: CONTRACT_ADDRESSES[80002].BLOKToken,
@@ -52,8 +63,8 @@ export const CONTRACTS = {
     address: CONTRACT_ADDRESSES[80002].CollectionMusicNFT,
     chainId: 80002,
   },
-  CollectionMusicNFTMetadata: {
-    address: CONTRACT_ADDRESSES[80002].CollectionMusicNFTMetadata,
+  GrowthStaking: {
+    address: CONTRACT_ADDRESSES[80002].GrowthStaking,
     chainId: 80002,
   },
 } as const;
@@ -81,15 +92,15 @@ export const NETWORK_INFO = {
   blockExplorer: "https://amoy.polygonscan.com/",
 } as const;
 
-// Individual contract address exports for easier importing
+// Individual contract address exports for easier importing (pointing to V2)
 export const BLOK_TOKEN_ADDRESS = CONTRACTS.BLOKToken.address;
 export const COLLECTION_MUSIC_NFT_ADDRESS = CONTRACTS.CollectionMusicNFT.address;
-export const COLLECTION_MUSIC_NFT_METADATA_ADDRESS = CONTRACTS.CollectionMusicNFTMetadata.address;
+export const GROWTH_STAKING_ADDRESS = CONTRACTS.GrowthStaking.address;
 
 // Legacy address exports for backward compatibility  
 export const PAGS_TOKEN_ADDRESS = BLOK_TOKEN_ADDRESS;
 export const MUSIC_NFT_ADDRESS = COLLECTION_MUSIC_NFT_ADDRESS;
-export const MUSIC_NFT_METADATA_ADDRESS = COLLECTION_MUSIC_NFT_METADATA_ADDRESS;
+export const MUSIC_NFT_METADATA_ADDRESS = COLLECTION_MUSIC_NFT_ADDRESS;
 
 // Contract metadata
 export const CONTRACT_METADATA = {
@@ -137,7 +148,7 @@ export function getContractAddresses(chainId: number) {
   return chainContracts
 }
 
-// Wagmi CLI contracts configuration for collection-based architecture
+// Wagmi CLI contracts configuration for V2 collection-based architecture
 export function getContracts() {
   return [
     {
@@ -151,9 +162,9 @@ export function getContracts() {
       abi: COLLECTION_MUSIC_NFT_ABI,
     },
     {
-      name: 'CollectionMusicNFTMetadata',
-      address: CONTRACTS.CollectionMusicNFTMetadata.address, 
-      abi: CollectionMusicNFTMetadataAbi,
+      name: 'GrowthStaking',
+      address: CONTRACTS.GrowthStaking.address, 
+      abi: GrowthStakingAbi,
     },
   ] as const;
 }

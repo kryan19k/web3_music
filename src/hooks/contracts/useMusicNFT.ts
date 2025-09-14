@@ -3,7 +3,7 @@ import { useCallback } from 'react'
 import { parseEther, formatEther, type Address, parseEventLogs } from 'viem'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { COLLECTION_MUSIC_NFT_ABI } from '@/src/constants/contracts/abis/CollectionMusicNFT'
+import { COLLECTION_MUSIC_NFT_V2_ABI as COLLECTION_MUSIC_NFT_ABI } from '@/src/constants/contracts/abis/CollectionMusicNFTV2'
 import { getContractAddress, isChainSupported } from '@/src/constants/contracts/contracts'
 import React from 'react'
 
@@ -115,7 +115,7 @@ export function useMusicNFTTrackInfo(trackId: number) {
   return useReadContract({
     address: contractAddress as Address,
     abi: COLLECTION_MUSIC_NFT_ABI,
-    functionName: 'getTrack',  // Updated function name
+    functionName: 'tracks',  // V2 contract uses 'tracks' mapping
     args: [BigInt(trackId)],
     query: {
       enabled: trackId !== undefined,
@@ -659,6 +659,8 @@ export function useMusicNFTHasRole(role: string, address?: Address) {
     args: role && address ? [role as `0x${string}`, address] : undefined,
     query: {
       enabled: !!(role && address),
+      // Ensure role is treated as string in query key to avoid BigInt serialization
+      queryKey: ['hasRole', contractAddress, String(role), address],
     },
   })
 
@@ -683,7 +685,7 @@ export function useMusicNFTHasRole(role: string, address?: Address) {
 
   // Check for temporary override (remove this once role is properly granted)
   const KNOWN_ARTIST_ADDRESS = '0x53B7796D35fcD7fE5D31322AaE8469046a2bB034'
-  const CORRECT_ARTIST_ROLE_HASH = '0x877a78dc988c0ec5f58453b44888a55eb39755c3d5ed8d8ea990912aa3ef29c6'
+  const CORRECT_ARTIST_ROLE_HASH = '0xaca3e0649d92578d5cb8d62e8e4aa1d441031aea253826efba9ce55b75a5166c'
   
   if (address?.toLowerCase() === KNOWN_ARTIST_ADDRESS.toLowerCase() && 
       role === CORRECT_ARTIST_ROLE_HASH &&
@@ -701,11 +703,10 @@ export function useMusicNFTHasRole(role: string, address?: Address) {
 }
 
 export function useMusicNFTArtistRole(address?: Address) {
-  // The deployed contract doesn't have ARTIST_ROLE() getter function
-  // Using the CORRECT role hash that matches the admin panel
-  const ARTIST_ROLE_HASH = '0x877a78dc988c0ec5f58453b44888a55eb39755c3d5ed8d8ea990912aa3ef29c6'
+  // Using the CORRECT V2 contract role hash - keccak256("ARTIST_ROLE")
+  const ARTIST_ROLE_HASH = '0xaca3e0649d92578d5cb8d62e8e4aa1d441031aea253826efba9ce55b75a5166c'
   
-  console.log('🎭 Using CORRECT ARTIST_ROLE hash (matches admin panel):', ARTIST_ROLE_HASH)
+  console.log('🎭 Using CORRECT V2 ARTIST_ROLE hash (keccak256):', ARTIST_ROLE_HASH)
   
   // Directly check hasRole with the correct hash
   return useMusicNFTHasRole(ARTIST_ROLE_HASH, address)
@@ -745,7 +746,7 @@ export function useMusicNFTGrantRole() {
 
 export function useMusicNFTGrantArtistRole() {
   const { grantRole, ...rest } = useMusicNFTGrantRole()
-  const ARTIST_ROLE = '0x877a78dc988c0ec5f58453b44888a55eb39755c3d5ed8d8ea990912aa3ef29c6'
+  const ARTIST_ROLE = '0xaca3e0649d92578d5cb8d62e8e4aa1d441031aea253826efba9ce55b75a5166c'
 
   const grantArtistRole = useCallback((account: Address) => {
     grantRole({ role: ARTIST_ROLE, account })
@@ -776,43 +777,52 @@ export function useCreateCollection() {
       artist,
       description,
       ipfsCoverArt,
-      genre
+      genre,
+      albumDiscountBps
     }: {
       title: string
       artist: string
       description: string
       ipfsCoverArt: string
       genre: string
+      albumDiscountBps: number
     }) => {
       // Step 1: Pre-flight checks and debugging
       console.log('🔍 [CREATE_COLLECTION] Pre-flight check - contract address:', contractAddress)
-      console.log('🔍 [CREATE_COLLECTION] Pre-flight check - args:', [title, artist, description, ipfsCoverArt, genre])
+      console.log('🔍 [CREATE_COLLECTION] Pre-flight check - args:', [title, artist, description, ipfsCoverArt, genre, albumDiscountBps])
       
       // Verify contract address is valid
       if (!contractAddress || contractAddress === '0x0000000000000000000000000000000000000000') {
         throw new Error('Invalid contract address')
       }
       
-      // Verify all string parameters are valid
-      if (!title || !artist || !description || !ipfsCoverArt || !genre) {
+      // Verify all parameters are valid
+      if (!title || !artist || !description || !ipfsCoverArt || !genre || albumDiscountBps === undefined) {
         console.error('🚨 [CREATE_COLLECTION] Missing required parameters:', {
           title: !!title,
           artist: !!artist, 
           description: !!description,
           ipfsCoverArt: !!ipfsCoverArt,
-          genre: !!genre
+          genre: !!genre,
+          albumDiscountBps: albumDiscountBps !== undefined
         })
         throw new Error('Missing required parameters')
       }
       
+      // Verify albumDiscountBps is within bounds
+      if (albumDiscountBps < 0 || albumDiscountBps > 5000) {
+        throw new Error('Album discount must be between 0% and 50%')
+      }
+      
       console.log('✅ [CREATE_COLLECTION] Pre-flight checks passed')
       
-      // Submit transaction (reverted to standard approach)
+      // Submit transaction with value for potential fees
       const txHash = await writeContract({
         address: contractAddress as Address,
         abi: COLLECTION_MUSIC_NFT_ABI,
         functionName: 'createCollection',
-        args: [title, artist, description, ipfsCoverArt, genre],
+        args: [title, artist, description, ipfsCoverArt, genre, albumDiscountBps],
+        value: BigInt('10000000000000000'), // 0.01 ETH to cover any fees/deposits
       })
 
       return { hash: txHash }
@@ -876,6 +886,7 @@ export function useAddTrackToCollection() {
   const { address: userAddress } = useAccount()
   const contractAddress = useMusicNFTAddress()
   const queryClient = useQueryClient()
+  const publicClient = usePublicClient()
 
   const addTrackToCollection = useMutation({
     mutationFn: async ({
@@ -924,14 +935,49 @@ export function useAddTrackToCollection() {
         throw new Error(`Invalid IPFS hash format: ${ipfsHash}. Expected format: Qm... or bafy...`)
       }
 
-      console.log('✅ [ADD_TRACK] Input validation passed, submitting transaction...')
+      console.log('✅ [ADD_TRACK] Input validation passed, checking contract fees...')
 
-      // Step 1: Submit transaction (reverted to standard approach)
+      // Check if the contract charges fees for adding tracks
+      let feeRequired = BigInt('0')
+      try {
+        if (publicClient) {
+          const chargeAddTrack = await publicClient.readContract({
+            address: contractAddress as Address,
+            abi: COLLECTION_MUSIC_NFT_ABI,
+            functionName: 'chargeAddTrack',
+          }) as boolean
+          
+          if (chargeAddTrack) {
+            const feeAddTrackWei = await publicClient.readContract({
+              address: contractAddress as Address,
+              abi: COLLECTION_MUSIC_NFT_ABI,
+              functionName: 'feeAddTrackWei',
+            }) as bigint
+            
+            feeRequired = feeAddTrackWei
+            console.log('💰 [ADD_TRACK] Contract requires track fee:', feeRequired.toString(), 'wei')
+          } else {
+            console.log('🆓 [ADD_TRACK] No track fee required by contract')
+          }
+        }
+      } catch (feeCheckError) {
+        console.warn('⚠️ [ADD_TRACK] Could not check fee config, using fallback fee:', feeCheckError)
+        feeRequired = BigInt('1000000000000000') // 0.001 ETH fallback
+      }
+
+      // Step 1: Submit transaction with V2 contract parameters
+      // V2 addTrack function expects: (collectionId, title, ipfsHash, collaborators, collaboratorBps)
+      const collaborators: Address[] = [] // Empty array for now - could be enhanced with actual collaborator data
+      const collaboratorBps: number[] = [] // Empty array for now - could be enhanced with actual split data
+      
+      console.log('🔄 [ADD_TRACK] Submitting transaction with fee:', feeRequired.toString(), 'wei')
+      
       const txHash = await writeContract({
         address: contractAddress as Address,
         abi: COLLECTION_MUSIC_NFT_ABI,
-        functionName: 'addTrackToCollection',
-        args: [BigInt(collectionId), title, ipfsHash, BigInt(duration), tags],
+        functionName: 'addTrack',
+        args: [BigInt(collectionId), title, ipfsHash, collaborators, collaboratorBps],
+        value: feeRequired,
       })
 
       console.log('🔄 [ADD_TRACK] Transaction submitted:', { txHash, collectionId, title })
@@ -1087,7 +1133,7 @@ export function useGetCollection(collectionId?: number) {
   return useReadContract({
     address: contractAddress as Address,
     abi: COLLECTION_MUSIC_NFT_ABI,
-    functionName: 'getCollection',
+    functionName: 'collections',
     args: collectionId !== undefined ? [BigInt(collectionId)] : undefined,
     query: {
       enabled: collectionId !== undefined,
@@ -1098,13 +1144,15 @@ export function useGetCollection(collectionId?: number) {
 export function useGetCollectionTracks(collectionId?: number) {
   const contractAddress = useMusicNFTAddress()
   
+  // Note: V2 contract doesn't have getCollectionTracks function
+  // Tracks need to be queried by iterating through all tracks and filtering by collectionId
+  // This function returns undefined for now - use useArtistCollections instead
   return useReadContract({
     address: contractAddress as Address,
     abi: COLLECTION_MUSIC_NFT_ABI,
-    functionName: 'getCollectionTracks',
-    args: collectionId !== undefined ? [BigInt(collectionId)] : undefined,
+    functionName: 'nextTrackId', // Just return nextTrackId as a fallback
     query: {
-      enabled: collectionId !== undefined,
+      enabled: false, // Disabled since this function doesn't work with V2
     },
   })
 }

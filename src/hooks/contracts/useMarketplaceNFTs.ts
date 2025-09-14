@@ -1,144 +1,138 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { formatEther } from 'viem'
+import { usePublicClient } from 'wagmi'
 import { useMusicNFTAllTiers, useMusicNFTTrackInfo, Tier } from './useMusicNFT'
 import { useMusicNFTTracksSequential } from './useMusicNFTTracks'
 import { useArtistCollections } from './useArtistCollections'
-import { createQueryKey } from '@/src/utils/bigint'
 import { getIPFSUrl } from '@/src/utils/ipfs'
 import { MusicNFT } from '@/src/types/music-nft'
+import { COLLECTION_MUSIC_NFT_V2_ABI } from '@/src/constants/contracts/abis/CollectionMusicNFTV2'
+import { CONTRACTS } from '@/src/constants/contracts/contracts'
 
 /**
  * Hook to fetch real marketplace NFTs from all collections across all artists
- * This fetches ALL finalized and active collections for the marketplace
+ * This fetches ALL finalized and active collections for the marketplace using V2 contracts
  */
 export function useMarketplaceNFTs() {
+  const publicClient = usePublicClient()
+
   const { data: marketplaceNFTs, isLoading: nftsLoading, error } = useQuery({
-    queryKey: createQueryKey('marketplace-nfts-real'),
+    queryKey: ['marketplace-nfts-v2'],
     queryFn: async (): Promise<MusicNFT[]> => {
       try {
-        console.log('🏪 [MARKETPLACE] Fetching all marketplace NFTs from contracts...')
-        
-        // Import the hooks we need inside the query function
-        const { usePublicClient } = await import('wagmi')
-        const { COLLECTION_MUSIC_NFT_ABI } = await import('@/src/constants/contracts/abis/CollectionMusicNFT')
-        const { CONTRACTS } = await import('@/src/constants/contracts/contracts')
-        
-        const client = usePublicClient()
-        if (!client) return []
+        console.log('🏪 [MARKETPLACE] Fetching all marketplace NFTs from V2 contracts...')
+
+        if (!publicClient) {
+          console.warn('⚠️ [MARKETPLACE] No public client available')
+          return []
+        }
 
         const nfts: MusicNFT[] = []
 
-        // Get total number of collections to know the range
-        const nextCollectionId = await client.readContract({
-          address: CONTRACTS.CollectionMusicNFT.address as `0x${string}`,
-          abi: COLLECTION_MUSIC_NFT_ABI,
-          functionName: 'nextCollectionId',
-        }) as bigint
+        // V2 contracts don't have nextCollectionId, so we iterate until we find no more collections
+        console.log('🔍 [MARKETPLACE] Starting V2 collection scan...')
 
-        const totalCollections = Number(nextCollectionId) - 1
-        console.log('🔍 [MARKETPLACE] Total collections to check:', totalCollections)
+        let collectionId = 1
+        const MAX_COLLECTIONS = 100 // Safety limit
 
-        // Iterate through all collection IDs to find active collections
-        for (let collectionId = 1; collectionId <= totalCollections; collectionId++) {
+        // Iterate through collection IDs to find active collections
+        while (collectionId <= MAX_COLLECTIONS) {
           try {
-            // Get collection data
-            const collectionData = await client.readContract({
+            // Get collection data from V2 contract (different structure than V1)
+            const collectionData = await publicClient.readContract({
               address: CONTRACTS.CollectionMusicNFT.address as `0x${string}`,
-              abi: COLLECTION_MUSIC_NFT_ABI,
+              abi: COLLECTION_MUSIC_NFT_V2_ABI,
               functionName: 'collections',
               args: [BigInt(collectionId)],
             }) as readonly [
-              bigint, // collectionId
               string, // title
-              string, // artist
+              string, // artistName
               string, // description
-              string, // ipfsCoverArt
-              string, // ipfsMetadata
-              bigint, // releaseDate
+              string, // coverIpfs
               string, // genre
-              bigint, // totalTracks
-              string, // artistAddress
+              `0x${string}`, // artistOwner
               boolean, // finalized
               boolean, // active
-              bigint, // albumPrice
-              bigint, // albumDiscount
+              number, // albumDiscountBps
             ]
 
-            const finalized = collectionData[10]
-            const active = collectionData[11]
-            
+            // Extract V2 collection data structure
+            const collectionTitle = collectionData[0] // title
+            const artistName = collectionData[1] // artistName
+            const description = collectionData[2] // description
+            const ipfsCoverArt = collectionData[3] // coverIpfs
+            const genre = collectionData[4] // genre
+            const artistAddress = collectionData[5] // artistOwner
+            const finalized = collectionData[6] // finalized
+            const active = collectionData[7] // active
+
             // Only include finalized and active collections in marketplace
             if (!finalized || !active) {
+              collectionId++
               continue
             }
 
-            const collectionTitle = collectionData[1]
-            const artistName = collectionData[2]
-            const description = collectionData[3]
-            const ipfsCoverArt = collectionData[4]
-            const genre = collectionData[7]
-            const releaseDate = new Date(Number(collectionData[6]) * 1000)
-            const artistAddress = collectionData[9]
-
-            console.log('🎯 [MARKETPLACE] Found active collection:', {
+            console.log('🎯 [MARKETPLACE] Found active V2 collection:', {
               id: collectionId,
               title: collectionTitle,
-              artist: artistName,
-              totalTracks: Number(collectionData[8])
+              artist: artistName
             })
 
-            // Get track IDs for this collection
-            const trackIds = await client.readContract({
-              address: CONTRACTS.CollectionMusicNFT.address as `0x${string}`,
-              abi: COLLECTION_MUSIC_NFT_ABI,
-              functionName: 'getCollectionTracks',
-              args: [BigInt(collectionId)],
-            }) as readonly bigint[]
+            // V2 doesn't have getCollectionTracks, so we need to iterate through tracks
+            // and find ones that belong to this collection
+            let trackId = 1
+            const MAX_TRACKS = 50 // Safety limit per collection
 
-            // Add all tracks from this collection to marketplace
-            for (const trackIdBigInt of trackIds) {
-              const trackId = Number(trackIdBigInt)
-              
+            while (trackId <= MAX_TRACKS) {
               try {
-                // Get track data
-                const trackData = await client.readContract({
+                const trackData = await publicClient.readContract({
                   address: CONTRACTS.CollectionMusicNFT.address as `0x${string}`,
-                  abi: COLLECTION_MUSIC_NFT_ABI,
+                  abi: COLLECTION_MUSIC_NFT_V2_ABI,
                   functionName: 'tracks',
                   args: [BigInt(trackId)],
                 }) as readonly [
-                  bigint, // trackId
                   bigint, // collectionId
                   string, // title
                   string, // ipfsHash
-                  bigint, // duration
                   boolean, // active
+                  `0x${string}`, // artist
                 ]
 
+                const trackCollectionId = Number(trackData[0])
+
+                // If this track doesn't belong to our collection, skip it
+                if (trackCollectionId !== collectionId) {
+                  trackId++
+                  continue
+                }
+
                 // Skip inactive tracks
-                if (!trackData[5]) continue
+                if (!trackData[3]) {
+                  trackId++
+                  continue
+                }
 
-                const trackTitle = trackData[2]
-                const ipfsHash = trackData[3]
-                const duration = Number(trackData[4])
+                const trackTitle = trackData[1]
+                const ipfsHash = trackData[2]
+                const duration = 180 // Default duration since V2 doesn't store it in tracks
 
-                // Create marketplace NFT from real contract data
+                // Create marketplace NFT from V2 contract data
                 const nft: MusicNFT = {
-                  tokenId: `marketplace-${collectionId}-${trackId}`,
+                  tokenId: `marketplace-v2-${collectionId}-${trackId}`,
                   tier: 'bronze', // Default tier
                   metadata: {
-                    id: `marketplace-${collectionId}-${trackId}`,
+                    id: `marketplace-v2-${collectionId}-${trackId}`,
                     title: trackTitle || 'Untitled Track',
                     artist: artistName || 'Unknown Artist',
                     image: ipfsCoverArt ? getIPFSUrl(ipfsCoverArt, 'w3s') : '/song_cover/placeholder.png',
                     audioUrl: ipfsHash ? getIPFSUrl(ipfsHash, 'w3s') : '',
-                    duration: duration || 180,
+                    duration: duration,
                     edition: 1,
                     maxSupply: 1000,
                     description: description || `"${trackTitle}" from the album "${collectionTitle}" by ${artistName}`,
                     genre: genre || 'Electronic',
-                    releaseDate: releaseDate.toISOString().split('T')[0],
+                    releaseDate: new Date().toISOString().split('T')[0], // V2 doesn't store release date
                     blokAmount: 100,
                     dailyStreams: Math.floor(Math.random() * 10000),
                     attributes: [
@@ -148,7 +142,6 @@ export function useMarketplaceNFTs() {
                       { trait_type: 'Track ID', value: trackId.toString() },
                       { trait_type: 'Collection ID', value: collectionId.toString() },
                       { trait_type: 'Duration', value: `${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, '0')}` },
-                      { trait_type: 'Release Year', value: releaseDate.getFullYear().toString() },
                     ]
                   },
                   price: '0.01', // Default price
@@ -173,39 +166,41 @@ export function useMarketplaceNFTs() {
                 }
 
                 nfts.push(nft)
+                trackId++
 
               } catch (trackError) {
-                console.error(`❌ [MARKETPLACE] Error fetching track ${trackId}:`, trackError)
+                // No more tracks or track doesn't exist for this trackId
+                break
               }
             }
 
+            collectionId++
+
           } catch (collectionError: any) {
-            // Check if it's a "collection doesn't exist" error
-            if (collectionError?.message?.includes('execution reverted')) {
-              console.log(`📝 [MARKETPLACE] Collection ${collectionId} doesn't exist, stopping search`)
-              break // No more collections exist
-            }
-            console.error(`❌ [MARKETPLACE] Error fetching collection ${collectionId}:`, collectionError)
+            // No more collections exist
+            console.log(`📝 [MARKETPLACE] No more collections found at ID ${collectionId}, stopping search`)
+            break
           }
         }
 
-        console.log('🎯 [MARKETPLACE] Total marketplace NFTs found:', nfts.length)
-        
-        // Sort by release date (newest first) then by collection and track
+        console.log('🎯 [MARKETPLACE] Total V2 marketplace NFTs found:', nfts.length)
+
+        // Sort by collection ID and track ID for consistent ordering
         nfts.sort((a, b) => {
-          const dateA = new Date(a.metadata.releaseDate)
-          const dateB = new Date(b.metadata.releaseDate)
-          return dateB.getTime() - dateA.getTime()
+          if (a.collectionId !== b.collectionId) {
+            return (b.collectionId || 0) - (a.collectionId || 0)
+          }
+          return b.tokenId.localeCompare(a.tokenId)
         })
 
         return nfts
 
       } catch (error) {
-        console.error('💥 [MARKETPLACE] Fatal error fetching marketplace NFTs:', error)
+        console.error('💥 [MARKETPLACE] Fatal error fetching V2 marketplace NFTs:', error)
         return []
       }
     },
-    enabled: true,
+    enabled: !!publicClient,
     staleTime: 30000, // Cache for 30 seconds
     refetchInterval: 120000, // Refetch every 2 minutes (marketplace can be less frequent)
   })
@@ -223,12 +218,12 @@ export function useMarketplaceNFTs() {
  */
 export function useEnhancedMarketplaceNFTs() {
   const { tiers, isLoading: tiersLoading } = useMusicNFTAllTiers()
-  
+
   // Get all available tracks instead of just track 0
   const { tracks: allTracks, isLoading: tracksLoading } = useMusicNFTTracksSequential(20) // Check first 20 track IDs
 
   const { data: marketplaceNFTs, isLoading: nftsLoading, error } = useQuery({
-    queryKey: createQueryKey('enhanced-marketplace-nfts', tiers, allTracks),
+    queryKey: ['enhanced-marketplace-nfts-v2', Object.keys(tiers).length, allTracks?.length || 0],
     queryFn: async (): Promise<MusicNFT[]> => {
       const nfts: MusicNFT[] = []
 
@@ -261,7 +256,7 @@ export function useEnhancedMarketplaceNFTs() {
 
           for (let i = 0; i < Math.min(currentSupply, 10); i++) { // Limit for performance
             const tokenId = (startId + i).toString()
-            
+
             const nft: MusicNFT = {
               tokenId,
               tier: tierName.toLowerCase() as any,
@@ -327,7 +322,7 @@ export function useEnhancedMarketplaceNFTs() {
 function getTierName(tier: Tier): string {
   switch (tier) {
     case Tier.BRONZE: return 'Bronze'
-    case Tier.SILVER: return 'Silver' 
+    case Tier.SILVER: return 'Silver'
     case Tier.GOLD: return 'Gold'
     case Tier.PLATINUM: return 'Platinum'
     default: return 'Unknown'

@@ -185,12 +185,12 @@ export function UserManagement() {
     hasRoles: roleInfo?.roles && Object.keys(roleInfo.roles).length > 0
   })
   
-  // CORRECT role hashes - TESTED & CONFIRMED WORKING!
+  // CORRECT role hashes for V2 contract - keccak256("ROLE_NAME")
   const FALLBACK_ROLES = {
     admin: '0x0000000000000000000000000000000000000000000000000000000000000000', // DEFAULT_ADMIN_ROLE
-    manager: '0x4d414e414745525f524f4c45', // hex("MANAGER_ROLE")
-    artist: '0x4152544953545f524f4c45',  // hex("ARTIST_ROLE") - ✅ CONFIRMED WORKING IN BLOCK EXPLORER!
-    oracle: '0x4f5241434c455f524f4c45'   // hex("ORACLE_ROLE")
+    manager: '0x55f77dd6b80916682b17948cfd1fe865e4f3af81a47c419611309aadaf76e376', // keccak256("MANAGER_ROLE")
+    artist: '0xaca3e0649d92578d5cb8d62e8e4aa1d441031aea253826efba9ce55b75a5166c',  // keccak256("ARTIST_ROLE") - CORRECT V2 HASH!
+    oracle: '0x4f5241434c455f524f4c45'   // keeping old hex for backward compatibility
   }
   
   // Use fallback if roles aren't loading

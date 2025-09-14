@@ -7,11 +7,13 @@ interface PinataConfig {
   apiKey: string
   apiSecret: string
   jwt?: string
+  groupId?: string
 }
 
 const PINATA_CONFIG: PinataConfig = {
   apiKey: import.meta.env.PINATA_API_KEY || '756a7569af39b6d04bf2',
   apiSecret: import.meta.env.PINATA_API_SECRET || '71561bb62cdd9ccb9b613d7facdefcdd1a56d697a95a0f9ba7d0b15945dceda6',
+  groupId: import.meta.env.VITE_PINATA_GROUP_ID || '9a0b881b-7b06-4a2c-97fd-5618049a181c',
 }
 
 export interface PinataUploadResult {
@@ -29,6 +31,7 @@ export async function uploadToPinata(
   options: {
     name?: string
     keyvalues?: Record<string, string | number>
+    groupId?: string
   } = {}
 ): Promise<PinataUploadResult> {
   console.log('📤 [PINATA] Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type)
@@ -49,8 +52,10 @@ export async function uploadToPinata(
   formData.append('pinataMetadata', metadata)
 
   // Pin options
+  const groupId = options.groupId || PINATA_CONFIG.groupId
   const pinOptions = JSON.stringify({
     cidVersion: 1, // Use CIDv1 for better compatibility
+    ...(groupId && { groupId }), // Include group ID if available
   })
   formData.append('pinataOptions', pinOptions)
 
@@ -84,7 +89,7 @@ export async function uploadToPinata(
 /**
  * Upload audio file specifically with audio-optimized settings
  */
-export async function uploadAudioToPinata(file: File, trackTitle?: string): Promise<string> {
+export async function uploadAudioToPinata(file: File, trackTitle?: string, groupId?: string): Promise<string> {
   console.log('🎵 [PINATA] Uploading audio file:', file.name)
 
   if (!file.type.startsWith('audio/')) {
@@ -97,11 +102,12 @@ export async function uploadAudioToPinata(file: File, trackTitle?: string): Prom
       contentType: 'audio',
       trackTitle: trackTitle || 'Untitled',
       uploadType: 'music-track'
-    }
+    },
+    groupId
   })
 
   // Return the IPFS hash for immediate use
-  const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${result.IpfsHash}`
+  const ipfsUrl = `https://fuchsia-alternative-lobster-849.mypinata.cloud/ipfs/${result.IpfsHash}`
   console.log('🎵 [PINATA] Audio URL:', ipfsUrl)
   return result.IpfsHash
 }
@@ -109,7 +115,7 @@ export async function uploadAudioToPinata(file: File, trackTitle?: string): Prom
 /**
  * Upload image/cover art with image-optimized settings
  */
-export async function uploadImageToPinata(file: File, albumTitle?: string): Promise<string> {
+export async function uploadImageToPinata(file: File, albumTitle?: string, groupId?: string): Promise<string> {
   console.log('🖼️ [PINATA] Uploading image file:', file.name)
 
   if (!file.type.startsWith('image/')) {
@@ -122,11 +128,12 @@ export async function uploadImageToPinata(file: File, albumTitle?: string): Prom
       contentType: 'image',
       albumTitle: albumTitle || 'Untitled Album',
       uploadType: 'album-cover'
-    }
+    },
+    groupId
   })
 
   // Return the IPFS hash for immediate use
-  const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${result.IpfsHash}`
+  const ipfsUrl = `https://fuchsia-alternative-lobster-849.mypinata.cloud/ipfs/${result.IpfsHash}`
   console.log('🖼️ [PINATA] Image URL:', ipfsUrl)
   return result.IpfsHash
 }
@@ -135,7 +142,72 @@ export async function uploadImageToPinata(file: File, albumTitle?: string): Prom
  * Get Pinata gateway URL for an IPFS hash
  */
 export function getPinataUrl(ipfsHash: string): string {
-  return `https://gateway.pinata.cloud/ipfs/${ipfsHash}`
+  return `https://fuchsia-alternative-lobster-849.mypinata.cloud/ipfs/${ipfsHash}`
+}
+
+/**
+ * Get Pinata group gateway base URL for metadata URIs
+ */
+export function getPinataGroupBaseUrl(groupId?: string): string {
+  const id = groupId || PINATA_CONFIG.groupId
+  return `https://fuchsia-alternative-lobster-849.mypinata.cloud/files/${id}/`
+}
+
+/**
+ * Upload NFT metadata JSON to Pinata
+ */
+export async function uploadMetadataToPinata(metadata: {
+  name: string
+  description: string
+  image: string
+  animation_url?: string
+  attributes?: Array<{ trait_type: string; value: string | number }>
+  external_url?: string
+}, tokenId?: string, groupId?: string): Promise<string> {
+  console.log('📋 [PINATA] Uploading metadata JSON:', metadata.name)
+
+  const jsonContent = JSON.stringify(metadata, null, 2)
+  const jsonBlob = new Blob([jsonContent], { type: 'application/json' })
+  const jsonFile = new File([jsonBlob], `${tokenId || 'metadata'}.json`, { type: 'application/json' })
+
+  const result = await uploadToPinata(jsonFile, {
+    name: `${metadata.name}_metadata.json`,
+    keyvalues: {
+      contentType: 'metadata',
+      tokenId: tokenId || 'unknown',
+      uploadType: 'nft-metadata'
+    },
+    groupId
+  })
+
+  const metadataUrl = `https://fuchsia-alternative-lobster-849.mypinata.cloud/ipfs/${result.IpfsHash}`
+  console.log('📋 [PINATA] Metadata URL:', metadataUrl)
+  return result.IpfsHash
+}
+
+/**
+ * Upload track-specific image (different from album art)
+ */
+export async function uploadTrackImageToPinata(file: File, trackTitle?: string, groupId?: string): Promise<string> {
+  console.log('🖼️ [PINATA] Uploading track image file:', file.name)
+
+  if (!file.type.startsWith('image/')) {
+    throw new Error('File is not an image file')
+  }
+
+  const result = await uploadToPinata(file, {
+    name: trackTitle ? `${trackTitle}_track.${file.name.split('.').pop()}` : file.name,
+    keyvalues: {
+      contentType: 'image',
+      trackTitle: trackTitle || 'Untitled Track',
+      uploadType: 'track-image'
+    },
+    groupId
+  })
+
+  const ipfsUrl = `https://fuchsia-alternative-lobster-849.mypinata.cloud/ipfs/${result.IpfsHash}`
+  console.log('🖼️ [PINATA] Track Image URL:', ipfsUrl)
+  return result.IpfsHash
 }
 
 /**

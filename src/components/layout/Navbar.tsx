@@ -55,7 +55,7 @@ export function Navbar() {
       animate={{ y: 0 }}
       transition={{ duration: 0.6 }}
     >
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+      <div className=" container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link
           to="/"
@@ -67,7 +67,7 @@ export function Navbar() {
             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
           >
             <div className="flex items-center gap-3">
-              {/* Round Logo */}
+              {/* Round Logo 
               <div className="relative">
                 <img
                   src="/logogray.png"
@@ -84,7 +84,7 @@ export function Navbar() {
                   className="hidden dark:block dim:block"
                 />
                 
-              </div>
+              </div>*/}
               
               {/* Text Logo */}
               <div>
@@ -211,7 +211,7 @@ export function Navbar() {
                         <div className="text-sm font-medium leading-none">Dashboard</div>
                       </div>
                       <p className="text-sm leading-snug text-muted-foreground">
-                        View your PAGS balance and earnings
+                        View your BLOK balance and earnings
                       </p>
                     </Link>
                   </NavigationMenuLink>
@@ -222,7 +222,7 @@ export function Navbar() {
                     >
                       <div className="text-sm font-medium leading-none">Swap Tokens</div>
                       <p className="text-sm leading-snug text-muted-foreground">
-                        Exchange PAGS for other tokens
+                        Exchange BLOK for other tokens
                       </p>
                     </Link>
                   </NavigationMenuLink>
@@ -233,7 +233,7 @@ export function Navbar() {
                     >
                       <div className="text-sm font-medium leading-none">Stake & Earn</div>
                       <p className="text-sm leading-snug text-muted-foreground">
-                        Lock PAGS tokens to earn rewards
+                        Lock BLOK tokens to earn rewards
                       </p>
                     </Link>
                   </NavigationMenuLink>
@@ -302,7 +302,7 @@ export function Navbar() {
                 <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
                   <Music className="w-4 h-4 text-white" />
                 </div>
-                <span className="font-bold text-lg gradient-text">Pags Music</span>
+                <span className="font-bold text-lg gradient-text">BLOK Music</span>
               </div>
 
               <Link

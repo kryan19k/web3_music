@@ -1,8 +1,4 @@
-// Auto-generated ABI for CollectionMusicNFT contract
-// Generated on: 2025-09-11T05:30:57.040Z
-// Contract: contracts/CollectionMusicNFT.sol:CollectionMusicNFT
-
-export const COLLECTION_MUSIC_NFT_ABI = [
+export const CollectionMusicNFTV2Abi = [
   {
     "inputs": [
       {
@@ -2052,7 +2048,4 @@ export const COLLECTION_MUSIC_NFT_ABI = [
   }
 ] as const
 
-// Alternative export names for backward compatibility
-export const CollectionMusicNFTAbi = COLLECTION_MUSIC_NFT_ABI;
-export const MusicNFTAbi = COLLECTION_MUSIC_NFT_ABI;
-export const MUSIC_NFT_ABI = COLLECTION_MUSIC_NFT_ABI;
+export const COLLECTION_MUSIC_NFT_V2_ABI = CollectionMusicNFTV2Abi

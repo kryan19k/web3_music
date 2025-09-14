@@ -7,7 +7,7 @@ import {
   useMusicNFTArtistRole
 } from './useMusicNFT'
 import { useBLOKBalance } from './useBLOKToken'
-import { createQueryKey } from '@/src/utils/bigint'
+import { createQueryKey, serializeBigInts } from '@/src/utils/bigint'
 import type { MusicNFT } from '@/src/types/music-nft'
 
 export interface ArtistStats {
@@ -55,7 +55,7 @@ export function useArtistData(artistAddress?: string) {
 
   // Aggregate all data
   const { data: artistStats, isLoading: aggregateLoading } = useQuery({
-    queryKey: createQueryKey('artist-data', targetAddress, hasArtistRole, blokBalance, trackInfo),
+    queryKey: createQueryKey('artist-data', targetAddress, !!hasArtistRole, blokBalance?.toString(), trackInfo ? JSON.stringify(serializeBigInts(trackInfo)) : null),
     queryFn: async (): Promise<ArtistStats> => {
       // Get BLOK token balance
       const blokTokenBalance = blokBalance ? Number(formatEther(blokBalance)) : 0
@@ -113,7 +113,7 @@ export function useArtistNFTs(artistAddress?: string) {
   const { data: trackInfo } = useMusicNFTTrackInfo(0)
 
   const { data: artistNFTs, isLoading: nftsLoading, refetch } = useQuery({
-    queryKey: createQueryKey('artist-nfts', targetAddress, tiers, trackInfo),
+    queryKey: createQueryKey('artist-nfts', targetAddress, tiers ? serializeBigInts(tiers) : null, trackInfo ? serializeBigInts(trackInfo) : null),
     queryFn: async (): Promise<MusicNFT[]> => {
       const nfts: MusicNFT[] = []
 

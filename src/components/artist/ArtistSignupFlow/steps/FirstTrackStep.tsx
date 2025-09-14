@@ -319,7 +319,7 @@ export function FirstTrackStep() {
                   onClick={() => {
                     // Complete the main onboarding flow
                     completeOnboarding()
-                    toast.success('🎉 Welcome to PAGS!', {
+                    toast.success('🎉 Welcome to Blockify!', {
                       description: 'Your artist profile is complete. Start earning from your music!'
                     })
                   }}

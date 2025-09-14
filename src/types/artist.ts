@@ -59,6 +59,13 @@ export interface TrackMetadata {
   
   // NFT Configuration
   tiers: TrackTierConfig[]
+  trackConfig?: {
+    price: string
+    maxSupply: number
+    royaltyPercentage: number
+    perks?: string
+    description?: string
+  }
 }
 
 export interface CollaboratorInfo {
